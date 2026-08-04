@@ -1,0 +1,132 @@
+# BeFluencer Reports
+
+## Project Overview
+
+BeFluencer Reports is an internal analytics platform for TikTok music marketing campaigns.
+
+The goal is to automate campaign reporting and eliminate manual reporting workflows.
+
+This is NOT a generic dashboard template.
+
+This is a specialized analytics system for:
+
+- Music promotion campaigns
+- TikTok creators
+- Campaign performance tracking
+- Report generation
+- Client reporting
+- Creator analytics
+
+---
+
+## Primary User
+
+Agency owner and campaign manager.
+
+The system is designed for internal use first.
+
+Speed and usability are more important than multi-user SaaS features.
+
+---
+
+## Tech Stack
+
+- Next.js 15
+- TypeScript
+- Tailwind CSS v4
+- shadcn/ui
+- Supabase
+- Recharts
+- Framer Motion
+
+---
+
+## Design Principles
+
+Inspired by:
+
+- Linear
+- Vercel
+- Raycast
+- Stripe
+
+Requirements:
+
+- Dark mode first
+- Premium feeling
+- Minimal design
+- Large spacing
+- Clean typography
+- No unnecessary colors
+- Professional analytics look
+
+---
+
+## Development Rules
+
+- Use TypeScript everywhere
+- Prefer Server Components
+- Create reusable components
+- Avoid duplicate code
+- Keep files small and maintainable
+- Use meaningful names
+- Do not create large monolithic components
+- Extract logic into hooks and utilities when needed
+
+---
+
+## Folder Structure
+
+components/
+features/
+lib/
+hooks/
+types/
+app/
+
+Keep structure organized.
+
+---
+
+## Product Vision
+
+A campaign should be created once.
+
+The system should then:
+
+1. Store campaign data
+2. Store creator data
+3. Store video links
+4. Track performance
+5. Generate reports
+6. Produce insights automatically
+
+The goal is reducing manual work as much as possible.
+
+---
+
+## UI Philosophy
+
+Data should be understandable in less than 10 seconds.
+
+Every screen should answer:
+
+- What is happening?
+- What is growing?
+- What needs attention?
+
+Avoid clutter.
+
+Focus on clarity.
+
+---
+
+## Important
+
+Before implementing any feature:
+
+1. Create a plan
+2. Explain architecture
+3. Then write code
+
+Never jump directly into implementation.
