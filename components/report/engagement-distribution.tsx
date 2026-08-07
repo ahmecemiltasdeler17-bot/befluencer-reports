@@ -88,6 +88,21 @@ export function EngagementDistribution({
   const totalEngagement = data.reduce((sum, item) => sum + item.value, 0);
   const engagementRate = kpis.find((kpi) => kpi.id === "engagement-rate");
 
+  if (totalEngagement <= 0) {
+    return (
+      <section aria-label="Etkileşim dağılımı" className="w-full">
+        <h3 className="text-[11px] font-medium tracking-[0.24em] text-zinc-500 uppercase">
+          Etkileşim Dağılımı
+        </h3>
+        <div className="mt-8 rounded-xl border border-white/[0.06] px-6 py-12 text-center">
+          <p className="text-sm text-zinc-500">
+            Etkileşim verisi henüz kaydedilmedi.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section aria-label="Etkileşim dağılımı" className="w-full">
       <h3 className="text-[11px] font-medium tracking-[0.24em] text-zinc-500 uppercase">

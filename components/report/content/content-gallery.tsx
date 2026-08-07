@@ -1,47 +1,93 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import { CREATOR_CATEGORY_LABELS } from "@/lib/content-helpers";
+import { ReportSection } from "@/components/report/report-section";
 import type { CreatorCategory, KpiMetric, Video } from "@/lib/types";
 
 import { ContentCategoryGroup } from "./content-category-group";
 
-type SortOption = "views" | "engagement" | "date";
+type SortOption = "views" | "engagement" | "published";
 
 const SORT_LABELS: Record<SortOption, string> = {
   views: "İzlenme",
   engagement: "Etkileşim Oranı",
-  date: "Yayın Tarihi",
+  published: "Yayın Tarihi",
 };
 
-const CATEGORY_ORDER: CreatorCategory[] = ["macro", "micro", "template"];
+const SORT_PARAM_MAP: Record<SortOption, string> = {
+  views: "views",
+  engagement: "engagement",
+  published: "date",
+};
+
+const CATEGORY_ORDER: CreatorCategory[] = [
+  "mega",
+  "macro",
+  "micro",
+  "nano",
+  "template",
+  "uncategorized",
+];
 
 interface ContentGalleryProps {
   videos: Video[];
   kpis: KpiMetric[];
+  initialSort?: SortOption;
+  persistSortInUrl?: boolean;
+}
+
+function parseSortParam(value: string | null): SortOption {
+  if (value === "engagement" || value === "published" || value === "date") {
+    return value === "date" ? "published" : value;
+  }
+
+  return "views";
 }
 
 function sortVideos(videos: Video[], sortBy: SortOption): Video[] {
   const sorted = [...videos];
 
-  switch (sortBy) {
-    case "engagement":
-      return sorted.sort((a, b) => b.engagementRate - a.engagementRate);
-    case "date":
-      return sorted.sort(
-        (a, b) =>
-          new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-      );
-    default:
-      return sorted.sort((a, b) => b.views - a.views);
-  }
+  sorted.sort((left, right) => {
+    const leftHasMetrics = left.hasMetrics !== false;
+    const rightHasMetrics = right.hasMetrics !== false;
+
+    if (leftHasMetrics !== rightHasMetrics) {
+      return leftHasMetrics ? -1 : 1;
+    }
+
+    switch (sortBy) {
+      case "engagement":
+        return right.engagementRate - left.engagementRate;
+      case "published":
+        return (
+          new Date(right.publishedAt).getTime() -
+          new Date(left.publishedAt).getTime()
+        );
+      default:
+        return right.views - left.views;
+    }
+  });
+
+  return sorted;
 }
 
-export function ContentGallery({ videos, kpis }: ContentGalleryProps) {
-  const [sortBy, setSortBy] = useState<SortOption>("views");
+export function ContentGallery({
+  videos,
+  kpis,
+  initialSort = "views",
+  persistSortInUrl = true,
+}: ContentGalleryProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [localSort, setLocalSort] = useState<SortOption>(initialSort);
+  const sortBy = persistSortInUrl
+    ? parseSortParam(searchParams.get("sort") ?? initialSort)
+    : localSort;
   const campaignAverageEngagement =
-    kpis.find((kpi) => kpi.id === "engagement-rate")?.value ?? 7.2;
+    kpis.find((kpi) => kpi.id === "engagement-rate")?.value ?? 0;
 
   const sortedVideos = useMemo(
     () => sortVideos(videos, sortBy),
@@ -55,26 +101,54 @@ export function ContentGallery({ videos, kpis }: ContentGalleryProps) {
     }));
   }, [sortedVideos]);
 
-  return (
-    <section aria-label="Tüm içerikler" className="mt-24 pb-16">
-      <div className="flex flex-col gap-4 min-[800px]:flex-row min-[800px]:items-end min-[800px]:justify-between">
-        <div>
-          <h2 className="text-[28px] font-semibold tracking-tight text-white min-[1100px]:text-[32px]">
-            Paylaşım Yapmış İçerik Üreticileri
-          </h2>
-          <p className="mt-2 text-base text-zinc-400">
-            {videos.length} içerik ·{" "}
-            {Object.values(CREATOR_CATEGORY_LABELS).length} kategori
-          </p>
-        </div>
+  function handleSortChange(nextSort: SortOption) {
+    if (persistSortInUrl) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("sort", SORT_PARAM_MAP[nextSort]);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      return;
+    }
 
+    setLocalSort(nextSort);
+  }
+
+  const populatedCategories = groupedVideos.filter(
+    (group) => group.videos.length > 0
+  ).length;
+
+  if (videos.length === 0) {
+    return (
+      <ReportSection
+        id="videos"
+        eyebrow="İçerikler"
+        title="Video Performansı"
+        description="Kampanyadaki tüm videolar."
+        className="pb-8"
+      >
+        <p className="text-sm text-zinc-500">
+          Bu kampanyada henüz yayında video yok.
+        </p>
+      </ReportSection>
+    );
+  }
+
+  return (
+    <ReportSection
+      id="videos"
+      eyebrow="İçerikler"
+      title="Video Performansı"
+      description={`${videos.length} içerik · ${populatedCategories} kategori`}
+      className="pb-8"
+      aside={
         <label className="flex items-center gap-3 text-sm text-zinc-400">
           <span className="text-[10px] tracking-[0.18em] uppercase">
             Sırala
           </span>
           <select
             value={sortBy}
-            onChange={(event) => setSortBy(event.target.value as SortOption)}
+            onChange={(event) =>
+              handleSortChange(event.target.value as SortOption)
+            }
             className="rounded-lg border border-white/10 bg-transparent px-3 py-2 text-sm text-white outline-none focus:border-white/20"
           >
             {(Object.keys(SORT_LABELS) as SortOption[]).map((option) => (
@@ -88,9 +162,9 @@ export function ContentGallery({ videos, kpis }: ContentGalleryProps) {
             ))}
           </select>
         </label>
-      </div>
-
-      <div className="mt-12 space-y-14">
+      }
+    >
+      <div className="space-y-12">
         {groupedVideos.map(({ category, videos: categoryVideos }) => (
           <ContentCategoryGroup
             key={category}
@@ -100,6 +174,6 @@ export function ContentGallery({ videos, kpis }: ContentGalleryProps) {
           />
         ))}
       </div>
-    </section>
+    </ReportSection>
   );
 }

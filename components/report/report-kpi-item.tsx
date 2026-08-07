@@ -1,6 +1,8 @@
+import type { ReactNode } from "react";
+
 interface ReportKpiItemProps {
   label: string;
-  value: string;
+  value: ReactNode;
   hint?: string;
 }
 

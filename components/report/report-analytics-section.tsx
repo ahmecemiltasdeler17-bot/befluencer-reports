@@ -1,4 +1,5 @@
-import type { Creator, DashboardData } from "@/lib/types";
+import { ReportSection } from "@/components/report/report-section";
+import type { DashboardData } from "@/lib/types";
 
 import { CreatorContributionList } from "./creator-contribution-list";
 import { EngagementDistribution } from "./engagement-distribution";
@@ -9,20 +10,44 @@ interface ReportAnalyticsSectionProps {
     DashboardData,
     "growth" | "trend" | "creators" | "kpis" | "videos" | "totalReach"
   >;
+  hasTimeline?: boolean;
 }
 
-export function ReportAnalyticsSection({ data }: ReportAnalyticsSectionProps) {
+export function ReportAnalyticsSection({
+  data,
+  hasTimeline = true,
+}: ReportAnalyticsSectionProps) {
   return (
-    <div className="mt-24 w-full">
-      <PerformanceTrendSection growth={data.growth} trend={data.trend} />
-
-      <div className="mt-20 grid grid-cols-1 gap-16 min-[1000px]:grid-cols-[minmax(0,65%)_minmax(0,35%)] min-[1000px]:gap-12">
-        <CreatorContributionList
-          creators={data.creators}
-          totalReach={data.totalReach.value}
+    <div className="w-full">
+      <ReportSection
+        id="performance"
+        eyebrow="Performans"
+        title="Performans Trendi"
+        description="Kampanya başlangıcından itibaren kümülatif izlenme."
+      >
+        <PerformanceTrendSection
+          growth={data.growth}
+          trend={data.trend}
+          hasTimeline={hasTimeline}
+          hideHeading
         />
-        <EngagementDistribution videos={data.videos} kpis={data.kpis} />
-      </div>
+      </ReportSection>
+
+      <ReportSection
+        id="distribution"
+        eyebrow="Dağılım"
+        title="Erişim ve Etkileşim"
+        description="İçerik üreticisi katkıları ile etkileşim bileşenlerinin dağılımı."
+        contentClassName="mt-6"
+      >
+        <div className="grid grid-cols-1 gap-12 min-[1000px]:grid-cols-[minmax(0,65%)_minmax(0,35%)] min-[1000px]:gap-10">
+          <CreatorContributionList
+            creators={data.creators}
+            totalReach={data.totalReach.value}
+          />
+          <EngagementDistribution videos={data.videos} kpis={data.kpis} />
+        </div>
+      </ReportSection>
     </div>
   );
 }

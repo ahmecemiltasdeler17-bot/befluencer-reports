@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BeFluencer Reports
 
-## Getting Started
+Internal management and reporting platform for BeFluencer (TikTok music campaigns).
 
-First, run the development server:
+This repository is **not** the public corporate website.
+
+## Platform surfaces
+
+| Surface | Origin (production) | Notes |
+|---------|---------------------|--------|
+| Management app | `https://app.befluencer.co` | This repo — authenticated |
+| Public reports | `https://reports.befluencer.co` | Same deployment initially — `/r/<token>` |
+| Public creator lists | `https://reports.befluencer.co` | `/lists/<token>` (live public creator fields) |
+| Corporate site | `https://befluencer.co` | **Separate** future Next.js project |
+
+See [docs/platform-architecture.md](./docs/platform-architecture.md) and
+[docs/domain-and-deployment.md](./docs/domain-and-deployment.md).
+
+## Getting started
+
+```bash
+npm install
+cp .env.example .env.local
+# fill Supabase + APP_URL (and optional PUBLIC_REPORT_URL)
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). Sign in via Supabase Auth.
+
+### Local origin example
+
+```bash
+APP_URL=http://localhost:3000
+PUBLIC_REPORT_URL=http://localhost:3000
+MARKETING_SITE_URL=http://localhost:3001
+```
+
+### Production origin example (management Vercel project)
+
+```bash
+APP_URL=https://app.befluencer.co
+PUBLIC_REPORT_URL=https://reports.befluencer.co
+MARKETING_SITE_URL=https://befluencer.co
+```
+
+Do not put `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, or `APIFY_API_TOKEN` in
+`NEXT_PUBLIC_*` variables.
+
+## Scripts
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm run start
+npm run lint
+npx tsc --noEmit
+npx tsx --test features/**/*.test.ts lib/**/*.test.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Documentation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Admin dashboard](./docs/admin-dashboard.md)
+- [Creator list builder](./docs/creator-list-builder.md)
+- [Public report sharing](./docs/public-report-sharing.md)
+- [PDF export](./docs/pdf-export.md)
+- [Roadmap](./docs/roadmap.md)

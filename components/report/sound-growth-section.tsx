@@ -18,6 +18,7 @@ import type { SoundGrowth } from "@/lib/types";
 
 interface SoundGrowthSectionProps {
   data: SoundGrowth;
+  hasTimeline?: boolean;
 }
 
 function ChartTooltip({
@@ -57,7 +58,15 @@ function SoundWaveform({ seed }: { seed: string }) {
   );
 }
 
-export function SoundGrowthSection({ data }: SoundGrowthSectionProps) {
+export function SoundGrowthSection({
+  data,
+  hasTimeline = true,
+}: SoundGrowthSectionProps) {
+  // No large empty shell when sound timeline is unavailable.
+  if (!hasTimeline || data.timeline.length < 2) {
+    return null;
+  }
+
   const chartData = data.timeline.map((point) => ({
     ...point,
     label: formatTurkishChartDate(point.date),
@@ -70,22 +79,28 @@ export function SoundGrowthSection({ data }: SoundGrowthSectionProps) {
   const currentPoint = chartData[chartData.length - 1];
 
   return (
-    <section aria-label="Ses kullanım büyümesi" className="mt-24">
+    <section
+      aria-label="Ses kullanım büyümesi"
+      className="pdf-section report-section mt-16 min-[1100px]:mt-20"
+    >
       <div className="flex flex-col gap-8 min-[800px]:flex-row min-[800px]:items-end min-[800px]:justify-between">
         <div className="max-w-2xl">
-          <h2 className="text-[28px] font-semibold tracking-tight text-white min-[1100px]:text-[32px]">
-            Ses Kullanım Büyümesi
+          <p className="text-[11px] font-medium tracking-[0.2em] text-zinc-500 uppercase">
+            Ses
+          </p>
+          <h2 className="mt-2 text-[24px] font-semibold tracking-tight text-white min-[1100px]:text-[28px]">
+            Ses Performansı
           </h2>
-          <p className="mt-2 text-base text-zinc-400">
-            TikTok üzerinde ses kullanımının kampanya boyunca gelişimi
+          <p className="mt-2 text-sm text-zinc-400 min-[1100px]:text-base">
+            TikTok üzerinde ses kullanımının kampanya boyunca gelişimi.
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-8 min-[800px]:gap-10">
+        <div className="grid grid-cols-3 gap-6 min-[800px]:gap-8">
           <MetricBlock
             label="Büyüme"
             value={`×${data.multiplier.toFixed(1).replace(".", ",")}`}
-            valueClassName="text-[#FF5A00]"
+            valueClassName="text-zinc-100"
           />
           <MetricBlock
             label="Güncel Kullanım"
@@ -100,11 +115,15 @@ export function SoundGrowthSection({ data }: SoundGrowthSectionProps) {
         </div>
       </div>
 
-      <div className="mt-8 flex flex-col gap-3 min-[800px]:flex-row min-[800px]:items-center min-[800px]:justify-between">
-        <div>
-          <p className="text-sm font-medium text-white">{data.soundName}</p>
+      <div className="mt-8 flex flex-col gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-4 min-[800px]:flex-row min-[800px]:items-center min-[800px]:justify-between">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-white">
+            {data.soundName}
+          </p>
           <p className="mt-1 text-xs tracking-wide text-zinc-500 uppercase">
-            TikTok · Resmi Ses
+            {data.soundAuthor
+              ? `${data.soundAuthor} · TikTok ses`
+              : "TikTok ses"}
           </p>
         </div>
         <div className="max-w-md flex-1">
@@ -112,8 +131,8 @@ export function SoundGrowthSection({ data }: SoundGrowthSectionProps) {
         </div>
       </div>
 
-      <div className="mt-10 border-y border-white/[0.06] py-10">
-        <div className="h-[320px] w-full">
+      <div className="mt-8 rounded-xl border border-white/[0.06] bg-white/[0.015] px-2 py-6 min-[800px]:px-4">
+        <div className="h-[280px] w-full min-[1100px]:h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={chartData}

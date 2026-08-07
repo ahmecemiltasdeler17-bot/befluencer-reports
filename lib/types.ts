@@ -1,4 +1,10 @@
-export type CreatorCategory = "macro" | "micro" | "template";
+export type CreatorCategory =
+  | "nano"
+  | "micro"
+  | "macro"
+  | "mega"
+  | "template"
+  | "uncategorized";
 
 export type CampaignStatus = "active" | "completed" | "draft" | "paused";
 
@@ -35,7 +41,7 @@ export interface TotalReach {
   value: number;
   previousValue: number;
   label: string;
-  growthSinceStart: number;
+  growthSinceStart: number | null;
 }
 
 export interface TrendDataPoint {
@@ -70,6 +76,10 @@ export interface Creator {
   engagement: number;
   engagementRate: number;
   category: CreatorCategory;
+  /** Social platform the handle belongs to. Absent in pre-Phase-9 snapshots. */
+  platform?: Platform;
+  /** Safe profile URL, or null when none can be resolved. */
+  profileUrl?: string | null;
 }
 
 export interface Video {
@@ -89,6 +99,10 @@ export interface Video {
   publishedAt: string;
   url: string;
   category: CreatorCategory;
+  /** When false, metrics are not yet recorded for this video. */
+  hasMetrics?: boolean;
+  /** Safe profile URL for the creator. Absent in pre-Phase-9 snapshots. */
+  creatorProfileUrl?: string | null;
 }
 
 export interface SoundGrowthPoint {
@@ -101,6 +115,12 @@ export interface SoundGrowth {
   initialUses: number;
   currentUses: number;
   multiplier: number;
+  /** Optional for backwards-compatible historical snapshots. */
+  absoluteGrowth?: number;
+  growthPercentage?: number | null;
+  soundId?: string | null;
+  soundAuthor?: string | null;
+  soundUrl?: string | null;
   timeline: SoundGrowthPoint[];
 }
 
@@ -112,7 +132,7 @@ export interface DashboardData {
   trend: TrendDataPoint[];
   growth: GrowthDataPoint[];
   platforms: PlatformStat[];
-  topVideo: Video;
+  topVideo?: Video | null;
   creators: Creator[];
   videos: Video[];
   soundGrowth: SoundGrowth;

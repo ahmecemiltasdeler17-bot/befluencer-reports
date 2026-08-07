@@ -1,8 +1,10 @@
+import type { ReactNode } from "react";
+
 import { ReportKpiItem } from "./report-kpi-item";
 
 export interface ReportKpi {
   label: string;
-  value: string;
+  value: ReactNode;
   hint?: string;
 }
 

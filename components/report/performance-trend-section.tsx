@@ -19,6 +19,9 @@ import type { GrowthDataPoint, TrendDataPoint } from "@/lib/types";
 interface PerformanceTrendSectionProps {
   growth: GrowthDataPoint[];
   trend: TrendDataPoint[];
+  hasTimeline?: boolean;
+  /** When true, parent section already provides the title. */
+  hideHeading?: boolean;
 }
 
 interface TrendSummary {
@@ -89,7 +92,19 @@ function ChartTooltip({
 export function PerformanceTrendSection({
   growth,
   trend,
+  hasTimeline = true,
+  hideHeading = false,
 }: PerformanceTrendSectionProps) {
+  if (!hasTimeline || growth.length < 2) {
+    return (
+      <div className="rounded-xl border border-white/[0.06] px-6 py-12 text-center">
+        <p className="text-sm text-zinc-500">
+          Trend grafiği için en az iki metrik kaydı gerekli.
+        </p>
+      </div>
+    );
+  }
+
   const summary = computeTrendSummary(growth, trend);
 
   const chartData = growth.map((point) => ({
@@ -98,43 +113,43 @@ export function PerformanceTrendSection({
   }));
 
   return (
-    <section aria-label="Performans trendi" className="w-full">
-      <div className="flex flex-col gap-8 min-[1000px]:flex-row min-[1000px]:items-end min-[1000px]:justify-between">
-        <div className="max-w-xl">
-          <h2 className="text-[28px] font-semibold tracking-tight text-white min-[1000px]:text-[32px]">
+    <div className="w-full" aria-label={hideHeading ? undefined : "Performans trendi"}>
+      {!hideHeading ? (
+        <div className="mb-8 max-w-xl">
+          <h2 className="text-[24px] font-semibold tracking-tight text-white min-[1100px]:text-[28px]">
             Performans Trendi
           </h2>
-          <p className="mt-2 text-base text-zinc-400">
+          <p className="mt-2 text-sm text-zinc-400">
             Kampanya başlangıcından itibaren toplam izlenme
           </p>
         </div>
+      ) : null}
 
-        <div className="flex flex-col gap-4 min-[1000px]:items-end min-[1000px]:text-right">
-          <SummaryItem
-            label="Son 7 gün"
-            value={`+${formatTurkishReport(summary.last7Days)}`}
-          />
-          <SummaryItem
-            label="Günlük ortalama"
-            value={formatTurkishReport(summary.dailyAverage)}
-          />
-          <SummaryItem
-            label="En yüksek gün"
-            value={formatTurkishDayMonth(summary.peakDate)}
-          />
-        </div>
+      <div className="mb-8 flex flex-wrap gap-6 min-[1000px]:justify-end">
+        <SummaryItem
+          label="Son 7 gün"
+          value={`+${formatTurkishReport(summary.last7Days)}`}
+        />
+        <SummaryItem
+          label="Günlük ortalama"
+          value={formatTurkishReport(summary.dailyAverage)}
+        />
+        <SummaryItem
+          label="En yüksek gün"
+          value={formatTurkishDayMonth(summary.peakDate)}
+        />
       </div>
 
-      <div className="mt-12 border-y border-white/[0.06] py-10">
-        <div className="h-[340px] w-full">
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] px-2 py-6 min-[800px]:px-4">
+        <div className="h-[280px] w-full min-[1100px]:h-[320px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={chartData}
-              margin={{ top: 8, right: 8, left: -12, bottom: 0 }}
+              margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
             >
               <defs>
                 <linearGradient id="reachGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#FF5A00" stopOpacity={0.18} />
+                  <stop offset="0%" stopColor="#FF5A00" stopOpacity={0.16} />
                   <stop offset="100%" stopColor="#FF5A00" stopOpacity={0} />
                 </linearGradient>
               </defs>
@@ -145,22 +160,24 @@ export function PerformanceTrendSection({
               />
               <XAxis
                 dataKey="label"
-                tick={{ fill: "#71717A", fontSize: 12 }}
+                tick={{ fill: "#71717A", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
                 dy={10}
+                minTickGap={28}
               />
               <YAxis
                 tickFormatter={(value) => formatTurkishReport(value)}
-                tick={{ fill: "#71717A", fontSize: 12 }}
+                tick={{ fill: "#71717A", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
-                width={56}
+                width={52}
               />
               <Tooltip content={<ChartTooltip />} />
               <Area
                 type="monotone"
                 dataKey="views"
+                name="İzlenme"
                 stroke="#FF5A00"
                 strokeWidth={2}
                 fill="url(#reachGradient)"
@@ -169,7 +186,7 @@ export function PerformanceTrendSection({
           </ResponsiveContainer>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 

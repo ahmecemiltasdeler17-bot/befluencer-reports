@@ -1,3 +1,6 @@
+import { formatReportCompactCount } from "@/lib/formatters/format-compact-count";
+
+/** English mock-dashboard compact formatter (K / M). Not used by live reports. */
 export function formatCompact(value: number): string {
   if (value >= 1_000_000) {
     return `${(value / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
@@ -41,18 +44,22 @@ export function formatShortDate(date: string): string {
   }).format(new Date(date));
 }
 
-/** Turkish report formatting: Mn = million, B = bin (thousand) */
+/**
+ * Turkish report formatting: Mn = million, B = bin (thousand), Mr = milyar.
+ * Delegates to the shared compact-count helper so management UI and reports
+ * never diverge. Preserves one decimal and trailing zeros (`772,9 B`, `773,0 B`).
+ */
 export function formatTurkishReport(value: number): string {
-  if (value >= 1_000_000) {
-    const millions = value / 1_000_000;
-    return `${millions.toFixed(1).replace(".", ",")} Mn`;
-  }
-  if (value >= 1_000) {
-    const thousands = value / 1_000;
-    return `${thousands.toFixed(1).replace(".", ",")} B`;
-  }
-  return value.toFixed(1).replace(".", ",");
+  return formatReportCompactCount(value);
 }
+
+export {
+  formatCompactCount,
+  formatExactFollowerLabel,
+  formatExactTurkishCount,
+  formatManagementCompactCount,
+  formatReportCompactCount,
+} from "@/lib/formatters/format-compact-count";
 
 export function formatTurkishPercent(value: number, decimals = 1): string {
   return `%${value.toFixed(decimals).replace(".", ",")}`;

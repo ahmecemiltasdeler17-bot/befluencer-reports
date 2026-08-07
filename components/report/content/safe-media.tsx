@@ -3,8 +3,8 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 
-import { isValidImageSrc } from "@/lib/media-fallback-styles";
-import type { Platform } from "@/lib/types";
+import { ReportVideoThumbnail } from "@/components/report/media/report-video-thumbnail";
+import { shouldUseMediaFallback } from "@/lib/media-fallback-styles";
 import { cn } from "@/lib/utils";
 
 import { MediaFallback } from "./media-fallback";
@@ -24,7 +24,7 @@ export function SafeAvatar({
   className,
   size = 40,
 }: SafeAvatarProps) {
-  const [failed, setFailed] = useState(false);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const fallbackSeed = seed ?? name;
   const initials = name
     .split(" ")
@@ -34,8 +34,8 @@ export function SafeAvatar({
     .toUpperCase();
 
   const shouldFallback = useMemo(
-    () => failed || !isValidImageSrc(src),
-    [failed, src]
+    () => shouldUseMediaFallback(src, failedSrc),
+    [failedSrc, src]
   );
 
   return (
@@ -59,7 +59,7 @@ export function SafeAvatar({
           fill
           className="object-cover"
           sizes={`${size}px`}
-          onError={() => setFailed(true)}
+          onError={() => setFailedSrc(src ?? null)}
           unoptimized
         />
       )}
@@ -67,71 +67,5 @@ export function SafeAvatar({
   );
 }
 
-interface SafeThumbnailProps {
-  src?: string | null;
-  seed: string;
-  name: string;
-  username?: string;
-  title?: string;
-  platform?: Platform | string;
-  featured?: boolean;
-  className?: string;
-  sizes?: string;
-}
-
-export function SafeThumbnail({
-  src,
-  seed,
-  name,
-  username,
-  title,
-  platform = "TikTok",
-  featured = false,
-  className,
-  sizes = "330px",
-}: SafeThumbnailProps) {
-  const [failed, setFailed] = useState(false);
-
-  const shouldFallback = useMemo(
-    () => failed || !isValidImageSrc(src),
-    [failed, src]
-  );
-
-  return (
-    <div className={cn("relative h-full w-full overflow-hidden", className)}>
-      {shouldFallback ? (
-        <MediaFallback
-          variant={featured ? "featured" : "video"}
-          seed={seed}
-          initials={name
-            .split(" ")
-            .map((part) => part[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase()}
-          username={username}
-          title={title}
-          platform={
-            platform === "tiktok"
-              ? "TikTok"
-              : platform === "instagram"
-                ? "Instagram"
-                : platform === "youtube"
-                  ? "YouTube"
-                  : platform
-          }
-        />
-      ) : (
-        <Image
-          src={src as string}
-          alt=""
-          fill
-          className="object-cover"
-          sizes={sizes}
-          onError={() => setFailed(true)}
-          unoptimized
-        />
-      )}
-    </div>
-  );
-}
+/** @deprecated Prefer `ReportVideoThumbnail` — kept as a thin alias. */
+export { ReportVideoThumbnail as SafeThumbnail };

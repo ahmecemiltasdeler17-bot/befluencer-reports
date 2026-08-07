@@ -1,119 +1,73 @@
-import type { Creator, DashboardData, KpiMetric, Video } from "@/lib/types";
-import {
-  formatTurkishPercent,
-  formatTurkishReport,
-} from "@/lib/format";
+import type { ReportFreshness } from "@/features/reports/types";
+import type { DashboardData } from "@/lib/types";
 
-import { ReportAccentDivider } from "./report-accent-divider";
+import type { ReportPresentationContext } from "./report-presentation";
 import { ReportHeader } from "./report-header";
-import { ReportKpiGrid, type ReportKpi } from "./report-kpi-grid";
+import { ReportKpiStrip } from "./report-kpi-strip";
 import { TotalReachHero } from "./total-reach-hero";
-
-function findKpi(kpis: KpiMetric[], id: string): KpiMetric | undefined {
-  return kpis.find((kpi) => kpi.id === id);
-}
-
-function sumVideoMetric(videos: Video[], key: "likes" | "comments" | "shares" | "saves"): number {
-  return videos.reduce((sum, video) => sum + video[key], 0);
-}
-
-function sumCreatorFollowers(creators: Creator[]): number {
-  return creators.reduce((sum, creator) => sum + creator.followers, 0);
-}
-
-function buildKpiRows(
-  data: Pick<DashboardData, "kpis" | "creators" | "videos">
-): ReportKpi[][] {
-  const engagementRate = findKpi(data.kpis, "engagement-rate");
-  const creators = findKpi(data.kpis, "creators");
-  const videos = findKpi(data.kpis, "videos-live");
-  const totalShares = findKpi(data.kpis, "total-shares");
-
-  const totalLikes = sumVideoMetric(data.videos, "likes");
-  const totalComments = sumVideoMetric(data.videos, "comments");
-  const creatorAudience = sumCreatorFollowers(data.creators);
-  const totalSaves = sumVideoMetric(data.videos, "saves");
-
-  return [
-    [
-      {
-        label: "Etkileşim Oranı",
-        value: engagementRate
-          ? formatTurkishPercent(engagementRate.value)
-          : "%7,2",
-        hint: "Etkileşim / izlenme",
-      },
-      {
-        label: "İçerik Üreticisi",
-        value: creators ? String(creators.value) : "23",
-        hint: "Kampanyaya dahil",
-      },
-      {
-        label: "İçerik",
-        value: videos ? String(videos.value) : "47",
-        hint: "Yayında",
-      },
-      {
-        label: "Takipçi Ağı",
-        value: formatTurkishReport(creatorAudience),
-        hint: "Toplam takipçi kitlesi",
-      },
-    ],
-    [
-      {
-        label: "Beğeni",
-        value: formatTurkishReport(totalLikes),
-      },
-      {
-        label: "Yorum",
-        value: formatTurkishReport(totalComments),
-      },
-      {
-        label: "Paylaşım",
-        value: totalShares
-          ? formatTurkishReport(totalShares.value)
-          : formatTurkishReport(156_800),
-      },
-      {
-        label: "Kaydetme",
-        value: formatTurkishReport(totalSaves),
-      },
-    ],
-  ];
-}
 
 interface ReportHeroSectionProps {
   data: Pick<
     DashboardData,
-    "campaign" | "totalReach" | "kpis" | "creators" | "videos"
+    "campaign" | "totalReach" | "kpis" | "creators" | "videos" | "soundGrowth"
   >;
+  reportNumber?: string;
+  reportDate?: string;
+  freshness?: ReportFreshness;
+  presentationContext?: ReportPresentationContext;
+  versionLabel?: string;
 }
 
-export function ReportHeroSection({ data }: ReportHeroSectionProps) {
+export function ReportHeroSection({
+  data,
+  reportNumber,
+  reportDate,
+  freshness,
+  presentationContext,
+  versionLabel,
+}: ReportHeroSectionProps) {
   const avatarCreators = data.creators.map((creator) => ({
     id: creator.id,
     avatar: creator.avatar,
     name: creator.displayName,
+    handle: creator.handle,
+    platform: creator.platform,
+    profileUrl: creator.profileUrl,
   }));
 
-  const creatorCount =
-    findKpi(data.kpis, "creators")?.value ?? data.creators.length;
-  const maxVisible = 11;
-  const overflowCount = Math.max(creatorCount - maxVisible, 0);
+  const soundName =
+    data.soundGrowth.soundName?.trim() || data.campaign.track?.trim() || "";
+  const soundAuthor =
+    data.soundGrowth.soundAuthor?.trim() || data.campaign.artist?.trim() || "";
+  const subtitle = [soundAuthor, soundName].filter(Boolean).join(" · ") || null;
 
   return (
-    <div className="w-full">
-      <ReportHeader campaign={data.campaign} />
+    <div className="report-cover w-full">
+      <div className="report-cover__glow" aria-hidden="true" />
+
+      <ReportHeader
+        campaign={data.campaign}
+        reportNumber={reportNumber}
+        reportDate={reportDate}
+        freshness={freshness}
+        presentationContext={presentationContext}
+        versionLabel={versionLabel}
+        soundGrowth={data.soundGrowth}
+      />
 
       <TotalReachHero
         totalReach={data.totalReach}
         creators={avatarCreators}
-        overflowCount={overflowCount}
+        campaignTitle={data.campaign.name}
+        subtitle={subtitle}
       />
 
-      <ReportAccentDivider />
-
-      <ReportKpiGrid rows={buildKpiRows(data)} />
+      <div className="relative z-[1] mt-10 border-t border-white/[0.06] pt-8 pb-2 min-[1100px]:mt-12">
+        <p className="mb-5 text-center text-[11px] font-medium tracking-[0.2em] text-zinc-500 uppercase">
+          Genel Bakış
+        </p>
+        <ReportKpiStrip data={data} />
+      </div>
     </div>
   );
 }

@@ -1,3 +1,6 @@
+import { ReportCreatorLink } from "@/components/report/links/report-creator-link";
+import { ReportExternalLinkIcon } from "@/components/report/links/report-external-link-icon";
+import { CompactCountText } from "@/components/format/compact-count-text";
 import {
   formatTurkishDate,
   formatTurkishPercent,
@@ -7,6 +10,7 @@ import {
   CREATOR_CATEGORY_LABELS,
   engagementVsCampaignAverage,
 } from "@/lib/content-helpers";
+import { resolveCreatorLink } from "@/lib/report-links/resolve-report-links";
 import type { Creator, Video } from "@/lib/types";
 
 import { SafeAvatar } from "./safe-media";
@@ -28,9 +32,15 @@ export function FeaturedContentMetrics({
     campaignAverageEngagement
   );
 
+  const creatorLink = resolveCreatorLink({
+    profileUrl: creator?.profileUrl ?? video.creatorProfileUrl,
+    platform: creator?.platform ?? video.platform,
+    handle: video.creatorHandle,
+  });
+
   return (
     <div className="flex flex-col justify-center py-4 min-[800px]:py-0">
-      <div className="flex items-center gap-3">
+      <ReportCreatorLink link={creatorLink} className="flex items-center gap-3">
         <SafeAvatar
           src={video.creatorAvatar}
           name={video.creatorName}
@@ -38,9 +48,15 @@ export function FeaturedContentMetrics({
           size={44}
         />
         <div>
-          <p className="text-base font-semibold text-white">{video.creatorHandle}</p>
+          <p className="flex items-center gap-1.5 text-base font-semibold text-white">
+            {video.creatorHandle}
+            {creatorLink && <ReportExternalLinkIcon />}
+          </p>
           <p className="mt-0.5 text-sm text-zinc-400">
-            {formatTurkishReport(creator?.followers ?? 0)} takipçi
+            <CompactCountText
+              value={creator?.followers ?? 0}
+              showNoun
+            />
             {creator && (
               <>
                 {" · "}
@@ -49,7 +65,7 @@ export function FeaturedContentMetrics({
             )}
           </p>
         </div>
-      </div>
+      </ReportCreatorLink>
 
       <p className="mt-5 text-sm text-zinc-500">
         Yayın Tarihi:{" "}

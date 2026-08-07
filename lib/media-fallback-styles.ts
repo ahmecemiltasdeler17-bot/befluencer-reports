@@ -45,7 +45,39 @@ export function getAvatarTheme(seed: string): PosterTheme {
 export function isValidImageSrc(src?: string | null): src is string {
   if (!src || src.trim() === "") return false;
   if (src === "#" || src === "undefined" || src === "null") return false;
-  return src.startsWith("http") || src.startsWith("/");
+
+  const trimmed = src.trim();
+
+  // App-relative assets (rare in reports) remain allowed.
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    return true;
+  }
+
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Decides between the real image and the deterministic CSS fallback.
+ *
+ * `failedSrc` records the exact URL that raised an error. Comparing against it
+ * means a URL that already failed is never retried, while a genuinely new URL
+ * still gets one attempt — important because provider CDN thumbnail URLs are
+ * signed and expire, so failures are permanent for that URL.
+ */
+export function shouldUseMediaFallback(
+  src: string | null | undefined,
+  failedSrc: string | null
+): boolean {
+  if (!isValidImageSrc(src)) {
+    return true;
+  }
+
+  return failedSrc !== null && failedSrc === src;
 }
 
 export function generateWaveformBars(seed: string, count = 48): number[] {

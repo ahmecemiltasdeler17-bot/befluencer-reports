@@ -16,6 +16,8 @@ interface MediaFallbackProps {
   title?: string;
   platform?: string;
   className?: string;
+  /** Discreet note when a real CDN image failed (not for empty sources). */
+  showUnavailableNotice?: boolean;
 }
 
 export function MediaFallback({
@@ -26,6 +28,7 @@ export function MediaFallback({
   title,
   platform = "TikTok",
   className,
+  showUnavailableNotice = false,
 }: MediaFallbackProps) {
   if (variant === "avatar") {
     return <AvatarFallback seed={seed} initials={initials} className={className} />;
@@ -34,11 +37,13 @@ export function MediaFallback({
   return (
     <VideoPosterFallback
       seed={seed}
+      initials={initials}
       username={username}
       title={title}
       platform={platform}
       featured={variant === "featured"}
       className={className}
+      showUnavailableNotice={showUnavailableNotice}
     />
   );
 }
@@ -82,21 +87,29 @@ function AvatarFallback({
 
 function VideoPosterFallback({
   seed,
+  initials,
   username,
   title,
   platform,
   featured = false,
   className,
+  showUnavailableNotice = false,
 }: {
   seed: string;
+  initials?: string;
   username?: string;
   title?: string;
   platform?: string;
   featured?: boolean;
   className?: string;
+  showUnavailableNotice?: boolean;
 }) {
   const theme = getPosterTheme(seed);
   const shapeOffset = hashMod(seed, 360);
+  const markInitial =
+    initials && initials.length > 0
+      ? initials.slice(0, 1)
+      : username?.replace(/^@/, "").slice(0, 1).toUpperCase() || "B";
 
   return (
     <div
@@ -122,8 +135,8 @@ function VideoPosterFallback({
         }}
       />
       <div
-        className="absolute top-1/3 right-0 size-24 rounded-full blur-2xl opacity-25"
-        style={{ backgroundColor: theme.glow }}
+        className="absolute top-1/3 right-0 size-24 rounded-full blur-2xl opacity-30"
+        style={{ backgroundColor: "#FF5A00" }}
       />
 
       <div
@@ -136,16 +149,30 @@ function VideoPosterFallback({
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/35" />
 
-      <div className="absolute top-3 left-3">
+      <div className="absolute top-3 left-3 flex items-center gap-1.5">
         <span className="rounded-full bg-black/45 px-2 py-0.5 text-[10px] font-medium text-white ring-1 ring-white/15 backdrop-blur-sm">
           {platform}
         </span>
       </div>
 
+      <div className="absolute top-3 right-3">
+        <span className="rounded-full bg-black/45 px-2 py-0.5 text-[9px] font-semibold tracking-[0.14em] text-white/70 ring-1 ring-white/10 backdrop-blur-sm uppercase">
+          BF
+        </span>
+      </div>
+
       <div className="absolute inset-0 flex items-center justify-center">
+        <span
+          className={cn(
+            "pointer-events-none absolute font-semibold tracking-wide text-white/12 select-none",
+            featured ? "text-7xl" : "text-6xl"
+          )}
+        >
+          {markInitial}
+        </span>
         <div
           className={cn(
-            "flex items-center justify-center rounded-full bg-black/35 ring-1 ring-white/20 backdrop-blur-sm",
+            "relative z-10 flex items-center justify-center rounded-full bg-black/35 ring-1 ring-white/20 backdrop-blur-sm",
             featured ? "size-16 shadow-[0_0_40px_rgba(255,90,0,0.35)]" : "size-14"
           )}
         >
@@ -157,6 +184,12 @@ function VideoPosterFallback({
           />
         </div>
       </div>
+
+      {showUnavailableNotice && (
+        <p className="absolute inset-x-0 top-1/2 z-10 mt-12 text-center text-[10px] tracking-wide text-white/50">
+          Görsel kullanılamıyor
+        </p>
+      )}
 
       <div className="absolute right-3 bottom-3 left-3 space-y-1">
         {username && (

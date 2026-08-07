@@ -1,9 +1,12 @@
 import type { CreatorCategory } from "@/lib/types";
 
 export const CREATOR_CATEGORY_LABELS: Record<CreatorCategory, string> = {
+  mega: "Mega İçerik Üreticisi",
   macro: "Makro İçerik Üreticisi",
   micro: "Mikro İçerik Üreticisi",
+  nano: "Nano İçerik Üreticisi",
   template: "Şablon / Konsept İçeriği",
+  uncategorized: "Kategorisiz",
 };
 
 export const PLATFORM_LABELS = {

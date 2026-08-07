@@ -1,34 +1,6 @@
-# BeFluencer Reports
-
-## Project Overview
-
-BeFluencer Reports is an internal analytics platform for TikTok music marketing campaigns.
-
-The goal is to automate campaign reporting and eliminate manual reporting workflows.
-
-This is NOT a generic dashboard template.
-
-This is a specialized analytics system for:
-
-- Music promotion campaigns
-- TikTok creators
-- Campaign performance tracking
-- Report generation
-- Client reporting
-- Creator analytics
-
 ---
-
-## Primary User
-
-Agency owner and campaign manager.
-
-The system is designed for internal use first.
-
-Speed and usability are more important than multi-user SaaS features.
-
+alwaysApply: true
 ---
-
 ## Tech Stack
 
 - Next.js 15

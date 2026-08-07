@@ -1,4 +1,8 @@
+import { ReportCreatorLink } from "@/components/report/links/report-creator-link";
+import { ReportExternalLinkIcon } from "@/components/report/links/report-external-link-icon";
 import { formatTurkishReport } from "@/lib/format";
+import { resolveCreatorLink } from "@/lib/report-links/resolve-report-links";
+import type { ReportLinkOrNull } from "@/lib/report-links/types";
 import type { Creator } from "@/lib/types";
 
 import { SafeAvatar } from "./content/safe-media";
@@ -14,6 +18,7 @@ interface ContributionRow {
   avatar: string;
   views: number;
   percentage: number;
+  link: ReportLinkOrNull;
 }
 
 function buildContributions(
@@ -31,6 +36,11 @@ function buildContributions(
     avatar: creator.avatar,
     views: creator.views,
     percentage: (creator.views / totalReach) * 100,
+    link: resolveCreatorLink({
+      profileUrl: creator.profileUrl,
+      platform: creator.platform,
+      handle: creator.handle,
+    }),
   }));
 
   if (otherViews > 0) {
@@ -40,6 +50,8 @@ function buildContributions(
       avatar: "",
       views: otherViews,
       percentage: (otherViews / totalReach) * 100,
+      // The aggregate row represents many creators, so it is never a link.
+      link: null,
     });
   }
 
@@ -64,12 +76,14 @@ export function CreatorContributionList({
           <div key={row.id} className="space-y-3">
             <div className="flex items-center gap-3">
               {row.avatar ? (
-                <SafeAvatar
-                  src={row.avatar}
-                  name={row.handle.replace("@", "")}
-                  seed={row.id}
-                  size={36}
-                />
+                <ReportCreatorLink link={row.link} className="block shrink-0">
+                  <SafeAvatar
+                    src={row.avatar}
+                    name={row.handle.replace("@", "")}
+                    seed={row.id}
+                    size={36}
+                  />
+                </ReportCreatorLink>
               ) : (
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-xs font-medium text-zinc-400 ring-1 ring-white/10">
                   +
@@ -78,9 +92,13 @@ export function CreatorContributionList({
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-3">
-                  <p className="truncate text-sm font-medium text-white">
-                    {row.handle}
-                  </p>
+                  <ReportCreatorLink
+                    link={row.link}
+                    className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-white"
+                  >
+                    <span className="truncate">{row.handle}</span>
+                    {row.link && <ReportExternalLinkIcon />}
+                  </ReportCreatorLink>
                   <div className="flex shrink-0 items-baseline gap-3 text-sm tabular-nums">
                     <span className="font-semibold text-[#FF5A00]">
                       {row.percentage.toFixed(1).replace(".", ",")}%
