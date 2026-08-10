@@ -1,4 +1,15 @@
 import type { ReactNode } from "react";
+import {
+  Bookmark,
+  Eye,
+  Heart,
+  MessageCircle,
+  Music2,
+  Share2,
+  Users,
+  Video,
+  Activity,
+} from "lucide-react";
 
 import { CompactCountText } from "@/components/format/compact-count-text";
 import { buildReportOverviewMetrics } from "@/components/report/report-overview-section";
@@ -14,6 +25,9 @@ type StripItem = {
   label: string;
   value: ReactNode;
   exactLabel: string;
+  hint: string;
+  icon: React.ComponentType<{ className?: string }>;
+  group: "performance" | "scale" | "engagement" | "audio";
 };
 
 /**
@@ -41,41 +55,65 @@ export function ReportKpiStrip({
         metrics.engagementRate !== null
           ? formatTurkishPercent(metrics.engagementRate)
           : "Veri yok",
+      hint: "Kampanya ortalaması etkileşim oranı",
+      icon: Activity,
+      group: "performance",
     },
     {
       label: "İçerik Üreticisi",
       value: formatTurkishReport(metrics.creatorCount),
       exactLabel: formatExactTurkishCount(metrics.creatorCount),
+      hint: "Kampanyadaki içerik üreticisi sayısı",
+      icon: Users,
+      group: "scale",
     },
     {
       label: "İçerik",
       value: formatTurkishReport(metrics.videoCount),
       exactLabel: formatExactTurkishCount(metrics.videoCount),
+      hint: "Kampanyadaki video sayısı",
+      icon: Video,
+      group: "scale",
     },
     {
       label: "Takipçi Ağı",
       value: <CompactCountText value={metrics.followerNetwork} />,
       exactLabel: formatExactTurkishCount(metrics.followerNetwork),
+      hint: "İçerik üreticilerinin toplam takipçi ağı",
+      icon: Eye,
+      group: "scale",
     },
     {
       label: "Beğeni",
       value: formatTurkishReport(metrics.totalLikes),
       exactLabel: formatExactTurkishCount(metrics.totalLikes),
+      hint: "Tüm içeriklerdeki toplam beğeni",
+      icon: Heart,
+      group: "engagement",
     },
     {
       label: "Yorum",
       value: formatTurkishReport(metrics.totalComments),
       exactLabel: formatExactTurkishCount(metrics.totalComments),
+      hint: "Tüm içeriklerdeki toplam yorum",
+      icon: MessageCircle,
+      group: "engagement",
     },
     {
       label: "Paylaşım",
       value: formatTurkishReport(metrics.totalShares),
       exactLabel: formatExactTurkishCount(metrics.totalShares),
+      hint: "Tüm içeriklerdeki toplam paylaşım",
+      icon: Share2,
+      group: "engagement",
     },
     {
       label: "Kaydetme",
       value: formatTurkishReport(metrics.totalSaves),
       exactLabel: formatExactTurkishCount(metrics.totalSaves),
+      hint: "Tüm içeriklerdeki toplam kaydetme",
+      icon: Bookmark,
+      group: "engagement",
     },
   ];
 
@@ -84,6 +122,9 @@ export function ReportKpiStrip({
       label: "Ses Kullanımı",
       value: formatTurkishReport(metrics.soundUses),
       exactLabel: formatExactTurkishCount(metrics.soundUses),
+      hint: "Kampanya sesinin güncel kullanım sayısı",
+      icon: Music2,
+      group: "audio",
     });
   }
 
@@ -93,26 +134,39 @@ export function ReportKpiStrip({
       data-report-kpi-strip=""
       aria-label="Özet metrikler"
     >
-      {items.map((item, index) => (
-        <div
-          key={item.label}
-          className={cn(
-            "report-kpi-strip__item pdf-avoid-break",
-            index > 0 && "report-kpi-strip__item--divided"
-          )}
-        >
-          <p className="text-[10px] font-medium tracking-[0.16em] text-zinc-500 uppercase">
-            {item.label}
-          </p>
-          <p
-            className="mt-2 text-[20px] font-semibold tracking-tight text-white tabular-nums min-[1100px]:text-[22px]"
-            title={item.exactLabel}
-            aria-label={`${item.label}: ${item.exactLabel}`}
+      {items.map((item, index) => {
+        const Icon = item.icon;
+        return (
+          <div
+            key={item.label}
+            className={cn(
+              "report-kpi-strip__item report-interactive pdf-avoid-break group/kpi",
+              index > 0 && "report-kpi-strip__item--divided"
+            )}
+            data-kpi-group={item.group}
+            title={item.hint}
           >
-            {item.value}
-          </p>
-        </div>
-      ))}
+            <div className="flex items-center justify-center gap-1.5">
+              <Icon
+                className="size-3 text-[var(--report-steel)] transition-colors group-hover/kpi:text-[var(--report-accent)]"
+                aria-hidden
+              />
+              <p className="text-[10px] font-medium tracking-[0.12em] text-[var(--report-text-tertiary)] uppercase">
+                {item.label}
+              </p>
+            </div>
+            <p
+              className="mt-3 text-[26px] font-semibold tracking-tight text-[var(--report-text)] tabular-nums transition-colors group-hover/kpi:text-[var(--report-accent-soft)] min-[1100px]:text-[28px]"
+              aria-label={`${item.label}: ${item.exactLabel}`}
+            >
+              {item.value}
+            </p>
+            <p className="report-kpi-strip__hint mt-1.5 text-[10px] leading-snug text-[var(--report-text-tertiary)] opacity-0 transition-opacity group-hover/kpi:opacity-100 group-focus-within/kpi:opacity-100">
+              {item.hint}
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
 }

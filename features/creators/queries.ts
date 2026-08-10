@@ -42,6 +42,7 @@ export type ListCreatorsFilters = {
   minFollowers?: number | null;
   maxFollowers?: number | null;
   syncStatus?: "all" | "pending" | "success" | "failed";
+  accountStatus?: "all" | "active" | "unavailable";
   campaignAssignment?: "all" | "assigned" | "unassigned";
   hasAvatar?: "all" | "yes" | "no";
 };
@@ -82,6 +83,10 @@ export async function listCreators(
     query = query.eq("sync_status", filters.syncStatus);
   }
 
+  if (filters.accountStatus && filters.accountStatus !== "all") {
+    query = query.eq("account_status", filters.accountStatus);
+  }
+
   if (filters.hasAvatar === "yes") {
     query = query.not("avatar_url", "is", null);
   } else if (filters.hasAvatar === "no") {
@@ -106,8 +111,12 @@ export async function listCreators(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- omit join aggregate from creator row
     const { campaign_creators, ...creator } = row;
 
+    const typed = creator as Creator;
     return {
-      ...(creator as Creator),
+      ...typed,
+      account_status: typed.account_status ?? "active",
+      unavailable_reason: typed.unavailable_reason ?? null,
+      unavailable_at: typed.unavailable_at ?? null,
       campaign_count: campaignCount,
     };
   });

@@ -65,7 +65,7 @@ export function CreatorImportSyncFailures({
                         href={row.profileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-orange-400 hover:text-orange-300"
+                        className="text-primary hover:text-[var(--bf-accent-soft)]"
                       >
                         {row.profileUrl}
                       </a>

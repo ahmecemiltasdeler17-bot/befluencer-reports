@@ -22,11 +22,15 @@ import {
   type CreatorImportSyncResult,
   type CreatorImportSyncRow,
 } from "@/features/creator-import/types";
-import {
-  BULK_CONCURRENCY,
-  mapWithConcurrency,
-} from "@/features/creator-sync/services/creator-sync-core";
+import { orchestrateCreatorBatchFetches } from "@/features/creator-sync/services/orchestrate-creator-batches";
 import { syncTikTokCreator } from "@/features/creator-sync/services/sync-tiktok-creator";
+import { isTikTokSyncConfigured } from "@/lib/env.server";
+import {
+  createApifyTikTokProvider,
+  TikTokProviderError,
+} from "@/lib/providers/tiktok";
+import { normalizeTikTokUsername } from "@/lib/providers/tiktok/profile-url";
+import type { TikTokCreatorProvider } from "@/lib/providers/tiktok/types";
 import { getVerifiedAuth } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -288,20 +292,124 @@ export async function syncImportedCreatorsAction(
     }
   }
 
-  const syncResults = await mapWithConcurrency(
-    uniqueIds,
-    BULK_CONCURRENCY,
-    (creatorId) => syncTikTokCreator(creatorId)
+  // Batch Apify creator fetches — never syncTikTokCreator() in a per-id loop.
+  let creatorProvider: TikTokCreatorProvider;
+  try {
+    if (!isTikTokSyncConfigured()) {
+      throw new TikTokProviderError("not_configured");
+    }
+    creatorProvider = createApifyTikTokProvider();
+  } catch (error) {
+    const message =
+      error instanceof TikTokProviderError
+        ? error.toUserMessage()
+        : "TikTok senkronizasyonu yapılandırılmamış.";
+    return {
+      total: uniqueIds.length,
+      success: 0,
+      failed: uniqueIds.length,
+      skipped: 0,
+      rows: uniqueIds.map((creatorId) => {
+        const meta = metaById.get(creatorId);
+        return buildCreatorImportSyncRow({
+          creatorId,
+          username: meta?.username || creatorId.slice(0, 8),
+          profileUrl: meta?.profileUrl ?? null,
+          outcome: "failed",
+          message,
+        });
+      }),
+    };
+  }
+
+  const byUsername = new Map<string, string[]>();
+  for (const creatorId of uniqueIds) {
+    const meta = metaById.get(creatorId);
+    let key: string;
+    try {
+      key = normalizeTikTokUsername(meta?.username ?? "");
+    } catch {
+      key = `__invalid__:${creatorId}`;
+    }
+    const list = byUsername.get(key) ?? [];
+    list.push(creatorId);
+    byUsername.set(key, list);
+  }
+
+  const fetchUsernames = [...byUsername.keys()].filter(
+    (key) => !key.startsWith("__invalid__:")
   );
 
-  const rows: CreatorImportSyncRow[] = uniqueIds.map((creatorId, index) => {
+  const orchestrated = await orchestrateCreatorBatchFetches(
+    fetchUsernames,
+    (inputs) => creatorProvider.fetchCreatorProfilesBatch(inputs)
+  );
+
+  const resultByCreatorId = new Map<
+    string,
+    Awaited<ReturnType<typeof syncTikTokCreator>>
+  >();
+
+  for (const [username, creatorIds] of byUsername) {
+    if (username.startsWith("__invalid__:")) {
+      for (const creatorId of creatorIds) {
+        resultByCreatorId.set(
+          creatorId,
+          await syncTikTokCreator(creatorId, {
+            async fetchCreatorProfile() {
+              throw new TikTokProviderError("invalid_username");
+            },
+            async fetchCreatorProfilesBatch() {
+              return { results: new Map(), actorRunsStarted: 0 };
+            },
+          })
+        );
+      }
+      continue;
+    }
+
+    const item = orchestrated.results.get(username);
+    const providerForApply: TikTokCreatorProvider = {
+      async fetchCreatorProfile() {
+        if (!item || item.status === "error") {
+          throw item?.status === "error"
+            ? item.error
+            : new TikTokProviderError("empty_result");
+        }
+        return item.profile;
+      },
+      async fetchCreatorProfilesBatch() {
+        return { results: new Map(), actorRunsStarted: 0 };
+      },
+    };
+
+    for (const creatorId of creatorIds) {
+      resultByCreatorId.set(
+        creatorId,
+        await syncTikTokCreator(creatorId, providerForApply, {
+          force: true,
+          manualCooldown: false,
+        })
+      );
+    }
+  }
+
+  const rows: CreatorImportSyncRow[] = uniqueIds.map((creatorId) => {
     const meta = metaById.get(creatorId);
-    const sync = syncResults[index]!;
+    const sync = resultByCreatorId.get(creatorId)!;
     return buildCreatorImportSyncRow({
       creatorId,
       username: meta?.username || creatorId.slice(0, 8),
       profileUrl: meta?.profileUrl ?? null,
-      outcome: sync.outcome,
+      // Import UI only tracks success/failed/skipped; soft-unavailable maps to failed.
+      outcome:
+        sync.outcome === "unavailable"
+          ? "failed"
+          : sync.outcome === "success" ||
+              sync.outcome === "failed" ||
+              sync.outcome === "skipped"
+            ? sync.outcome
+            : "failed",
       message: sync.message,
     });
   });

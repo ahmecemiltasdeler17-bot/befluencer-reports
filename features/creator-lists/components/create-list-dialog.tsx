@@ -55,7 +55,6 @@ export function CreateListDialog({
         type="button"
         size="sm"
         disabled={disabled || selectedIds.length === 0}
-        className="bg-orange-500 text-white hover:bg-orange-500/90"
         onClick={() => {
           reset();
           setOpen(true);
@@ -71,48 +70,48 @@ export function CreateListDialog({
           aria-modal="true"
           aria-labelledby="create-list-title"
         >
-          <div className="w-full max-w-md space-y-4 rounded-lg border border-zinc-800 bg-zinc-950 p-5 shadow-xl">
+          <div className="w-full max-w-md space-y-4 rounded-lg border border-bf-border bg-bf-elevated p-5 shadow-xl shadow-black/40">
             <div>
               <h2
                 id="create-list-title"
-                className="text-sm font-semibold text-white"
+                className="text-sm font-semibold text-bf-text"
               >
                 Creator listesi oluştur
               </h2>
-              <p className="mt-1 text-xs text-zinc-500">
+              <p className="mt-1 text-xs text-bf-steel">
                 {selectedIds.length} creator seçildi
               </p>
             </div>
 
-            <label className="block space-y-1 text-xs text-zinc-400">
+            <label className="block space-y-1 text-xs text-bf-steel">
               Liste adı
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 maxLength={120}
-                className="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white"
+                className="h-10 w-full rounded-lg border border-bf-border bg-bf-bg px-3 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
               />
             </label>
 
-            <label className="block space-y-1 text-xs text-zinc-400">
+            <label className="block space-y-1 text-xs text-bf-steel">
               Açıklama (public)
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 maxLength={1000}
                 rows={2}
-                className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white"
+                className="w-full rounded-lg border border-bf-border bg-bf-bg px-3 py-2 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
               />
             </label>
 
-            <label className="block space-y-1 text-xs text-zinc-400">
+            <label className="block space-y-1 text-xs text-bf-steel">
               İç notlar (gizli)
               <textarea
                 value={internalNotes}
                 onChange={(event) => setInternalNotes(event.target.value)}
                 maxLength={5000}
                 rows={2}
-                className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white"
+                className="w-full rounded-lg border border-bf-border bg-bf-bg px-3 py-2 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
               />
             </label>
 

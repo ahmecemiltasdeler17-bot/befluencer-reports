@@ -64,7 +64,7 @@ export function CreatorSearch({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Kullanıcı adı, görünen ad veya platform ara…"
-          className="h-10 min-w-[240px] flex-1 rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 text-sm text-white outline-none focus:border-orange-500/60 focus:ring-2 focus:ring-orange-500/20"
+          className="h-10 min-w-[240px] flex-1 rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 text-sm text-white outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
         />
         <button
           type="submit"

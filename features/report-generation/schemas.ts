@@ -75,6 +75,12 @@ const videoSchema = z.object({
    * remain valid and readable — they simply render without a creator link.
    */
   creatorProfileUrl: z.string().nullable().optional(),
+  /**
+   * Optional manually uploaded preview media. Absent on historical snapshots
+   * created before preview support — those stay poster-only.
+   */
+  previewMediaUrl: z.string().nullable().optional(),
+  previewMediaType: z.string().nullable().optional(),
 });
 
 const creatorSchema = z.object({
@@ -119,6 +125,7 @@ const soundGrowthSchema = z.object({
   soundId: z.string().nullable().optional(),
   soundAuthor: z.string().nullable().optional(),
   soundUrl: z.string().nullable().optional(),
+  soundCoverUrl: z.string().nullable().optional(),
   timeline: z.array(
     z.object({
       date: z.string(),

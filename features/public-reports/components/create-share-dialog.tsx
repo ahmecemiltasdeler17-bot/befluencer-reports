@@ -107,14 +107,14 @@ export function CreateShareDialog({
           aria-modal="true"
           aria-labelledby="create-share-title"
         >
-          <div className="w-full max-w-md rounded-lg border border-zinc-800 bg-zinc-950 p-5 shadow-xl">
+          <div className="w-full max-w-md rounded-lg border border-bf-border bg-bf-elevated p-5 shadow-xl shadow-black/40">
             <h2
               id="create-share-title"
-              className="text-sm font-semibold text-white"
+              className="text-sm font-semibold text-bf-text"
             >
               Paylaşım bağlantısı
             </h2>
-            <p className="mt-1 text-xs text-zinc-500">
+            <p className="mt-1 text-xs text-bf-steel">
               Yalnızca bu dondurulmuş rapor sürümü paylaşılır. Canlı veri
               erişilemez.
             </p>
@@ -131,9 +131,9 @@ export function CreateShareDialog({
             ) : (
               <div className="mt-4 space-y-3">
                 <label className="block space-y-1">
-                  <span className="text-[11px] text-zinc-400">Süre</span>
+                  <span className="text-[11px] text-bf-steel">Süre</span>
                   <select
-                    className="w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-sm text-zinc-100"
+                    className="w-full rounded-lg border border-bf-border bg-bf-bg px-2 py-1.5 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
                     value={expiration}
                     onChange={(event) =>
                       setExpiration(event.target.value as ShareExpirationPreset)
@@ -149,12 +149,12 @@ export function CreateShareDialog({
 
                 {expiration === "custom" ? (
                   <label className="block space-y-1">
-                    <span className="text-[11px] text-zinc-400">
+                    <span className="text-[11px] text-bf-steel">
                       Bitiş (yerel saat)
                     </span>
                     <input
                       type="datetime-local"
-                      className="w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-sm text-zinc-100"
+                      className="w-full rounded-lg border border-bf-border bg-bf-bg px-2 py-1.5 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
                       value={customExpiresAt}
                       onChange={(event) =>
                         setCustomExpiresAt(event.target.value)
@@ -164,26 +164,27 @@ export function CreateShareDialog({
                 ) : null}
 
                 <label className="block space-y-1">
-                  <span className="text-[11px] text-zinc-400">
+                  <span className="text-[11px] text-bf-steel">
                     Etiket (isteğe bağlı)
                   </span>
                   <input
                     type="text"
                     maxLength={120}
-                    className="w-full rounded border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-sm text-zinc-100"
+                    className="w-full rounded-lg border border-bf-border bg-bf-bg px-2 py-1.5 text-sm text-bf-text outline-none placeholder:text-bf-steel/60 focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
                     value={label}
                     onChange={(event) => setLabel(event.target.value)}
                     placeholder="Örn. Müşteri paylaşımı"
                   />
                 </label>
 
-                <label className="flex items-center gap-2 text-sm text-zinc-300">
+                <label className="flex items-center gap-2 text-sm text-bf-text/90">
                   <input
                     type="checkbox"
                     checked={allowPdfDownload}
                     onChange={(event) =>
                       setAllowPdfDownload(event.target.checked)
                     }
+                    className="accent-primary"
                   />
                   PDF indirmeye izin ver
                 </label>

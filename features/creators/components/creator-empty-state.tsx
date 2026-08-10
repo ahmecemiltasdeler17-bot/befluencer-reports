@@ -9,16 +9,13 @@ export function CreatorEmptyState({
   campaignId: string;
 }) {
   return (
-    <div className="rounded-lg border border-dashed border-zinc-800 px-6 py-10 text-center">
-      <p className="text-sm text-zinc-400">
+    <div className="rounded-lg border border-dashed border-bf-border px-6 py-10 text-center">
+      <p className="text-sm text-bf-steel">
         Bu kampanyaya henüz içerik üreticisi eklenmedi.
       </p>
       <Link
         href={`/campaigns/${campaignId}/creators/add`}
-        className={cn(
-          buttonVariants({ variant: "default" }),
-          "mt-4 bg-orange-500 text-white hover:bg-orange-500/90"
-        )}
+        className={cn(buttonVariants({ variant: "default" }), "mt-4")}
       >
         İlk İçerik Üreticisini Ekle
       </Link>

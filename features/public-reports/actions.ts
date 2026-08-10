@@ -18,7 +18,6 @@ import {
   listPublicReportShares,
 } from "@/features/public-reports/queries";
 import {
-  buildPublicShareUrl,
   generateRawShareToken,
   hashShareToken,
 } from "@/features/public-reports/token";
@@ -30,7 +29,7 @@ import type {
 } from "@/features/public-reports/types";
 import { getReportVersionById } from "@/features/report-generation/queries";
 import { isUuid } from "@/features/pdf/origin";
-import { getPublicReportOrigin } from "@/lib/origins";
+import { getPublicReportOrigin, getPublicReportUrl } from "@/lib/origins";
 import { getVerifiedAuth } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -105,12 +104,10 @@ export async function createPublicReportShareAction(
       throw new PublicReportShareError("validation_failed", code);
     }
 
-    let publicReportOrigin: string;
-
     try {
-      // Absolute share links use PUBLIC_REPORT_URL (falls back to APP_URL).
-      // Never built from Host / X-Forwarded-Host.
-      publicReportOrigin = getPublicReportOrigin();
+      // Absolute share links use PUBLIC_REPORT_URL via getPublicReportUrl.
+      // Never built from Host / X-Forwarded-Host or browser location.
+      getPublicReportOrigin();
     } catch {
       throw new PublicReportShareError("app_origin_invalid");
     }
@@ -136,7 +133,7 @@ export async function createPublicReportShareAction(
       throw new PublicReportShareError("database_failure", "insert failed");
     }
 
-    const publicUrl = buildPublicShareUrl(publicReportOrigin, rawToken);
+    const publicUrl = getPublicReportUrl(`/r/${rawToken}`);
 
     revalidateSharePaths(version.campaignId, version.id);
 

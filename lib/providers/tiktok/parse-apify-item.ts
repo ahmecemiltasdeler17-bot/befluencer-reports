@@ -4,6 +4,7 @@ import {
   logThumbnailDiagnostics,
   selectVideoThumbnail,
 } from "@/lib/providers/tiktok/select-video-thumbnail";
+import { normalizeTikTokVideoUrl } from "@/lib/providers/tiktok/url";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -226,4 +227,118 @@ export function parseApifyTikTokDataset(
   }
 
   return parseApifyTikTokItem(items[0], fallbackUrl);
+}
+
+export type VideoBatchRequest = {
+  /** Normalized TikTok video URL (request key). */
+  normalizedUrl: string;
+  platformVideoId: string | null;
+};
+
+export type VideoBatchItemResult =
+  | { status: "ok"; metrics: TikTokVideoMetrics }
+  | { status: "error"; error: TikTokProviderError };
+
+function extractItemVideoId(item: UnknownRecord): string | null {
+  return (
+    readString(item.id) ??
+    readString(item.videoId) ??
+    readString(item.awemeId)
+  );
+}
+
+function extractItemVideoUrl(item: UnknownRecord): string | null {
+  return readString(item.webVideoUrl) ?? readString(item.url);
+}
+
+function normalizeUrlKey(url: string): string | null {
+  try {
+    return normalizeTikTokVideoUrl(url).normalizedUrl;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Maps a multi-URL actor dataset back to requested videos.
+ * Result order is never trusted. Duplicate provider rows are collapsed by
+ * platform_video_id (first wins). Missing URLs become empty_result errors —
+ * callers may upgrade to login_required_content after log inspection.
+ */
+export function parseApifyTikTokDatasetBatch(
+  items: unknown[],
+  requests: VideoBatchRequest[]
+): Map<string, VideoBatchItemResult> {
+  const byId = new Map<string, UnknownRecord>();
+  const byUrl = new Map<string, UnknownRecord>();
+
+  for (const raw of items) {
+    if (!isRecord(raw)) {
+      continue;
+    }
+    const id = extractItemVideoId(raw);
+    if (id && !byId.has(id)) {
+      byId.set(id, raw);
+    }
+    const url = extractItemVideoUrl(raw);
+    if (url) {
+      const key = normalizeUrlKey(url) ?? url.trim();
+      if (key && !byUrl.has(key)) {
+        byUrl.set(key, raw);
+      }
+    }
+  }
+
+  const out = new Map<string, VideoBatchItemResult>();
+
+  for (const request of requests) {
+    const key = request.normalizedUrl;
+    let matched: UnknownRecord | null = null;
+
+    if (request.platformVideoId && byId.has(request.platformVideoId)) {
+      matched = byId.get(request.platformVideoId) ?? null;
+    }
+
+    if (!matched && byUrl.has(key)) {
+      matched = byUrl.get(key) ?? null;
+    }
+
+    if (!matched) {
+      out.set(key, {
+        status: "error",
+        error: new TikTokProviderError("empty_result"),
+      });
+      continue;
+    }
+
+    try {
+      const metrics = parseApifyTikTokItem(matched, key);
+      // Strict identity: if both sides have platform ids, they must match.
+      if (
+        request.platformVideoId &&
+        metrics.platformVideoId &&
+        request.platformVideoId !== metrics.platformVideoId
+      ) {
+        out.set(key, {
+          status: "error",
+          error: new TikTokProviderError(
+            "malformed_result",
+            "Sağlayıcı farklı bir TikTok videosu döndürdü."
+          ),
+        });
+        continue;
+      }
+      out.set(key, { status: "ok", metrics });
+    } catch (error) {
+      out.set(key, {
+        status: "error",
+        error:
+          error instanceof TikTokProviderError
+            ? error
+            : new TikTokProviderError("malformed_result"),
+      });
+    }
+  }
+
+  return out;
 }

@@ -44,7 +44,7 @@ export function ReportCreatorLink({
       aria-label={link.label}
       title={title}
       className={cn(
-        "group/report-link rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-[#FF5A00]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090B]",
+        "group/report-link rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-[var(--report-accent)]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--report-bg)]",
         "transition-opacity hover:opacity-90 print:transition-none print:hover:opacity-100",
         className
       )}

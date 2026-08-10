@@ -13,8 +13,15 @@ import type {
   CreatorCategory,
   CreatorCategorySource,
 } from "@/features/creators/types";
+import {
+  isDefinitiveUnavailableCreatorError,
+  turkishUnavailableReason,
+  unavailableReasonFromProviderError,
+  type CreatorUnavailableReason,
+} from "@/lib/providers/tiktok/detect-unavailable-creator";
 import { TikTokProviderError } from "@/lib/providers/tiktok/errors";
 import { assertApprovedTikTokProfile } from "@/lib/providers/tiktok/profile-url";
+import { evaluateCreatorSyncEligibility } from "@/lib/providers/tiktok/sync-eligibility";
 import type { TikTokCreatorProvider } from "@/lib/providers/tiktok/types";
 
 /**
@@ -38,6 +45,9 @@ export type CreatorSyncRecord = {
   followerCount: number;
   category: CreatorCategory | null;
   categorySource: CreatorCategorySource;
+  lastSyncedAt?: string | null;
+  syncStatus?: string | null;
+  accountStatus?: string | null;
 };
 
 /**
@@ -53,6 +63,9 @@ export type CreatorSyncPatch = {
   display_name?: string;
   avatar_url?: string;
   category?: CreatorCategory | null;
+  account_status?: "active" | "unavailable";
+  unavailable_reason?: string | null;
+  unavailable_at?: string | null;
 };
 
 export type CreatorSyncPort = {
@@ -65,6 +78,11 @@ export type CreatorSyncPort = {
   ): Promise<void>;
   updateCreator(creatorId: string, patch: CreatorSyncPatch): Promise<void>;
   markCreatorFailed(creatorId: string): Promise<void>;
+  markCreatorUnavailable(
+    creatorId: string,
+    reason: CreatorUnavailableReason,
+    at: string
+  ): Promise<void>;
   completeJob(
     jobId: string,
     status: "success" | "failed",
@@ -88,11 +106,17 @@ function failure(message: string, followerCount: number | null): SyncCreatorResu
   };
 }
 
+export type RunCreatorSyncOptions = {
+  force?: boolean;
+  manualCooldown?: boolean;
+};
+
 export async function runCreatorSync(
   creatorId: string,
   provider: TikTokCreatorProvider,
   port: CreatorSyncPort,
-  now: () => Date = () => new Date()
+  now: () => Date = () => new Date(),
+  options?: RunCreatorSyncOptions
 ): Promise<SyncCreatorResult> {
   if (!UUID_PATTERN.test(creatorId)) {
     return failure("Geçersiz içerik üreticisi kimliği.", null);
@@ -131,6 +155,27 @@ export async function runCreatorSync(
     );
   }
 
+  const previousForEligibility = await port.getLatestSnapshot(creatorId);
+  const eligibility = evaluateCreatorSyncEligibility({
+    lastSyncedAt: creator.lastSyncedAt,
+    syncStatus: creator.syncStatus,
+    latestSuccessfulSnapshotAt: previousForEligibility?.captured_at,
+    accountStatus: creator.accountStatus,
+    force: options?.force,
+    manualCooldown: options?.manualCooldown ?? true,
+    nowMs: now().getTime(),
+  });
+
+  if (!eligibility.eligible) {
+    return {
+      outcome: "skipped",
+      message: eligibility.message,
+      snapshotCreated: false,
+      followerCount: creator.followerCount,
+      jobId: null,
+    };
+  }
+
   const jobId = await port.createJob(creatorId, now().toISOString());
 
   try {
@@ -145,7 +190,7 @@ export async function runCreatorSync(
       videoCount: profile.videoCount,
     };
 
-    const previous = await port.getLatestSnapshot(creatorId);
+    const previous = previousForEligibility;
     let snapshotCreated = false;
 
     if (shouldAppendCreatorSnapshot(previous, candidate, now().getTime())) {
@@ -160,6 +205,10 @@ export async function runCreatorSync(
       profile_url: profile.profileUrl,
       last_synced_at: syncedAt,
       sync_status: "success",
+      // Recovery: a successful profile fetch clears soft-unavailable state.
+      account_status: "active",
+      unavailable_reason: null,
+      unavailable_at: null,
     };
 
     // An empty provider value must not blank out a manually curated one.
@@ -198,6 +247,22 @@ export async function runCreatorSync(
         : error instanceof Error
           ? error.message
           : "TikTok profili alınırken beklenmeyen bir hata oluştu.";
+
+    if (isDefinitiveUnavailableCreatorError(error)) {
+      const reason = unavailableReasonFromProviderError(error);
+      const at = now().toISOString();
+      await port.markCreatorUnavailable(creatorId, reason, at);
+      await port.completeJob(jobId, "failed", at, message);
+      await port.revalidate(creatorId);
+
+      return {
+        outcome: "unavailable",
+        message: `Hesap erişilemiyor: ${turkishUnavailableReason(reason)}.`,
+        snapshotCreated: false,
+        followerCount: creator.followerCount,
+        jobId,
+      };
+    }
 
     // Follower count, display name and avatar are deliberately untouched: a
     // failed sync must not erase the last known good profile.
@@ -274,6 +339,7 @@ export async function runCampaignCreatorSync(
     success: 0,
     failed: 0,
     skipped: 0,
+    unavailable: 0,
     message,
   });
 
@@ -309,6 +375,7 @@ export async function runCampaignCreatorSync(
       success: 0,
       failed: 0,
       skipped: nonTikTokCount,
+      unavailable: 0,
       message: "Kampanyada güncellenebilecek TikTok profili bulunamadı.",
     };
   }
@@ -323,6 +390,7 @@ export async function runCampaignCreatorSync(
 
   let success = 0;
   let failed = 0;
+  let unavailable = 0;
   let skipped = nonTikTokCount;
 
   for (const result of results) {
@@ -330,6 +398,8 @@ export async function runCampaignCreatorSync(
       success += 1;
     } else if (result.outcome === "failed") {
       failed += 1;
+    } else if (result.outcome === "unavailable") {
+      unavailable += 1;
     } else {
       skipped += 1;
     }
@@ -338,15 +408,18 @@ export async function runCampaignCreatorSync(
   await port.revalidate(campaignId);
 
   const skippedSuffix = skipped > 0 ? `, ${skipped} atlandı` : "";
+  const unavailableSuffix =
+    unavailable > 0 ? `, ${unavailable} hesap erişilemiyor / pasif` : "";
 
   return {
     total: uniquePlatformById.size,
     success,
     failed,
     skipped,
+    unavailable,
     message:
       failed === 0
-        ? `${success} TikTok profili güncellendi${skippedSuffix}.`
-        : `${success} başarılı, ${failed} başarısız${skippedSuffix}.`,
+        ? `${success} TikTok profili güncellendi${skippedSuffix}${unavailableSuffix}.`
+        : `${success} başarılı, ${failed} başarısız${skippedSuffix}${unavailableSuffix}.`,
   };
 }

@@ -10,9 +10,24 @@ export type {
 } from "@/lib/providers/tiktok/types";
 export type { TikTokProvider } from "@/lib/providers/tiktok/provider";
 export {
+  mapActorTerminalStatus,
+  mapHttpStatusToProviderError,
+  readApifyErrorType,
+  LOGIN_REQUIRED_CONTENT_DETAIL,
   TikTokProviderError,
   toTurkishProviderMessage,
+  inferProviderErrorCodeFromUserMessage,
 } from "@/lib/providers/tiktok/errors";
+export {
+  classifyEmptySucceededVideoRun,
+  detectLoginRequiredFromDatasetItems,
+  detectLoginRequiredFromLog,
+} from "@/lib/providers/tiktok/detect-login-required";
+export {
+  detectUnavailableCreatorItem,
+  isDefinitiveUnavailableCreatorError,
+  unavailableReasonFromProviderError,
+} from "@/lib/providers/tiktok/detect-unavailable-creator";
 export {
   assertApprovedTikTokUrl,
   normalizeTikTokVideoUrl,
@@ -32,7 +47,28 @@ export {
   parseTikTokSoundId,
   type NormalizedTikTokSoundUrl,
 } from "@/lib/providers/tiktok/sound-url";
-export { parseApifyTikTokDataset, parseApifyTikTokItem } from "@/lib/providers/tiktok/parse-apify-item";
+export {
+  parseApifyTikTokDataset,
+  parseApifyTikTokDatasetBatch,
+  parseApifyTikTokItem,
+} from "@/lib/providers/tiktok/parse-apify-item";
+export {
+  CREATOR_BATCH_SIZE,
+  CREATOR_FRESHNESS_MS,
+  MANUAL_SYNC_COOLDOWN_MS,
+  PROVIDER_BATCH_CONCURRENCY,
+  SOUND_FRESHNESS_MS,
+  SYNC_UX_MESSAGES,
+  VIDEO_BATCH_SIZE,
+  VIDEO_FRESHNESS_MS,
+} from "@/lib/providers/tiktok/sync-policy";
+export {
+  evaluateCreatorSyncEligibility,
+  evaluateSoundSyncEligibility,
+  evaluateVideoSyncEligibility,
+  dedupePreserveOrder,
+  chunkArray,
+} from "@/lib/providers/tiktok/sync-eligibility";
 export {
   classifyCreatorItem,
   parseApifyTikTokCreator,

@@ -103,6 +103,12 @@ export interface Video {
   hasMetrics?: boolean;
   /** Safe profile URL for the creator. Absent in pre-Phase-9 snapshots. */
   creatorProfileUrl?: string | null;
+  /**
+   * Optional manually uploaded preview (MP4/WebM public URL).
+   * Frozen into new snapshots when present; absent on legacy snapshots.
+   */
+  previewMediaUrl?: string | null;
+  previewMediaType?: string | null;
 }
 
 export interface SoundGrowthPoint {
@@ -121,6 +127,8 @@ export interface SoundGrowth {
   soundId?: string | null;
   soundAuthor?: string | null;
   soundUrl?: string | null;
+  /** Provider cover URL when available; never fabricated. */
+  soundCoverUrl?: string | null;
   timeline: SoundGrowthPoint[];
 }
 

@@ -27,7 +27,8 @@ async function requireAuthenticatedClient() {
 }
 
 export async function syncTikTokCreatorAction(
-  creatorId: string
+  creatorId: string,
+  options?: { force?: boolean }
 ): Promise<CreatorSyncActionState> {
   await requireAuthenticatedClient();
 
@@ -35,7 +36,9 @@ export async function syncTikTokCreatorAction(
     return { error: "Geçersiz içerik üreticisi kimliği." };
   }
 
-  const result = await syncTikTokCreator(creatorId);
+  const result = await syncTikTokCreator(creatorId, undefined, {
+    force: options?.force === true,
+  });
 
   if (result.outcome === "failed") {
     return { error: result.message, result };

@@ -4,9 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "pdf:diagnose": "npx tsx scripts/pdf-diagnose.ts",
+    "domain:check": "npx tsx scripts/domain-check.ts",
+    "domain:smoke": "npx tsx scripts/domain-smoke.ts",
+    "apify:batch-check": "npx tsx scripts/apify-batch-check.ts"
+  },
+  "engines": {
+    "node": "22.x"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

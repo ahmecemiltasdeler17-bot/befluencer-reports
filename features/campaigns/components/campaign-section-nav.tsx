@@ -18,7 +18,7 @@ export function CampaignSectionNav({
   activeSection?: (typeof SECTIONS)[number]["id"];
 }) {
   return (
-    <nav className="flex flex-wrap gap-2 border-b border-zinc-800 pb-4">
+    <nav className="flex flex-wrap gap-1.5 border-b border-bf-border pb-3">
       {SECTIONS.map((section) => (
         <Link
           key={section.id}
@@ -26,8 +26,8 @@ export function CampaignSectionNav({
           className={cn(
             "rounded-md px-3 py-1.5 text-sm transition-colors",
             activeSection === section.id
-              ? "bg-zinc-900 font-medium text-white"
-              : "text-zinc-500 hover:text-zinc-300"
+              ? "bg-primary/15 font-medium text-primary ring-1 ring-primary/30"
+              : "text-bf-steel hover:bg-bf-elevated hover:text-bf-text"
           )}
         >
           {section.label}

@@ -1,7 +1,7 @@
 export function ReportAccentDivider() {
   return (
     <div
-      className="mt-[34px] mb-[38px] h-[2px] w-full bg-[#FF5A00]"
+      className="mt-[28px] mb-[32px] h-px w-full bg-[var(--report-border-strong)]"
       role="separator"
       aria-hidden
     />

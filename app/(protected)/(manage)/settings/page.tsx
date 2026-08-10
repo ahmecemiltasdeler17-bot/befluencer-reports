@@ -45,7 +45,7 @@ export default async function SettingsPage() {
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/settings/sync"
-              className="text-sm text-orange-400 hover:text-orange-300"
+              className="text-sm text-primary hover:text-[var(--bf-accent-soft)]"
             >
               Geçmişi gör
             </Link>

@@ -4,7 +4,10 @@ import type {
   TaskCountSummary,
 } from "@/features/scheduled-sync/types";
 
-export const CAMPAIGN_CONCURRENCY = 2;
+import { SCHEDULED_CAMPAIGN_CONCURRENCY } from "@/lib/providers/tiktok/sync-policy";
+
+/** Bounded campaign concurrency for global/cron sync. */
+export const CAMPAIGN_CONCURRENCY = SCHEDULED_CAMPAIGN_CONCURRENCY;
 
 /** Soft stop accepting new campaigns when less than this remains. */
 export const REMAINING_TIME_BUDGET_MS = 45_000;

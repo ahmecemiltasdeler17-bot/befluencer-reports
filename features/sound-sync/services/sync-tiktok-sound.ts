@@ -27,6 +27,8 @@ type SupabaseClient = Awaited<ReturnType<typeof createClient>> | SyncDbClient;
 
 export type SyncSoundOptions = {
   client?: SyncDbClient;
+  force?: boolean;
+  manualCooldown?: boolean;
 };
 
 function mapSupabaseMutationError(message: string, code?: string): string {
@@ -86,6 +88,7 @@ function mapConfiguration(row: Record<string, unknown>): CampaignSoundConfigurat
     soundId: (row.tiktok_sound_id as string | null) ?? null,
     soundTitle: (row.tiktok_sound_title as string | null) ?? null,
     soundAuthor: (row.tiktok_sound_author as string | null) ?? null,
+    soundCoverUrl: (row.tiktok_sound_cover_url as string | null) ?? null,
     lastSyncedAt: (row.sound_last_synced_at as string | null) ?? null,
     syncStatus: (row.sound_sync_status as CampaignSoundConfiguration["syncStatus"]) ??
       "pending",
@@ -142,7 +145,7 @@ function createSoundSyncPort(supabase: SupabaseClient): SoundSyncPort {
       const { data, error } = await supabase
         .from("campaigns")
         .select(
-          "id, sound_url, tiktok_sound_id, tiktok_sound_title, tiktok_sound_author, sound_last_synced_at, sound_sync_status, sound_sync_error"
+          "id, sound_url, tiktok_sound_id, tiktok_sound_title, tiktok_sound_author, tiktok_sound_cover_url, sound_last_synced_at, sound_sync_status, sound_sync_error"
         )
         .eq("id", campaignId)
         .maybeSingle();
@@ -286,5 +289,22 @@ export async function syncTikTokSound(
     };
   }
 
-  return runSoundSync(campaignId, soundProvider, createSoundSyncPort(supabase));
+  const { data: campaignRow } = await supabase
+    .from("campaigns")
+    .select("status")
+    .eq("id", campaignId)
+    .maybeSingle();
+
+  return runSoundSync(
+    campaignId,
+    soundProvider,
+    createSoundSyncPort(supabase),
+    () => new Date(),
+    {
+      force: options?.force,
+      // Scheduled / campaign sync should not apply the short manual cooldown.
+      manualCooldown: options?.manualCooldown ?? Boolean(!options?.client),
+      campaignStatus: (campaignRow?.status as string) ?? null,
+    }
+  );
 }

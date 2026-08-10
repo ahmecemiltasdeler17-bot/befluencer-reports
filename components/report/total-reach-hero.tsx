@@ -3,6 +3,7 @@ import {
   ReportCreatorShowcase,
   type ShowcaseCreator,
 } from "@/components/report/report-creator-showcase";
+import { ReportGrowthStory } from "@/components/report/report-growth-story";
 import { formatExactTurkishCount } from "@/lib/format";
 import type { TotalReach } from "@/lib/types";
 
@@ -42,26 +43,26 @@ export function TotalReachHero({
   return (
     <section
       aria-label="Kampanya özeti"
-      className="report-impact relative z-[1] pt-10 pb-2 text-center min-[1100px]:pt-14"
+      className="report-impact relative z-[1] pt-9 pb-2 text-center min-[1100px]:pt-12"
     >
       {campaignTitle ? (
-        <h1 className="mx-auto max-w-4xl text-[clamp(2rem,5vw,3.75rem)] leading-[1.05] font-semibold tracking-tight text-white">
+        <h1 className="mx-auto max-w-4xl text-[clamp(2.1rem,5.2vw,3.85rem)] leading-[1.04] font-semibold tracking-tight text-balance text-[var(--report-text)]">
           {campaignTitle}
         </h1>
       ) : null}
 
       {subtitle ? (
-        <p className="mx-auto mt-4 max-w-2xl text-base text-zinc-400 min-[1100px]:text-lg">
+        <p className="mx-auto mt-3.5 max-w-2xl text-base leading-relaxed text-[var(--report-text-secondary)] min-[1100px]:text-lg">
           {subtitle}
         </p>
       ) : null}
 
-      <p className="mt-10 text-[11px] font-medium tracking-[0.28em] text-zinc-500 uppercase">
+      <p className="mt-9 text-[11px] font-medium tracking-[0.16em] text-[var(--report-text-tertiary)] uppercase min-[1100px]:mt-10">
         {metricLabel}
       </p>
 
       <p
-        className="mt-4 text-[clamp(3.25rem,10vw,7.5rem)] leading-none font-semibold tracking-tighter text-white tabular-nums"
+        className="mt-3 text-[clamp(3.35rem,10vw,7.6rem)] leading-none font-semibold tracking-tighter text-[var(--report-text)] tabular-nums"
         title={exact}
         aria-label={`${metricLabel}: ${exact}`}
       >
@@ -70,19 +71,10 @@ export function TotalReachHero({
         </span>
       </p>
 
-      <div className="mt-4 text-sm text-zinc-500">
-        {totalReach.growthSinceStart !== null ? (
-          <p>
-            Kampanya başlangıcından beri +
-            {totalReach.growthSinceStart.toFixed(1).replace(".", ",")}%
-          </p>
-        ) : (
-          <p>Henüz karşılaştırma yok</p>
-        )}
-      </div>
+      <ReportGrowthStory totalReach={totalReach} />
 
-      <div className="mx-auto mt-10 max-w-5xl min-[1100px]:mt-12">
-        <p className="mb-4 text-[11px] font-medium tracking-[0.2em] text-zinc-500 uppercase">
+      <div className="mx-auto mt-10 max-w-5xl min-[1100px]:mt-11">
+        <p className="mb-4 text-[11px] font-medium tracking-[0.14em] text-[var(--report-text-tertiary)] uppercase">
           İçerik Üreticileri
         </p>
         <ReportCreatorShowcase creators={creators} />

@@ -14,7 +14,7 @@ const STATUS_LABELS: Record<ScheduledSyncRunRow["status"], string> = {
 const STATUS_TONES: Record<ScheduledSyncRunRow["status"], string> = {
   running: "text-amber-400",
   success: "text-emerald-400",
-  partial: "text-orange-400",
+  partial: "text-primary",
   failed: "text-red-400",
   skipped: "text-zinc-400",
 };
@@ -108,7 +108,7 @@ export function ScheduledSyncHistory({
 
       <p className="border-t border-zinc-800 px-4 py-3 text-xs text-zinc-500">
         Ayrıntılı video/profil/ses işleri kampanya sayfalarındaki{" "}
-        <Link href="/campaigns" className="text-orange-400 hover:text-orange-300">
+        <Link href="/campaigns" className="text-primary hover:text-[var(--bf-accent-soft)]">
           senkron geçmişinde
         </Link>{" "}
         görünür.

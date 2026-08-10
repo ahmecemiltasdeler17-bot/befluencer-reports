@@ -11,7 +11,7 @@ const STATUS_LABELS: Record<SyncJobStatus | VideoSyncStatus, string> = {
 };
 
 const STATUS_STYLES: Record<SyncJobStatus | VideoSyncStatus, string> = {
-  pending: "border-zinc-700 bg-zinc-900/60 text-zinc-300",
+  pending: "border-bf-border bg-bf-elevated/80 text-bf-steel",
   running: "border-sky-500/30 bg-sky-500/10 text-sky-300",
   success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
   failed: "border-red-500/30 bg-red-500/10 text-red-300",

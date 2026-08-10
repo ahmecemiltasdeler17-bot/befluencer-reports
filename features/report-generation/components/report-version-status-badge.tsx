@@ -13,7 +13,7 @@ const STYLES: Record<ReportVersionStatus, string> = {
   generating: "border-sky-500/30 bg-sky-500/10 text-sky-300",
   ready: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
   failed: "border-red-500/30 bg-red-500/10 text-red-300",
-  archived: "border-zinc-600 bg-zinc-900/60 text-zinc-400",
+  archived: "border-bf-border bg-bf-elevated/80 text-bf-steel",
 };
 
 export function ReportVersionStatusBadge({

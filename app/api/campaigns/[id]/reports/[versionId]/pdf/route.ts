@@ -11,12 +11,17 @@ import { buildPrintUrl, getAppOrigin } from "@/features/pdf/origin";
 import {
   createReportExportToken,
   getReportVersionForExport,
+  invalidateUnusedExportToken,
 } from "@/features/pdf/queries";
 import {
   buildContentDisposition,
   buildReportPdfFilename,
 } from "@/features/pdf/services/build-report-pdf-filename";
 import { generateReportPdf } from "@/features/pdf/services/generate-report-pdf";
+import {
+  logPdfExportFailure,
+  logPdfExportStage,
+} from "@/lib/pdf/pdf-export-log";
 
 /** Chromium cannot run on the Edge runtime. */
 export const runtime = "nodejs";
@@ -39,6 +44,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 function errorResponse(error: unknown) {
   logPdfDiagnostics("Report PDF export failed", error);
+  logPdfExportFailure("failed", error);
 
   return NextResponse.json(
     { error: toTurkishPdfMessage(error) },
@@ -63,6 +69,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string; versionId: string }> }
 ) {
   const { id, versionId } = await params;
+  let issuedToken: string | null = null;
 
   try {
     const appOrigin = getAppOrigin();
@@ -72,6 +79,8 @@ export async function POST(
     const { target } = await getReportVersionForExport(id, versionId);
 
     const { token } = await createReportExportToken(target.reportVersionId);
+    issuedToken = token;
+    logPdfExportStage("token-created");
 
     const printUrl = buildPrintUrl({
       appOrigin,
@@ -84,6 +93,9 @@ export async function POST(
       generateReportPdf({ printUrl, appOrigin }),
       PDF_TOTAL_TIMEOUT_MS
     );
+
+    // Success: print page already consumed the one-time token.
+    issuedToken = null;
 
     const filename = buildReportPdfFilename({
       campaignName: target.campaignName,
@@ -102,6 +114,13 @@ export async function POST(
       },
     });
   } catch (error) {
+    if (issuedToken) {
+      const burned = await invalidateUnusedExportToken(issuedToken);
+      if (burned) {
+        logPdfExportStage("token-invalidated");
+      }
+    }
+
     return errorResponse(error);
   }
 }

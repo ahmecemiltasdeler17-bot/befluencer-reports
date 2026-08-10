@@ -14,6 +14,8 @@ import { VideoMetricSummaryPanel } from "@/features/metrics/components/video-met
 import { SyncStatusBadge } from "@/features/sync/components/sync-status-badge";
 import { SyncVideoButton } from "@/features/sync/components/sync-video-button";
 import { DeleteVideoButton } from "@/features/videos/components/delete-video-button";
+import { AdminVideoThumbnail } from "@/features/videos/components/admin-video-thumbnail";
+import { VideoPreviewUpload } from "@/features/videos/components/video-preview-upload";
 import { VideoStatusBadge } from "@/features/videos/components/video-status-badge";
 import { VideoSyncStatusBadge } from "@/features/videos/components/video-sync-status-badge";
 import { getVideoById } from "@/features/videos/queries";
@@ -146,7 +148,7 @@ export default async function CampaignVideoDetailPage({
                 href={video.video_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="break-all text-orange-400 hover:text-orange-300"
+                className="break-all text-primary hover:text-[var(--bf-accent-soft)]"
               >
                 {video.video_url}
               </a>
@@ -155,35 +157,29 @@ export default async function CampaignVideoDetailPage({
           <DetailRow
             label="Thumbnail"
             value={
-              video.thumbnail_url ? (
-                <div className="space-y-2">
-                  <div className="relative aspect-[9/16] w-24 overflow-hidden rounded-md border border-zinc-800 bg-zinc-900">
-                    {/* eslint-disable-next-line @next/next/no-img-element -- management preview of stored CDN URL */}
-                    <img
-                      src={video.thumbnail_url}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
+              <div className="space-y-2">
+                <AdminVideoThumbnail
+                  src={video.thumbnail_url}
+                  seed={video.id}
+                  username={video.creator.username}
+                  platform={video.platform}
+                  className="aspect-[9/16] h-auto w-24"
+                />
+                {video.thumbnail_url ? (
                   <a
                     href={video.thumbnail_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-orange-400 hover:text-orange-300"
+                    className="text-sm text-primary hover:text-[var(--bf-accent-soft)]"
                   >
                     Görseli aç
                   </a>
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  <p className="text-amber-400">Thumbnail bulunamadı</p>
-                  {video.platform === "tiktok" && (
-                    <p className="text-xs text-zinc-500">
-                      Senkronize ederek görseli yenile
-                    </p>
-                  )}
-                </div>
-              )
+                ) : video.platform === "tiktok" ? (
+                  <p className="text-xs text-zinc-500">
+                    Senkronize ederek görseli yenile
+                  </p>
+                ) : null}
+              </div>
             }
           />
           <DetailRow
@@ -208,6 +204,14 @@ export default async function CampaignVideoDetailPage({
           />
         </DetailCard>
       </div>
+
+      <VideoPreviewUpload
+        campaignId={id}
+        videoId={video.id}
+        previewMediaUrl={video.preview_media_url ?? null}
+        previewMediaType={video.preview_media_type ?? null}
+        thumbnailUrl={video.thumbnail_url ?? null}
+      />
 
       <section className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-6">
         <h2 className="text-base font-medium text-white">Açıklama</h2>

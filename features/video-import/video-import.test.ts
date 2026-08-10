@@ -290,6 +290,14 @@ describe("video import contracts", () => {
       "TikTok sağlayıcısı bu bağlantı için sonuç döndürmedi."
     );
     assert.equal(
+      VIDEO_IMPORT_MESSAGES.login_required_content,
+      "TikTok bu videoyu giriş yapılmadan görüntülemeye izin vermiyor."
+    );
+    assert.equal(
+      VIDEO_IMPORT_MESSAGES.login_required_content_detail,
+      "Video hassas/yaş kısıtlı veya oturum gerektiren içerik olabilir."
+    );
+    assert.equal(
       VIDEO_IMPORT_MESSAGES.manual_required,
       "Creator eşleştirmesi gerekli."
     );

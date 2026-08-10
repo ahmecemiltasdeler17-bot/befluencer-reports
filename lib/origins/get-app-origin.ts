@@ -5,6 +5,11 @@ import { normalizeConfiguredOrigin } from "@/lib/origins/validate-origin";
 /**
  * Internal management application origin (`APP_URL`).
  *
+ * Canonical meanings:
+ * - Production: https://app.befluencer.co
+ * - Temporary vercel.app: https://befluencer-reports.vercel.app
+ * - Local: http://localhost:3000
+ *
  * Priority (via resolveAppUrlCandidate):
  * 1. APP_URL
  * 2. Vercel HTTPS deployment URL when APP_URL is missing or localhost-on-Vercel
@@ -18,7 +23,7 @@ export function getAppOrigin(): string {
   if (!candidate) {
     throw new OriginConfigError(
       "missing",
-      "APP_URL is missing. Set APP_URL to the internal application origin (e.g. https://befluencer-reports.vercel.app)."
+      "APP_URL is missing. Set APP_URL=https://app.befluencer.co (or temporary https://befluencer-reports.vercel.app)."
     );
   }
 

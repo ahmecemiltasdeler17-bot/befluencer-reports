@@ -51,7 +51,7 @@ export function CampaignCreatorRow({
   const notesPreview = truncateNotes(assignment.notes);
 
   return (
-    <tr className="text-zinc-200">
+    <tr className="text-bf-text/90 transition-colors hover:bg-primary/[0.04]">
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
           <CreatorAvatar
@@ -61,8 +61,8 @@ export function CampaignCreatorRow({
             size="sm"
           />
           <div>
-            <p className="font-medium text-white">@{creator.username}</p>
-            <p className="text-xs text-zinc-500">
+            <p className="font-medium text-bf-text">@{creator.username}</p>
+            <p className="text-xs text-bf-steel">
               {creator.display_name ?? "—"}
             </p>
           </div>
@@ -90,13 +90,14 @@ export function CampaignCreatorRow({
         <CreatorSyncStateCell
           status={syncSummary?.syncStatus ?? creator.sync_status ?? "pending"}
           lastSyncedAt={syncSummary?.lastSyncedAt ?? creator.last_synced_at}
+          accountStatus={creator.account_status ?? "active"}
         />
       </td>
       <td className="px-4 py-3 tabular-nums">
         {assignment.agreed_content_count}
       </td>
       <td className="px-4 py-3 tabular-nums">{formatFee(assignment.fee)}</td>
-      <td className="px-4 py-3 max-w-[200px] truncate text-zinc-400">
+      <td className="px-4 py-3 max-w-[200px] truncate text-bf-steel">
         {notesPreview ?? "—"}
       </td>
       <td className="px-4 py-3">
@@ -105,6 +106,7 @@ export function CampaignCreatorRow({
             creatorId={creator.id}
             platform={creator.platform}
             syncConfigured={syncConfigured}
+            accountStatus={creator.account_status ?? "active"}
             compact
           />
           <Link

@@ -47,9 +47,14 @@ describe("video sync thumbnail preservation", () => {
       "features/sync/services/sync-tiktok-video.ts",
       "utf8"
     );
-    const catchBlock = source.slice(source.lastIndexOf("} catch (error) {"));
+    const marker = "async function markVideoSyncFailed(";
+    const start = source.indexOf(marker);
+    assert.notEqual(start, -1);
+    const end = source.indexOf("\nexport async function ", start + marker.length);
+    assert.notEqual(end, -1);
+    const helper = source.slice(start, end);
 
-    assert.match(catchBlock, /sync_status:\s*"failed"/);
-    assert.doesNotMatch(catchBlock, /thumbnail_url/);
+    assert.match(helper, /\.update\(\{\s*sync_status:\s*"failed"\s*\}/);
+    assert.doesNotMatch(helper, /thumbnail_url/);
   });
 });

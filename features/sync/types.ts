@@ -34,6 +34,8 @@ export type SyncVideoResult = {
   message: string;
   snapshotCreated: boolean;
   jobId: string | null;
+  /** Present when skipped for freshness / cooldown. */
+  skipReason?: "fresh" | "cooldown" | "archived_no_auto" | "non_retriable";
 };
 
 export type SyncCampaignResult = {
@@ -42,6 +44,10 @@ export type SyncCampaignResult = {
   failed: number;
   skipped: number;
   message: string;
+  providerRunsStarted?: number;
+  skippedFresh?: number;
+  skippedNonRetriable?: number;
+  estimatedRunsSaved?: number;
 };
 
 export type SyncActionState = {

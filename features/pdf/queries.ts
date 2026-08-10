@@ -4,7 +4,7 @@ import {
 } from "@/features/pdf/calculations";
 import { EXPORT_TOKEN_TTL_SECONDS } from "@/features/pdf/constants";
 import { ReportPdfError } from "@/features/pdf/errors";
-import { isUuid } from "@/features/pdf/origin";
+import { isRawExportToken, isUuid } from "@/features/pdf/origin";
 import {
   buildTokenExpiry,
   generateRawExportToken,
@@ -113,6 +113,37 @@ export async function createReportExportToken(
   }
 
   return { token: rawToken, expiresAt };
+}
+
+/**
+ * Permanently invalidates an unused export token after a failed PDF attempt.
+ *
+ * Uses consume_report_export_token (security definer) so we do not need an
+ * UPDATE grant on the table. Safe if the print page already consumed the token
+ * (second call is a no-op). Never throws — cleanup must not mask the export error.
+ */
+export async function invalidateUnusedExportToken(
+  rawToken: string
+): Promise<boolean> {
+  if (!isRawExportToken(rawToken)) {
+    return false;
+  }
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("consume_report_export_token", {
+      p_token_hash: hashExportToken(rawToken),
+    });
+
+    if (error) {
+      return false;
+    }
+
+    const rows = (data ?? []) as unknown[];
+    return rows.length > 0;
+  } catch {
+    return false;
+  }
 }
 
 /**

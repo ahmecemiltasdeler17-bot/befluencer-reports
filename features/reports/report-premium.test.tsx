@@ -203,7 +203,7 @@ describe("premium report structure and privacy", () => {
     assert.match(html, /Eyebrow/);
   });
 
-  it("footer uses real metadata and neutral branding note", () => {
+  it("footer is a minimal BeFluencer brand signature", () => {
     const html = renderToStaticMarkup(
       <ReportFooter
         reportNumber="RPT-9"
@@ -212,10 +212,34 @@ describe("premium report structure and privacy", () => {
       />
     );
     assert.match(html, /BeFluencer/);
-    assert.match(html, /RPT-9/);
-    assert.match(html, /Bu rapor BeFluencer raporlama altyapısı ile hazırlanmıştır/);
-    assert.equal(html.includes("RPT-2026-0047"), false);
+    assert.match(html, /report-footer/);
+    // Metadata stays in the cover header — not repeated in the footer.
+    assert.equal(html.includes("RPT-9"), false);
+    assert.equal(html.includes("1 Temmuz 2026"), false);
+    assert.equal(
+      html.includes("Bu rapor BeFluencer raporlama altyapısı ile hazırlanmıştır"),
+      false
+    );
     assert.equal(html.includes("token"), false);
+  });
+
+  it("shared report canvas is used across report surfaces", () => {
+    assert.match(
+      read("app/(protected)/(report)/campaigns/[id]/report/page.tsx"),
+      /ReportCanvas/
+    );
+    assert.match(
+      read("app/(public-report)/r/[token]/page.tsx"),
+      /ReportCanvas/
+    );
+    assert.match(
+      read(
+        "app/(print)/campaigns/[id]/reports/[versionId]/print/page.tsx"
+      ),
+      /ReportCanvas/
+    );
+    assert.match(read("app/globals.css"), /--report-bg/);
+    assert.match(read("app/globals.css"), /report-chart-panel/);
   });
 
   it("keeps watermark on the shared report surface", () => {
@@ -230,7 +254,7 @@ describe("premium report structure and privacy", () => {
   it("creator/video report components avoid fees and internal notes", () => {
     for (const file of [
       "components/report/content/creator-leaderboard.tsx",
-      "components/report/content/creator-leaderboard-row.tsx",
+      "components/report/content/creator-ranking-card.tsx",
       "components/report/content/tiktok-content-card.tsx",
       "components/report/report-header.tsx",
       "components/report/report-footer.tsx",

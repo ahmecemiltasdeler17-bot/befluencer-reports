@@ -26,7 +26,7 @@ export function CreatorCategoryBadge({
       <Badge
         variant="outline"
         className={cn(
-          "border-zinc-800 bg-zinc-950/40 text-zinc-500",
+          "border-bf-border bg-bf-bg/60 text-bf-steel/70",
           className
         )}
       >
@@ -39,7 +39,7 @@ export function CreatorCategoryBadge({
     <Badge
       variant="outline"
       className={cn(
-        "border-zinc-700 bg-zinc-900/60 text-zinc-300",
+        "border-bf-border bg-bf-elevated/80 text-bf-steel",
         className
       )}
     >

@@ -112,6 +112,8 @@ function mapVideoRow(
       platform: creatorPlatform,
       username: row.creator.username,
     }).href,
+    previewMediaUrl: row.preview_media_url ?? null,
+    previewMediaType: row.preview_media_type ?? null,
   };
 }
 
@@ -197,6 +199,7 @@ export function mapCampaignReportData(
     soundId: input.campaign.tiktok_sound_id,
     soundAuthor: input.campaign.tiktok_sound_author,
     soundUrl: input.campaign.sound_url,
+    soundCoverUrl: input.campaign.tiktok_sound_cover_url,
   });
 
   const videosWithoutMetrics = mappedVideos.filter(

@@ -5,19 +5,30 @@ import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { ScheduledSyncSummary } from "@/features/scheduled-sync/types";
+import { SYNC_UX_MESSAGES } from "@/lib/providers/tiktok/sync-policy";
 
 function formatSummary(summary: ScheduledSyncSummary): string {
   if (summary.status === "skipped") {
     return "Senkronizasyon atlandı (kilit veya uygun kampanya yok).";
   }
 
-  return [
-    `Durum: ${summary.status}`,
-    `${summary.successfulCampaigns}/${summary.totalCampaigns} kampanya başarılı`,
-    `Video ${summary.video.success}/${summary.video.failed}`,
-    `Profil ${summary.creators.success}/${summary.creators.failed}`,
-    `Ses ${summary.sound.success}/${summary.sound.failed}`,
-  ].join(" · ");
+  if (summary.message) {
+    return summary.message;
+  }
+
+  const parts = [
+    `${summary.video.success} güncellendi`,
+    `${summary.video.skipped} zaten günceldi`,
+    summary.video.failed > 0 ? `${summary.video.failed} başarısız` : null,
+  ];
+
+  if (typeof summary.providerRunsStarted === "number") {
+    parts.push(
+      `${summary.providerRunsStarted} sağlayıcı çalıştırması kullanıldı`
+    );
+  }
+
+  return parts.filter(Boolean).join(" · ");
 }
 
 export function RunScheduledSyncButton({
@@ -27,6 +38,7 @@ export function RunScheduledSyncButton({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [phase, setPhase] = useState<"idle" | "planning" | "updating">("idle");
   const [feedback, setFeedback] = useState<{
     type: "success" | "error";
     message: string;
@@ -35,6 +47,7 @@ export function RunScheduledSyncButton({
   function handleClick() {
     startTransition(async () => {
       setFeedback(null);
+      setPhase("planning");
 
       if (!syncConfigured) {
         setFeedback({
@@ -42,10 +55,12 @@ export function RunScheduledSyncButton({
           message:
             "Zamanlanmış senkronizasyon yapılandırılmamış. APIFY_* ve SUPABASE_SERVICE_ROLE_KEY değerlerini .env.local dosyasına ekleyin.",
         });
+        setPhase("idle");
         return;
       }
 
       try {
+        setPhase("updating");
         const response = await fetch("/api/internal/tiktok-sync/run", {
           method: "POST",
           headers: { Accept: "application/json" },
@@ -63,6 +78,7 @@ export function RunScheduledSyncButton({
                 ? payload.error
                 : "Senkronizasyon başlatılamadı.",
           });
+          setPhase("idle");
           return;
         }
 
@@ -76,9 +92,16 @@ export function RunScheduledSyncButton({
           type: "error",
           message: "Senkronizasyon başlatılamadı.",
         });
+      } finally {
+        setPhase("idle");
       }
     });
   }
+
+  const pendingLabel =
+    phase === "planning"
+      ? SYNC_UX_MESSAGES.planning
+      : SYNC_UX_MESSAGES.updating;
 
   return (
     <div className="space-y-2">
@@ -86,9 +109,9 @@ export function RunScheduledSyncButton({
         type="button"
         disabled={isPending || !syncConfigured}
         onClick={handleClick}
-        className="bg-orange-500 text-white hover:bg-orange-500/90"
+        className="bg-primary text-primary-foreground hover:bg-primary/90"
       >
-        {isPending ? "Güncelleniyor…" : "Tüm TikTok Verilerini Güncelle"}
+        {isPending ? pendingLabel : "Tüm TikTok Verilerini Güncelle"}
       </Button>
       {feedback ? (
         <p

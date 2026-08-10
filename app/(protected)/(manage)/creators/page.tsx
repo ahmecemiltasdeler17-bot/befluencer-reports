@@ -11,6 +11,7 @@ import {
   type CreatorPlatform,
 } from "@/features/creators/types";
 import { CreatorDirectoryFilterForm } from "@/features/creators/components/creator-directory-filter-form";
+import { DeleteUnavailableCreatorsButton } from "@/features/creators/components/delete-unavailable-creators-button";
 import { parseCreatorDirectorySortState } from "@/features/creators/directory-sort";
 import { listCreators } from "@/features/creators/queries";
 import { getCategoryLabel } from "@/features/creators/components/creator-category-badge";
@@ -25,6 +26,7 @@ type SearchParams = {
   min_followers?: string;
   max_followers?: string;
   sync_status?: string;
+  account_status?: string;
   campaign?: string;
   has_avatar?: string;
   sort?: string;
@@ -60,6 +62,11 @@ export default async function CreatorsPage({
     params.sync_status === "failed"
       ? params.sync_status
       : "all";
+  const accountStatus =
+    params.account_status === "active" ||
+    params.account_status === "unavailable"
+      ? params.account_status
+      : "all";
   const campaignAssignment =
     params.campaign === "assigned" || params.campaign === "unassigned"
       ? params.campaign
@@ -83,6 +90,7 @@ export default async function CreatorsPage({
       minFollowers,
       maxFollowers,
       syncStatus,
+      accountStatus,
       campaignAssignment,
       hasAvatar,
     }),
@@ -91,6 +99,9 @@ export default async function CreatorsPage({
 
   const growthByCreator = await listCreatorGrowthByIds(creators);
   const syncConfigured = isTikTokCreatorSyncConfigured();
+  const unavailableCount = creators.filter(
+    (creator) => (creator.account_status ?? "active") === "unavailable"
+  ).length;
   const hasFilters = Boolean(
     params.q ||
       platform !== "all" ||
@@ -98,6 +109,7 @@ export default async function CreatorsPage({
       minFollowers !== null ||
       maxFollowers !== null ||
       syncStatus !== "all" ||
+      accountStatus !== "all" ||
       campaignAssignment !== "all" ||
       hasAvatar !== "all"
   );
@@ -106,10 +118,10 @@ export default async function CreatorsPage({
     <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-white">
+          <h1 className="text-2xl font-semibold text-bf-text">
             İçerik Üreticileri
           </h1>
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-1 text-sm text-bf-steel">
             Global içerik üreticisi havuzunu yönetin ve listeler oluşturun
           </p>
         </div>
@@ -128,19 +140,16 @@ export default async function CreatorsPage({
           </Link>
           <Link
             href="/creators/new"
-            className={cn(
-              buttonVariants({ variant: "default" }),
-              "bg-orange-500 text-white hover:bg-orange-500/90"
-            )}
+            className={cn(buttonVariants({ variant: "default" }))}
           >
             Yeni İçerik Üreticisi
           </Link>
         </div>
       </div>
 
-      <CreatorDirectoryFilterForm className="flex flex-wrap items-end gap-3">
+      <CreatorDirectoryFilterForm className="flex flex-wrap items-end gap-3 rounded-xl border border-bf-border bg-bf-surface/50 p-3">
         <div className="min-w-[180px] flex-1 space-y-1">
-          <label htmlFor="q" className="text-xs text-zinc-500">
+          <label htmlFor="q" className="text-xs text-bf-steel">
             Ara
           </label>
           <input
@@ -148,18 +157,18 @@ export default async function CreatorsPage({
             name="q"
             defaultValue={params.q ?? ""}
             placeholder="Kullanıcı adı veya görünen ad"
-            className="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 text-sm text-white outline-none focus:border-orange-500/60 focus:ring-2 focus:ring-orange-500/20"
+            className="h-10 w-full rounded-lg border border-bf-border bg-bf-bg px-3 text-sm text-bf-text outline-none placeholder:text-bf-steel/60 focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
           />
         </div>
         <div className="space-y-1">
-          <label htmlFor="platform" className="text-xs text-zinc-500">
+          <label htmlFor="platform" className="text-xs text-bf-steel">
             Platform
           </label>
           <select
             id="platform"
             name="platform"
             defaultValue={platform}
-            className="h-10 rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 text-sm text-white outline-none focus:border-orange-500/60"
+            className="h-10 rounded-lg border border-bf-border bg-bf-bg px-3 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
           >
             <option value="all">Tümü</option>
             {CREATOR_PLATFORMS.map((value) => (
@@ -170,14 +179,14 @@ export default async function CreatorsPage({
           </select>
         </div>
         <div className="space-y-1">
-          <label htmlFor="category" className="text-xs text-zinc-500">
+          <label htmlFor="category" className="text-xs text-bf-steel">
             Kategori
           </label>
           <select
             id="category"
             name="category"
             defaultValue={category}
-            className="h-10 rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 text-sm text-white outline-none focus:border-orange-500/60"
+            className="h-10 rounded-lg border border-bf-border bg-bf-bg px-3 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
           >
             <option value="all">Tümü</option>
             {CREATOR_CATEGORIES.map((value) => (
@@ -188,7 +197,7 @@ export default async function CreatorsPage({
           </select>
         </div>
         <div className="space-y-1">
-          <label htmlFor="min_followers" className="text-xs text-zinc-500">
+          <label htmlFor="min_followers" className="text-xs text-bf-steel">
             Min takipçi
           </label>
           <input
@@ -197,11 +206,11 @@ export default async function CreatorsPage({
             type="number"
             min={0}
             defaultValue={params.min_followers ?? ""}
-            className="h-10 w-28 rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 text-sm text-white outline-none focus:border-orange-500/60"
+            className="h-10 w-28 rounded-lg border border-bf-border bg-bf-bg px-3 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
           />
         </div>
         <div className="space-y-1">
-          <label htmlFor="max_followers" className="text-xs text-zinc-500">
+          <label htmlFor="max_followers" className="text-xs text-bf-steel">
             Max takipçi
           </label>
           <input
@@ -210,18 +219,18 @@ export default async function CreatorsPage({
             type="number"
             min={0}
             defaultValue={params.max_followers ?? ""}
-            className="h-10 w-28 rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 text-sm text-white outline-none focus:border-orange-500/60"
+            className="h-10 w-28 rounded-lg border border-bf-border bg-bf-bg px-3 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
           />
         </div>
         <div className="space-y-1">
-          <label htmlFor="sync_status" className="text-xs text-zinc-500">
+          <label htmlFor="sync_status" className="text-xs text-bf-steel">
             Senkron
           </label>
           <select
             id="sync_status"
             name="sync_status"
             defaultValue={syncStatus}
-            className="h-10 rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 text-sm text-white outline-none focus:border-orange-500/60"
+            className="h-10 rounded-lg border border-bf-border bg-bf-bg px-3 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
           >
             <option value="all">Tümü</option>
             <option value="success">Başarılı</option>
@@ -230,14 +239,29 @@ export default async function CreatorsPage({
           </select>
         </div>
         <div className="space-y-1">
-          <label htmlFor="campaign" className="text-xs text-zinc-500">
+          <label htmlFor="account_status" className="text-xs text-bf-steel">
+            Hesap
+          </label>
+          <select
+            id="account_status"
+            name="account_status"
+            defaultValue={accountStatus}
+            className="h-10 rounded-lg border border-bf-border bg-bf-bg px-3 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
+          >
+            <option value="all">Tümü</option>
+            <option value="active">Aktif</option>
+            <option value="unavailable">Pasif hesapları göster</option>
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label htmlFor="campaign" className="text-xs text-bf-steel">
             Kampanya
           </label>
           <select
             id="campaign"
             name="campaign"
             defaultValue={campaignAssignment}
-            className="h-10 rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 text-sm text-white outline-none focus:border-orange-500/60"
+            className="h-10 rounded-lg border border-bf-border bg-bf-bg px-3 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
           >
             <option value="all">Tümü</option>
             <option value="assigned">Atanmış</option>
@@ -245,14 +269,14 @@ export default async function CreatorsPage({
           </select>
         </div>
         <div className="space-y-1">
-          <label htmlFor="has_avatar" className="text-xs text-zinc-500">
+          <label htmlFor="has_avatar" className="text-xs text-bf-steel">
             Avatar
           </label>
           <select
             id="has_avatar"
             name="has_avatar"
             defaultValue={hasAvatar}
-            className="h-10 rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 text-sm text-white outline-none focus:border-orange-500/60"
+            className="h-10 rounded-lg border border-bf-border bg-bf-bg px-3 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
           >
             <option value="all">Tümü</option>
             <option value="yes">Var</option>
@@ -261,7 +285,7 @@ export default async function CreatorsPage({
         </div>
         <button
           type="submit"
-          className="h-10 rounded-lg bg-zinc-800 px-4 text-sm font-medium text-white hover:bg-zinc-700"
+          className="h-10 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           Filtrele
         </button>
@@ -273,10 +297,20 @@ export default async function CreatorsPage({
             Temizle
           </Link>
         ) : null}
+        {accountStatus === "unavailable" && unavailableCount > 0 ? (
+          <DeleteUnavailableCreatorsButton
+            creatorIds={creators
+              .filter(
+                (creator) =>
+                  (creator.account_status ?? "active") === "unavailable"
+              )
+              .map((creator) => creator.id)}
+          />
+        ) : null}
       </CreatorDirectoryFilterForm>
 
       {creators.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-zinc-800 px-6 py-12 text-center text-sm text-zinc-400">
+        <div className="rounded-lg border border-dashed border-bf-border px-6 py-12 text-center text-sm text-bf-steel">
           İçerik üreticisi bulunamadı.
         </div>
       ) : (

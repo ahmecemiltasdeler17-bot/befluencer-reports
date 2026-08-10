@@ -1,17 +1,16 @@
-export function PublicReportFooter({
-  reportNumber,
-  versionNumber,
-}: {
+import { REPORT_BRAND } from "@/components/report/brand/befluencer-mark";
+
+type PublicReportFooterProps = {
   reportNumber: string | null;
   versionNumber: number;
-}) {
+};
+
+export function PublicReportFooter(props: PublicReportFooterProps) {
+  void props;
   return (
-    <footer className="mt-12 border-t border-zinc-800/80 py-8 text-center print:hidden">
-      <p className="text-xs text-zinc-500">
-        Bu rapor BeFluencer tarafından hazırlanmıştır.
-      </p>
-      <p className="mt-1 text-[11px] text-zinc-600">
-        {reportNumber ? `${reportNumber} · ` : null}v{versionNumber}
+    <footer className="mt-10 border-t border-[var(--report-border)] py-8 text-center print:hidden">
+      <p className="text-[11px] font-semibold tracking-[0.28em] text-[var(--report-accent)] uppercase">
+        {REPORT_BRAND.name}
       </p>
     </footer>
   );

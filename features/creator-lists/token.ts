@@ -18,7 +18,8 @@ export {
 };
 
 /**
- * Builds `/lists/<raw-token>` against PUBLIC_REPORT_URL (falls back to APP_URL).
+ * Builds `/lists/<raw-token>` against a trusted public-report origin.
+ * Prefer `getPublicReportUrl(\`/lists/${token}\`)` at call sites.
  * Never derives the host from a request header.
  */
 export function buildPublicCreatorListUrl(

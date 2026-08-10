@@ -26,7 +26,7 @@ export function LoginForm() {
           autoComplete="email"
           required
           disabled={isPending}
-          className="h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 text-sm text-white outline-none transition-colors placeholder:text-zinc-600 focus:border-orange-500/60 focus:ring-2 focus:ring-orange-500/20 disabled:opacity-60"
+          className="h-11 w-full rounded-lg border border-[var(--bf-border)] bg-[color-mix(in_srgb,var(--bf-bg)_80%,transparent)] px-3 text-sm text-[var(--bf-text)] outline-none transition-colors placeholder:text-[var(--bf-text-muted)] focus:border-primary/60 focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
           placeholder="ornek@befluencer.com"
         />
       </div>
@@ -45,7 +45,7 @@ export function LoginForm() {
           autoComplete="current-password"
           required
           disabled={isPending}
-          className="h-11 w-full rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 text-sm text-white outline-none transition-colors placeholder:text-zinc-600 focus:border-orange-500/60 focus:ring-2 focus:ring-orange-500/20 disabled:opacity-60"
+          className="h-11 w-full rounded-lg border border-[var(--bf-border)] bg-[color-mix(in_srgb,var(--bf-bg)_80%,transparent)] px-3 text-sm text-[var(--bf-text)] outline-none transition-colors placeholder:text-[var(--bf-text-muted)] focus:border-primary/60 focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
           placeholder="••••••••"
         />
       </div>
@@ -62,7 +62,7 @@ export function LoginForm() {
       <Button
         type="submit"
         disabled={isPending}
-        className="h-11 w-full bg-orange-500 text-white hover:bg-orange-500/90"
+        className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90"
       >
         {isPending ? "Giriş yapılıyor…" : "Giriş Yap"}
       </Button>

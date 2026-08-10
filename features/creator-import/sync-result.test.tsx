@@ -37,6 +37,12 @@ describe("mapCreatorImportSyncError", () => {
     );
     assert.equal(
       mapCreatorImportSyncError(
+        "TikTok veri sağlayıcı kullanım kotası doldu. Apify hesabınızı veya planınızı kontrol edin."
+      ).errorMessage,
+      "Sağlayıcı kullanım kotası doldu. Apify hesabınızı kontrol edin."
+    );
+    assert.equal(
+      mapCreatorImportSyncError(
         "TikTok veri sağlayıcı geçici olarak kullanılamıyor."
       ).errorMessage,
       "Geçici sağlayıcı hatası. Tekrar deneyin."
@@ -178,9 +184,11 @@ describe("bulk sync result rows", () => {
     assert.match(form, /handleRetryFailedIds/);
   });
 
-  it("keeps bulk sync concurrency at 2", () => {
+  it("bulk import sync uses creator batch orchestration", () => {
     const source = readFileSync("features/creator-import/actions.ts", "utf8");
-    assert.match(source, /BULK_CONCURRENCY/);
-    assert.match(source, /mapWithConcurrency/);
+    assert.match(source, /orchestrateCreatorBatchFetches/);
+    assert.match(source, /fetchCreatorProfilesBatch/);
+    assert.doesNotMatch(source, /BULK_CONCURRENCY/);
+    assert.doesNotMatch(source, /mapWithConcurrency/);
   });
 });

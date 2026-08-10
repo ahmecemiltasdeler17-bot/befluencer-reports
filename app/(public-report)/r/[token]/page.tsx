@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { CampaignReportView } from "@/components/report/campaign-report-view";
+import { ReportCanvas } from "@/components/report/report-canvas";
 import { PublicAccessBeacon } from "@/features/public-reports/components/public-access-beacon";
 import { PublicPdfDownloadButton } from "@/features/public-reports/components/public-pdf-download-button";
 import { PublicReportFooter } from "@/features/public-reports/components/public-report-footer";
@@ -8,12 +9,11 @@ import { PublicReportHeader } from "@/features/public-reports/components/public-
 import { PublicShareUnavailable } from "@/features/public-reports/components/public-share-unavailable";
 import { resolvePublicReportShare } from "@/features/public-reports/queries";
 import {
-  buildPublicShareUrl,
   isRawShareToken,
   normalizeRouteShareToken,
 } from "@/features/public-reports/token";
 import { parseSnapshotForRendering } from "@/features/report-generation/services/deserialize-report-snapshot";
-import { getPublicReportOrigin } from "@/lib/origins";
+import { getPublicReportUrl } from "@/lib/origins";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -43,7 +43,7 @@ export async function generateMetadata({
   if (isRawShareToken(token)) {
     try {
       metadata.alternates = {
-        canonical: buildPublicShareUrl(getPublicReportOrigin(), token),
+        canonical: getPublicReportUrl(`/r/${token}`),
       };
     } catch {
       // Origin misconfiguration — omit canonical rather than failing the page.
@@ -83,23 +83,25 @@ export default async function PublicSharedReportPage({
     payload.reportNumber ?? report.metadata.reportNumber ?? null;
 
   return (
-    <div className="min-h-screen bg-[#09090B] font-sans">
+    <>
       <PublicAccessBeacon />
-      <div className="relative mx-auto max-w-[1360px] px-6 pt-10 min-[1100px]:px-12">
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <PublicReportHeader
-              campaignName={payload.campaignName}
-              versionNumber={payload.versionNumber}
-              generatedAt={payload.generatedAt}
-              archived={payload.status === "archived"}
-            />
+      <ReportCanvas
+        topSlot={
+          <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <PublicReportHeader
+                campaignName={payload.campaignName}
+                versionNumber={payload.versionNumber}
+                generatedAt={payload.generatedAt}
+                archived={payload.status === "archived"}
+              />
+            </div>
+            {payload.allowPdfDownload ? (
+              <PublicPdfDownloadButton versionNumber={payload.versionNumber} />
+            ) : null}
           </div>
-          {payload.allowPdfDownload ? (
-            <PublicPdfDownloadButton versionNumber={payload.versionNumber} />
-          ) : null}
-        </div>
-
+        }
+      >
         <CampaignReportView
           report={report}
           reportNumber={reportNumber}
@@ -114,7 +116,7 @@ export default async function PublicSharedReportPage({
           reportNumber={reportNumber}
           versionNumber={payload.versionNumber}
         />
-      </div>
-    </div>
+      </ReportCanvas>
+    </>
   );
 }

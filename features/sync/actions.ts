@@ -50,7 +50,11 @@ export async function syncCampaignTikTokVideosAction(
 ): Promise<SyncActionState> {
   await requireAuth();
 
-  const result = await syncCampaignTikTokVideos(campaignId);
+  const result = await syncCampaignTikTokVideos(campaignId, undefined, {
+    // Manual bulk may soft-recheck login_required (provider can succeed later).
+    // Does not bypass definitive unavailable/invalid classifications.
+    recheckLoginRequired: true,
+  });
 
   revalidatePath(`/campaigns/${campaignId}`);
 

@@ -149,9 +149,23 @@ function createPort(options?: {
     },
     async syncCampaignCreators() {
       if (options?.creatorFail) {
-        return { total: 1, success: 0, failed: 1, skipped: 0, message: "fail" };
+        return {
+          total: 1,
+          success: 0,
+          failed: 1,
+          skipped: 0,
+          unavailable: 0,
+          message: "fail",
+        };
       }
-      return { total: 1, success: 1, failed: 0, skipped: 0, message: "ok" };
+      return {
+        total: 1,
+        success: 1,
+        failed: 0,
+        skipped: 0,
+        unavailable: 0,
+        message: "ok",
+      };
     },
     async syncCampaignSound() {
       if (options?.soundFail) {

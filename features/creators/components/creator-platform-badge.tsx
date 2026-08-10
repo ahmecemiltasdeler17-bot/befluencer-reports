@@ -23,7 +23,7 @@ export function CreatorPlatformBadge({
     <Badge
       variant="outline"
       className={cn(
-        "border-zinc-700 bg-zinc-900/60 text-zinc-300",
+        "border-bf-border bg-bf-elevated/80 text-bf-steel",
         className
       )}
     >

@@ -37,8 +37,14 @@ async function resolveClient(client?: SyncDbClient) {
   return client ?? (await requireAuthenticatedClient());
 }
 
+/**
+ * Includes preview_media_url / preview_media_type explicitly so report preview
+ * management never depends on an implicit schema drift.
+ */
 const videoWithCreatorSelect = `
   *,
+  preview_media_url,
+  preview_media_type,
   creator:creators (
     id,
     username,
@@ -47,6 +53,19 @@ const videoWithCreatorSelect = `
     platform
   )
 `;
+
+function mapVideoWithCreator(row: {
+  creator: VideoWithCreator["creator"] | VideoWithCreator["creator"][] | null;
+} & Record<string, unknown>): VideoWithCreator {
+  const creator = Array.isArray(row.creator) ? row.creator[0] : row.creator;
+  return {
+    ...(row as unknown as Video),
+    preview_media_url: (row.preview_media_url as string | null | undefined) ?? null,
+    preview_media_type:
+      (row.preview_media_type as string | null | undefined) ?? null,
+    creator: creator as VideoWithCreator["creator"],
+  };
+}
 
 export async function listCampaignVideos(
   campaignId: string
@@ -63,10 +82,7 @@ export async function listCampaignVideos(
     throw new Error(mapSupabaseError(error.message));
   }
 
-  return (data ?? []).map((row) => ({
-    ...(row as Video),
-    creator: row.creator as VideoWithCreator["creator"],
-  }));
+  return (data ?? []).map((row) => mapVideoWithCreator(row));
 }
 
 export async function listCreatorVideos(
@@ -86,10 +102,7 @@ export async function listCreatorVideos(
     throw new Error(mapSupabaseError(error.message));
   }
 
-  return (data ?? []).map((row) => ({
-    ...(row as Video),
-    creator: row.creator as VideoWithCreator["creator"],
-  }));
+  return (data ?? []).map((row) => mapVideoWithCreator(row));
 }
 
 export async function getVideoById(
@@ -117,10 +130,14 @@ export async function getVideoById(
     return null;
   }
 
+  const mapped = mapVideoWithCreator(data);
+  const campaign = Array.isArray(data.campaign)
+    ? data.campaign[0]
+    : data.campaign;
+
   return {
-    ...(data as Video),
-    creator: data.creator as VideoWithCreator["creator"],
-    campaign: data.campaign as VideoWithRelations["campaign"],
+    ...mapped,
+    campaign: campaign as VideoWithRelations["campaign"],
   };
 }
 

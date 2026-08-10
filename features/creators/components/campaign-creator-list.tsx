@@ -58,8 +58,8 @@ export function CampaignCreatorList({
     <section id="creators" className="scroll-mt-24 space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-medium text-white">İçerik Üreticileri</h2>
-          <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-zinc-400">
+          <h2 className="text-lg font-medium text-bf-text">İçerik Üreticileri</h2>
+          <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-bf-steel">
             <span>{creatorCount} içerik üreticisi</span>
             <span>
               <CompactCountText
@@ -82,10 +82,7 @@ export function CampaignCreatorList({
             {syncAction}
             <Link
               href={`/campaigns/${campaignId}/creators/add`}
-              className={cn(
-                buttonVariants({ variant: "default" }),
-                "bg-orange-500 text-white hover:bg-orange-500/90"
-              )}
+              className={cn(buttonVariants({ variant: "default" }))}
             >
               İçerik Üreticisi Ekle
             </Link>
@@ -96,24 +93,24 @@ export function CampaignCreatorList({
       {creatorCount === 0 ? (
         <CreatorEmptyState campaignId={campaignId} />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-800">
+        <div className="overflow-hidden rounded-xl border border-bf-border">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-zinc-800 text-sm">
-              <thead className="bg-zinc-950/80">
-                <tr className="text-left text-zinc-400">
-                  <th className="px-4 py-3 font-medium">İçerik Üreticisi</th>
-                  <th className="px-4 py-3 font-medium">Platform</th>
-                  <th className="px-4 py-3 font-medium">Kategori</th>
-                  <th className="px-4 py-3 font-medium">Takipçi</th>
-                  <th className="px-4 py-3 font-medium">Büyüme</th>
-                  <th className="px-4 py-3 font-medium">Senkronizasyon</th>
-                  <th className="px-4 py-3 font-medium">İçerik</th>
-                  <th className="px-4 py-3 font-medium">Ücret</th>
-                  <th className="px-4 py-3 font-medium">Not</th>
-                  <th className="px-4 py-3 font-medium text-right">İşlemler</th>
+            <table className="min-w-full divide-y divide-bf-border text-sm">
+              <thead className="bg-bf-surface">
+                <tr className="text-left text-bf-steel">
+                  <th className="px-4 py-2.5 font-medium">İçerik Üreticisi</th>
+                  <th className="px-4 py-2.5 font-medium">Platform</th>
+                  <th className="px-4 py-2.5 font-medium">Kategori</th>
+                  <th className="px-4 py-2.5 font-medium">Takipçi</th>
+                  <th className="px-4 py-2.5 font-medium">Büyüme</th>
+                  <th className="px-4 py-2.5 font-medium">Senkronizasyon</th>
+                  <th className="px-4 py-2.5 font-medium">İçerik</th>
+                  <th className="px-4 py-2.5 font-medium">Ücret</th>
+                  <th className="px-4 py-2.5 font-medium">Not</th>
+                  <th className="px-4 py-2.5 font-medium text-right">İşlemler</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/80 bg-zinc-950/40">
+              <tbody className="divide-y divide-bf-border/80 bg-bf-bg/40">
                 {assignments.map((assignment) => (
                   <CampaignCreatorRow
                     key={assignment.id}

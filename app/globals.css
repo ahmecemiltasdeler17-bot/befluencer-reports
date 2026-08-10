@@ -39,6 +39,18 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-bf-bg: var(--bf-bg);
+  --color-bf-surface: var(--bf-surface);
+  --color-bf-elevated: var(--bf-elevated);
+  --color-bf-text: var(--bf-text);
+  --color-bf-text-secondary: var(--bf-text-secondary);
+  --color-bf-text-muted: var(--bf-text-muted);
+  --color-bf-accent: var(--bf-accent);
+  --color-bf-accent-soft: var(--bf-accent-soft);
+  --color-bf-accent-strong: var(--bf-accent-strong);
+  --color-bf-steel: var(--bf-steel);
+  --color-bf-border: var(--bf-border);
+  --color-bf-border-strong: var(--bf-border-strong);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -49,72 +61,108 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  /* Light theme stays readable; admin is dark-first via .dark. */
+  --bf-bg: #f4f6f9;
+  --bf-surface: #ffffff;
+  --bf-elevated: #f0f3f7;
+  --bf-text: #0c0e12;
+  --bf-text-secondary: #5c6675;
+  --bf-text-muted: #7a8494;
+  --bf-accent: #6ba3c7;
+  --bf-accent-soft: #a8d4f0;
+  --bf-accent-strong: #4f87ab;
+  --bf-steel: #7a90a8;
+  --bf-border: rgba(122, 144, 168, 0.22);
+  --bf-border-strong: rgba(122, 144, 168, 0.36);
+  --bf-success: #3d9a6a;
+  --bf-warning: #c9a227;
+  --bf-destructive: #c45c5c;
+  --bf-pending: #7a90a8;
+
+  --background: #f4f6f9;
+  --foreground: #0c0e12;
+  --card: #ffffff;
+  --card-foreground: #0c0e12;
+  --popover: #ffffff;
+  --popover-foreground: #0c0e12;
+  --primary: #6ba3c7;
+  --primary-foreground: #0c0e12;
+  --secondary: #e8eef4;
+  --secondary-foreground: #141820;
+  --muted: #e8eef4;
+  --muted-foreground: #5c6675;
+  --accent: #e8eef4;
+  --accent-foreground: #141820;
+  --destructive: #c45c5c;
+  --border: rgba(122, 144, 168, 0.22);
+  --input: rgba(122, 144, 168, 0.28);
+  --ring: #6ba3c7;
+  --chart-1: #6ba3c7;
+  --chart-2: #7a90a8;
+  --chart-3: #9aa3b2;
+  --chart-4: #5c6675;
+  --chart-5: #141820;
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0c0e12;
+  --sidebar-primary: #6ba3c7;
+  --sidebar-primary-foreground: #0c0e12;
+  --sidebar-accent: #e8eef4;
+  --sidebar-accent-foreground: #141820;
+  --sidebar-border: rgba(122, 144, 168, 0.22);
+  --sidebar-ring: #6ba3c7;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* BeFluencer admin graphite + baby-blue */
+  --bf-bg: #0c0e12;
+  --bf-surface: #141820;
+  --bf-elevated: #181d26;
+  --bf-text: #eef2f7;
+  --bf-text-secondary: #9aa3b2;
+  --bf-text-muted: #6b7380;
+  --bf-accent: #a8d4f0;
+  --bf-accent-soft: #c5e4f7;
+  --bf-accent-strong: #6ba3c7;
+  --bf-steel: #7a90a8;
+  --bf-border: rgba(122, 144, 168, 0.18);
+  --bf-border-strong: rgba(122, 144, 168, 0.28);
+  --bf-success: #7dd3a0;
+  --bf-warning: #e0c070;
+  --bf-destructive: #e07a7a;
+  --bf-pending: #7a90a8;
+
+  --background: #0c0e12;
+  --foreground: #eef2f7;
+  --card: #141820;
+  --card-foreground: #eef2f7;
+  --popover: #181d26;
+  --popover-foreground: #eef2f7;
+  --primary: #a8d4f0;
+  --primary-foreground: #0c0e12;
+  --secondary: #181d26;
+  --secondary-foreground: #eef2f7;
+  --muted: #181d26;
+  --muted-foreground: #9aa3b2;
+  --accent: rgba(168, 212, 240, 0.1);
+  --accent-foreground: #a8d4f0;
+  --destructive: #e07a7a;
+  --border: rgba(122, 144, 168, 0.18);
+  --input: rgba(122, 144, 168, 0.22);
+  --ring: #a8d4f0;
+  --chart-1: #a8d4f0;
+  --chart-2: #7a90a8;
+  --chart-3: #9aa3b2;
+  --chart-4: #6ba3c7;
+  --chart-5: #c5e4f7;
+  --sidebar: #141820;
+  --sidebar-foreground: #eef2f7;
+  --sidebar-primary: #a8d4f0;
+  --sidebar-primary-foreground: #0c0e12;
+  --sidebar-accent: rgba(168, 212, 240, 0.08);
+  --sidebar-accent-foreground: #a8d4f0;
+  --sidebar-border: rgba(122, 144, 168, 0.18);
+  --sidebar-ring: #a8d4f0;
 }
 
 @layer base {
@@ -127,6 +175,57 @@
   html {
     @apply font-sans;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Report canvas + premium presentation tokens
+   Shared by live / historical / public / PDF surfaces.
+   --------------------------------------------------------------------------- */
+
+.report-canvas {
+  --report-bg: #0c0e12;
+  --report-surface: #141820;
+  --report-surface-elevated: #181d26;
+  --report-surface-hover: rgba(168, 212, 240, 0.04);
+  --report-text: #eef2f7;
+  --report-text-secondary: #9aa3b2;
+  --report-text-tertiary: #6b7380;
+  --report-accent: #a8d4f0;
+  --report-accent-soft: #c5e4f7;
+  --report-accent-strong: #6ba3c7;
+  --report-steel: #7a90a8;
+  --report-border: rgba(122, 144, 168, 0.16);
+  --report-border-strong: rgba(122, 144, 168, 0.28);
+  --report-grid: rgba(122, 144, 168, 0.12);
+  --report-panel: rgba(20, 24, 32, 0.92);
+  --report-panel-border: rgba(122, 144, 168, 0.16);
+  --report-chart-primary: #a8d4f0;
+  --report-chart-secondary: #7a90a8;
+  --report-chart-fill: rgba(168, 212, 240, 0.16);
+  --report-positive: #7dd3a0;
+  --report-warning: #e0c070;
+  --report-destructive: #e07a7a;
+  --report-watermark: 0.035;
+  background-color: var(--report-bg);
+  color: var(--report-text);
+}
+
+.report-chart-panel,
+.report-empty-panel {
+  border-radius: 0.875rem;
+  background: var(--report-panel);
+  box-shadow: inset 0 0 0 1px var(--report-panel-border);
+}
+
+.report-section__heading {
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+.report-footer,
+.report-print-footer {
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 /* ---------------------------------------------------------------------------
@@ -147,11 +246,10 @@
   pointer-events: none;
   user-select: none;
   -webkit-user-select: none;
-  /* Slightly higher tile opacity; container keeps contrast subtle on dark reports. */
-  opacity: 0.055;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='260' viewBox='0 0 340 260'%3E%3Ctext x='170' y='130' fill='%23ffffff' font-family='ui-sans-serif%2Csystem-ui%2Csans-serif' font-size='26' font-weight='600' text-anchor='middle' dominant-baseline='middle' transform='rotate(-30 170 130)'%3EBeFluencer%3C/text%3E%3C/svg%3E");
+  opacity: var(--report-watermark, 0.035);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='320' viewBox='0 0 420 320'%3E%3Ctext x='210' y='160' fill='%23A8D4F0' font-family='ui-sans-serif%2Csystem-ui%2Csans-serif' font-size='22' font-weight='600' text-anchor='middle' dominant-baseline='middle' transform='rotate(-28 210 160)'%3EBeFluencer%3C/text%3E%3C/svg%3E");
   background-repeat: repeat;
-  background-size: clamp(220px, 28vw, 340px) clamp(170px, 22vw, 260px);
+  background-size: clamp(260px, 30vw, 420px) clamp(200px, 24vw, 320px);
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
 }
@@ -175,24 +273,31 @@
 .report-cover__glow {
   pointer-events: none;
   position: absolute;
-  inset: -10% -5% auto;
-  height: min(520px, 70vh);
+  inset: -8% -4% auto;
+  height: min(420px, 55vh);
   z-index: 0;
   background:
     radial-gradient(
-      ellipse 70% 55% at 50% 0%,
-      rgba(255, 90, 0, 0.12),
-      transparent 70%
+      ellipse 65% 50% at 50% 0%,
+      rgba(168, 212, 240, 0.1),
+      transparent 72%
     ),
     radial-gradient(
-      ellipse 50% 40% at 50% 20%,
-      rgba(255, 255, 255, 0.04),
+      ellipse 45% 35% at 50% 18%,
+      rgba(238, 242, 247, 0.035),
       transparent 70%
     );
 }
 
+/* Creator avatar showcase — static by default; marquee only when motion enabled. */
 .report-creator-showcase {
   width: 100%;
+}
+
+.report-creator-showcase__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
 }
 
 .report-creator-showcase__list {
@@ -215,13 +320,202 @@
 }
 
 .report-creator-showcase__avatar {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 1px rgba(122, 144, 168, 0.22);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.report-creator-showcase__link:hover .report-creator-showcase__avatar,
+.report-creator-showcase__link:focus-visible .report-creator-showcase__avatar {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow:
+    0 0 0 2px var(--report-bg),
+    0 0 0 3.5px var(--report-accent);
+}
+
+/* Slow seamless marquee (browser only; disabled in PDF / reduced motion). */
+.report-creator-showcase--motion .report-creator-showcase__track {
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+}
+
+.report-creator-showcase--motion .report-creator-showcase__list {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  width: max-content;
+  /* ~35% faster than the previous 120s / 140s cadence. */
+  animation: report-avatar-marquee 78s linear infinite;
+}
+
+.report-creator-showcase--motion
+  .report-creator-showcase__row--reverse
+  .report-creator-showcase__list {
+  animation-direction: reverse;
+  animation-duration: 92s;
+}
+
+.report-creator-showcase--motion:hover .report-creator-showcase__list {
+  animation-play-state: paused;
+}
+
+.report-creator-showcase--motion .report-creator-showcase__item {
+  margin-left: -0.4rem;
+  animation: report-avatar-enter 520ms ease both;
+}
+
+.report-creator-showcase--motion .report-creator-showcase__clone {
+  /* Visual duplicate for seamless loop — hidden from AT. */
+}
+
+@keyframes report-avatar-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes report-avatar-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .report-creator-showcase--motion .report-creator-showcase__list,
+  .report-creator-showcase--motion .report-creator-showcase__item {
+    animation: none !important;
+  }
+
+  .report-creator-showcase--motion .report-creator-showcase__list {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: auto;
+  }
+
+  .report-creator-showcase--motion .report-creator-showcase__clone {
+    display: none !important;
+  }
+
+  .report-creator-showcase--motion .report-creator-showcase__track {
+    mask-image: none;
+    overflow: visible;
+  }
+}
+
+.pdf-document .report-creator-showcase--motion .report-creator-showcase__list,
+.pdf-document .report-creator-showcase--motion .report-creator-showcase__item {
+  animation: none !important;
+}
+
+.pdf-document .report-creator-showcase--motion .report-creator-showcase__list {
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  width: auto !important;
+  transform: none !important;
+}
+
+.pdf-document .report-creator-showcase--motion .report-creator-showcase__clone {
+  display: none !important;
+}
+
+.pdf-document .report-creator-showcase--motion .report-creator-showcase__track {
+  mask-image: none;
+  overflow: visible;
+}
+
+/* Hybrid creator ranking rows */
+.report-leaderboard-row {
+  transition: background-color 160ms ease;
+}
+
+.report-leaderboard-row:hover {
+  background-color: var(--report-surface-hover);
+}
+
+.report-leaderboard-row__bar {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(122, 144, 168, 0.16);
+  overflow: hidden;
+}
+
+.report-leaderboard-row__bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--report-accent-strong),
+    var(--report-accent)
+  );
+}
+
+.report-leaderboard-row--leader {
+  box-shadow: inset 3px 0 0 var(--report-accent);
+}
+
+.pdf-document .report-leaderboard-row:hover {
+  background-color: transparent;
 }
 
 .report-kpi-strip {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem 0.75rem;
+}
+
+.report-kpi-strip__item {
+  position: relative;
+  border-radius: 0.75rem;
+  padding: 0.85rem 0.75rem 1rem;
+  text-align: center;
+  background: linear-gradient(
+    180deg,
+    rgba(24, 29, 38, 0.55) 0%,
+    rgba(20, 24, 32, 0.2) 100%
+  );
+  box-shadow: inset 0 0 0 1px var(--report-border);
+}
+
+.report-kpi-strip__item::after {
+  content: "";
+  position: absolute;
+  inset-inline: 18%;
+  bottom: 0;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--report-accent);
+  opacity: 0;
+  transform: scaleX(0.4);
+  transition:
+    opacity var(--report-duration) var(--report-ease),
+    transform var(--report-duration) var(--report-ease);
+}
+
+.report-kpi-strip__item:hover::after,
+.report-kpi-strip__item:focus-within::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.report-kpi-strip__hint {
+  position: absolute;
+  inset-inline: 0.5rem;
+  bottom: 0.35rem;
+  pointer-events: none;
 }
 
 @media (min-width: 800px) {
@@ -235,30 +529,62 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 0;
+    gap: 0.55rem;
   }
 
   .report-kpi-strip__item {
-    min-width: 7.5rem;
-    padding: 0 1.25rem;
-    text-align: center;
+    min-width: 8.25rem;
+    min-height: 5.75rem;
+    padding: 0.95rem 1.15rem 1.35rem;
+    flex: 1 1 0;
   }
 
   .report-kpi-strip__item--divided {
-    border-left: 1px solid rgba(255, 255, 255, 0.06);
+    border-left: none;
   }
 }
 
-/* Mobile: internal horizontal rail without page-level overflow. */
+.pdf-document .report-kpi-strip__hint,
+.pdf-document .report-kpi-strip__item::after {
+  display: none !important;
+}
+
+.pdf-document .report-kpi-strip__item {
+  background: var(--report-surface);
+}
+
+.report-growth-story {
+  border-radius: 1rem;
+  padding: 1.1rem 1rem 0.95rem;
+  background: linear-gradient(
+    180deg,
+    rgba(24, 29, 38, 0.72) 0%,
+    rgba(20, 24, 32, 0.35) 100%
+  );
+  box-shadow: inset 0 0 0 1px var(--report-border);
+}
+
+.report-growth-story--positive {
+  box-shadow:
+    inset 0 0 0 1px rgba(168, 212, 240, 0.22),
+    inset 0 1px 0 rgba(168, 212, 240, 0.08);
+}
+
+.report-growth-story--negative {
+  box-shadow: inset 0 0 0 1px rgba(224, 122, 122, 0.28);
+}
+
+/* Mobile: horizontal rail for static clusters; motion uses track overflow instead. */
 @media (max-width: 799px) {
-  .report-creator-showcase {
+  .report-creator-showcase:not(.report-creator-showcase--motion) {
     overflow-x: auto;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 0.25rem;
   }
 
-  .report-creator-showcase__list {
+  .report-creator-showcase:not(.report-creator-showcase--motion)
+    .report-creator-showcase__list {
     flex-wrap: nowrap;
     justify-content: flex-start;
     width: max-content;
@@ -266,26 +592,633 @@
     padding-inline: 0.25rem;
   }
 
+  .report-creator-showcase--motion .report-creator-showcase__list {
+    animation-duration: 120s;
+  }
+
+  .report-creator-showcase--motion
+    .report-creator-showcase__row--reverse
+    .report-creator-showcase__list {
+    animation-duration: 140s;
+  }
+
   .report-creator-showcase__item {
     margin-left: -0.35rem;
   }
 }
 
+.report-content-card {
+  transition:
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.report-content-card:hover {
+  box-shadow: inset 0 0 0 1px var(--report-border-strong);
+}
+
+.pdf-document .report-content-card:hover {
+  box-shadow: inset 0 0 0 1px var(--report-panel-border);
+  transform: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Report interaction language
+   One set of timings/affordances for hover, focus, elevation, charts and rails.
+   --------------------------------------------------------------------------- */
+
+.report-canvas {
+  --report-ease: cubic-bezier(0.32, 0.72, 0.35, 1);
+  --report-duration-fast: 160ms;
+  --report-duration: 200ms;
+  --report-duration-slow: 280ms;
+  --report-elevation: 0 16px 32px -24px rgba(0, 0, 0, 0.95);
+  --report-ring-accent: rgba(168, 212, 240, 0.3);
+  --report-rail-fade: 2.75rem;
+}
+
+.report-interactive {
+  transition:
+    background-color var(--report-duration) var(--report-ease),
+    box-shadow var(--report-duration) var(--report-ease),
+    border-color var(--report-duration) var(--report-ease),
+    opacity var(--report-duration-fast) var(--report-ease),
+    color var(--report-duration-fast) var(--report-ease),
+    transform var(--report-duration) var(--report-ease);
+}
+
+.report-focus-ring:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--report-bg),
+    0 0 0 3.5px var(--report-accent);
+}
+
+/* Chart surfaces: quiet depth, one-shot reveal, calm crosshair. */
+.report-chart-panel {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(24, 29, 38, 0.95) 0%,
+      rgba(18, 22, 30, 0.92) 100%
+    );
+  box-shadow:
+    inset 0 0 0 1px var(--report-panel-border),
+    inset 0 1px 0 rgba(238, 242, 247, 0.05);
+}
+
+.report-chart-reveal {
+  /* `backwards` only: the clip is released once the reveal ends so Recharts
+     tooltips are never clipped by a lingering clip-path. */
+  animation: report-chart-reveal 680ms var(--report-ease) backwards;
+}
+
+@keyframes report-chart-reveal {
+  from {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.report-chart-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  background: var(--report-surface-hover);
+  box-shadow: inset 0 0 0 1px var(--report-border);
+  color: var(--report-text-secondary);
+  font-size: 11px;
+}
+
+/* Decorative sound texture — carries no measurement meaning. */
+.report-waveform__bar {
+  opacity: 0.72;
+  transition:
+    opacity var(--report-duration-slow) var(--report-ease),
+    background-color var(--report-duration-slow) var(--report-ease);
+}
+
+.report-interactive:hover .report-waveform__bar {
+  opacity: 1;
+  background-color: var(--report-accent-soft);
+}
+
+/* ---------------------------------------------------------------------------
+   Admin shell helpers (management / dashboard — graphite + baby-blue)
+   --------------------------------------------------------------------------- */
+
+.admin-shell {
+  background: var(--bf-bg);
+  color: var(--bf-text);
+}
+
+.admin-panel {
+  background: var(--bf-surface);
+  border: 1px solid var(--bf-border);
+  border-radius: 0.75rem;
+}
+
+.admin-input {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--bf-border);
+  background: color-mix(in srgb, var(--bf-bg) 80%, transparent);
+  color: var(--bf-text);
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.admin-input::placeholder {
+  color: var(--bf-text-muted);
+}
+
+.admin-input:focus {
+  border-color: color-mix(in srgb, var(--bf-accent) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bf-accent) 20%, transparent);
+}
+
+.admin-table tbody tr {
+  transition: background-color 160ms ease;
+}
+
+.admin-table tbody tr:hover {
+  background: color-mix(in srgb, var(--bf-elevated) 70%, transparent);
+}
+
+/* Reach & engagement exploration */
+.report-contribution-row {
+  border-radius: 0.7rem;
+  padding: 0.55rem;
+  margin-inline: -0.55rem;
+}
+
+.report-contribution-row:hover,
+.report-contribution-row:focus-within {
+  background-color: var(--report-surface-hover);
+}
+
+.report-contribution-row__avatar {
+  transition: transform var(--report-duration) var(--report-ease);
+}
+
+.report-contribution-row:hover .report-contribution-row__avatar,
+.report-contribution-row:focus-within .report-contribution-row__avatar {
+  transform: scale(1.06);
+}
+
+.report-bar-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(122, 144, 168, 0.16);
+  overflow: hidden;
+}
+
+.report-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--report-accent-strong),
+    var(--report-accent)
+  );
+  transition:
+    filter var(--report-duration) var(--report-ease),
+    box-shadow var(--report-duration) var(--report-ease);
+}
+
+.report-bar-fill--muted {
+  background: var(--report-steel);
+}
+
+.report-contribution-row:hover .report-bar-fill,
+.report-contribution-row:focus-within .report-bar-fill,
+.report-ranking-card:hover .report-bar-fill,
+.report-ranking-card:focus-within .report-bar-fill {
+  filter: brightness(1.08);
+}
+
+.report-legend-row {
+  border-radius: 0.6rem;
+  padding: 0.45rem 0.55rem;
+  margin-inline: -0.55rem;
+  width: calc(100% + 1.1rem);
+  text-align: left;
+}
+
+.report-legend-row:hover,
+.report-legend-row[data-active="true"] {
+  background-color: var(--report-surface-hover);
+}
+
+.report-legend-row[data-dimmed="true"] {
+  opacity: 0.55;
+}
+
+/* Compact two-column creator ranking */
+.report-ranking-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.6rem;
+}
+
+@media (min-width: 1080px) {
+  .report-ranking-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 0.85rem;
+  }
+}
+
+.report-ranking-card {
+  position: relative;
+  border-radius: 0.8rem;
+  background: var(--report-surface);
+  box-shadow: inset 0 0 0 1px var(--report-border);
+}
+
+.report-ranking-card:hover,
+.report-ranking-card:focus-within {
+  background: var(--report-surface-elevated);
+  box-shadow: inset 0 0 0 1px var(--report-ring-accent);
+}
+
+.report-ranking-card--leader {
+  box-shadow:
+    inset 0 0 0 1px var(--report-border),
+    inset 3px 0 0 var(--report-accent);
+}
+
+.report-ranking-card--leader:hover,
+.report-ranking-card--leader:focus-within {
+  box-shadow:
+    inset 0 0 0 1px var(--report-ring-accent),
+    inset 3px 0 0 var(--report-accent),
+    var(--report-elevation);
+}
+
+.report-ranking-card__avatar {
+  transition: box-shadow var(--report-duration) var(--report-ease);
+}
+
+.report-ranking-card:hover .report-ranking-card__avatar,
+.report-ranking-card:focus-within .report-ranking-card__avatar {
+  box-shadow: 0 0 0 2px var(--report-ring-accent);
+}
+
+.report-ranking-card__action {
+  opacity: 0.45;
+}
+
+.report-ranking-card:hover .report-ranking-card__action,
+.report-ranking-card__action:focus-visible {
+  opacity: 1;
+}
+
+/* Horizontal content rails */
+.report-rail {
+  position: relative;
+}
+
+.report-rail__viewport {
+  --report-rail-fade-left: 0px;
+  --report-rail-fade-right: 0px;
+  display: flex;
+  gap: 0.9rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-block: 0.25rem;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--report-rail-fade-left),
+    #000 calc(100% - var(--report-rail-fade-right)),
+    transparent 100%
+  );
+}
+
+.report-rail__viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.report-rail[data-at-start="false"] .report-rail__viewport {
+  --report-rail-fade-left: var(--report-rail-fade);
+}
+
+.report-rail[data-at-end="false"] .report-rail__viewport {
+  --report-rail-fade-right: var(--report-rail-fade);
+}
+
+.report-rail[data-scrollable="true"] .report-rail__viewport {
+  cursor: grab;
+}
+
+.report-rail[data-dragging="true"] .report-rail__viewport {
+  cursor: grabbing;
+  scroll-behavior: auto;
+  user-select: none;
+}
+
+.report-rail__viewport img {
+  -webkit-user-drag: none;
+}
+
+.report-rail__item {
+  flex: 0 0 auto;
+  width: clamp(196px, 20vw, 246px);
+}
+
+.report-rail__nav {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: var(--report-surface-elevated);
+  box-shadow:
+    inset 0 0 0 1px var(--report-border-strong),
+    var(--report-elevation);
+  color: var(--report-text-secondary);
+}
+
+.report-rail__nav:hover {
+  color: var(--report-accent);
+  box-shadow:
+    inset 0 0 0 1px var(--report-ring-accent),
+    var(--report-elevation);
+}
+
+.report-rail__nav[disabled] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.report-rail__nav--prev {
+  left: -0.5rem;
+}
+
+.report-rail__nav--next {
+  right: -0.5rem;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  /* Snapping helps thumbs, but fights mouse drag and auto drift. */
+  .report-rail__viewport {
+    scroll-snap-type: x proximity;
+  }
+
+  .report-rail__item {
+    scroll-snap-align: start;
+  }
+
+  .report-rail__nav {
+    display: none;
+  }
+}
+
+/* Featured preview: never paint/play <video> inside PDF capture. */
+.pdf-document .featured-preview-video,
+.pdf-document .featured-preview-touch-ui,
+.pdf-document .featured-preview-open-link {
+  display: none !important;
+}
+
+/*
+ * Touch / coarse pointer: clear ▶ Önizle control + separate İçeriği aç chip.
+ * Full-bleed TikTok overlay is disabled so preview taps never navigate away.
+ */
+.featured-preview-touch-ui {
+  inset-inline: 0;
+  bottom: 3.25rem;
+  justify-content: center;
+  padding-inline: 1rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .featured-preview-touch-ui {
+    inset: 1rem 1rem auto auto;
+    bottom: auto;
+    justify-content: flex-end;
+    padding-inline: 0;
+  }
+
+  .featured-preview-toggle {
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .featured-preview-toggle__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  /* Screen-only: do not use !important — PDF print anchors must stay clickable. */
+  .featured-preview-bleed-link {
+    pointer-events: none;
+  }
+}
+
+/* Video poster interaction for gallery cards (rails stay poster-only). */
+.report-content-card__poster {
+  transition: transform var(--report-duration-slow) var(--report-ease);
+}
+
+.report-content-card:hover .report-content-card__poster {
+  transform: scale(1.03);
+}
+
+/* The branded fallback draws its own chrome, so scaling it would visibly
+   detach those overlays from the card's. Brighten it instead. */
+.report-content-card__poster:has([data-report-video-thumbnail="fallback"]) {
+  transition:
+    filter var(--report-duration-slow) var(--report-ease),
+    transform var(--report-duration-slow) var(--report-ease);
+}
+
+.report-content-card:hover
+  .report-content-card__poster:has(
+    [data-report-video-thumbnail="fallback"]
+  ) {
+  transform: none;
+  filter: brightness(1.14) saturate(1.05);
+}
+
+.report-content-card__play {
+  transition:
+    background-color var(--report-duration) var(--report-ease),
+    color var(--report-duration) var(--report-ease),
+    transform var(--report-duration) var(--report-ease);
+}
+
+.report-content-card:hover .report-content-card__play {
+  background-color: var(--report-accent);
+  color: var(--report-bg);
+  transform: scale(1.06);
+}
+
+.report-content-card__watch {
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity var(--report-duration) var(--report-ease),
+    transform var(--report-duration) var(--report-ease);
+}
+
+.report-content-card:hover .report-content-card__watch,
+.report-content-card:focus-within .report-content-card__watch {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.report-content-card:hover,
+.report-content-card:focus-within {
+  box-shadow:
+    inset 0 0 0 1px var(--report-ring-accent),
+    var(--report-elevation);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .report-chart-reveal {
+    animation: none !important;
+  }
+
+  .report-rail__viewport {
+    scroll-behavior: auto;
+  }
+
+  .report-interactive,
+  .report-bar-fill,
+  .report-content-card__poster,
+  .report-content-card__play,
+  .report-content-card__watch,
+  .report-ranking-card__avatar,
+  .report-contribution-row__avatar {
+    transition: none !important;
+  }
+
+  .report-content-card:hover .report-content-card__poster,
+  .report-ranking-card:hover {
+    transform: none;
+  }
+}
+
+/* Print/PDF: rails become deterministic grids so no card is scrolled away. */
+.pdf-document .report-rail__viewport,
+.pdf-document .report-rail[data-at-start] .report-rail__viewport {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0.5rem !important;
+  overflow: visible !important;
+  mask-image: none !important;
+  scroll-snap-type: none !important;
+  cursor: auto !important;
+}
+
+.pdf-document .report-rail__item {
+  width: auto !important;
+}
+
+.pdf-document .report-rail__nav {
+  display: none !important;
+}
+
+.pdf-document .report-ranking-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.4rem 0.5rem !important;
+}
+
+.pdf-document .report-ranking-card,
+.pdf-document .report-content-card {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  transform: none !important;
+}
+
+@media print {
+  .report-rail__viewport {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    overflow: visible !important;
+    mask-image: none !important;
+  }
+
+  .report-rail__item {
+    width: auto !important;
+  }
+
+  .report-rail__nav {
+    display: none !important;
+  }
+
+  .report-ranking-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .report-ranking-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
 .pdf-document .report-section,
-.pdf-document .pdf-avoid-break {
+.pdf-document .pdf-avoid-break,
+.pdf-document .report-chart-panel,
+.pdf-document .report-content-card,
+.pdf-document .report-kpi-card {
   break-inside: avoid;
   page-break-inside: avoid;
 }
 
+.pdf-document .report-section__heading {
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
 /* Cover may span pages when many creators wrap — do not force keep-together. */
 .pdf-document .report-cover {
-  padding-bottom: 1rem;
+  padding-bottom: 0.75rem;
   break-inside: auto;
   page-break-inside: auto;
 }
 
 .pdf-document .report-cover__glow {
-  opacity: 0.85;
+  opacity: 0.8;
+  height: min(420px, 55vh);
+}
+
+.pdf-document .report-chart-panel__plot {
+  /* Slightly shorter plots reduce clipping near page edges. */
+  max-height: 280px;
+}
+
+.pdf-document .report-canvas__inner {
+  /* Tighten bottom gap so the print footer does not float into a blank page. */
+  padding-bottom: 0.5rem;
 }
 
 /* PDF: wrap all creators; never rely on horizontal scroll. */
@@ -324,7 +1257,7 @@
 .pdf-document .report-watermark {
   position: fixed;
   inset: 0;
-  opacity: 0.07;
+  opacity: 0.04;
   /* Avoid painting outside the page box in ways that add blank pages. */
   width: 100%;
   height: 100%;
@@ -334,7 +1267,7 @@
   .report-watermark {
     position: fixed;
     inset: 0;
-    opacity: 0.07;
+    opacity: 0.04;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
@@ -377,10 +1310,10 @@
 }
 
 .pdf-document {
-  /* Preserve the dark report background and orange accents in the PDF. */
+  /* Preserve the dark graphite report background and baby-blue accents in PDF. */
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
-  background-color: #09090b;
+  background-color: #0c0e12;
   /* A tall single page column avoids horizontal overflow at A4 width. */
   overflow-x: hidden;
 }
@@ -391,9 +1324,11 @@
 }
 
 /* Interactive affordances have no meaning in a static document. The label
-   wrapper goes too, so no orphaned control caption is printed. */
-.pdf-document button,
-.pdf-document [role="button"],
+   wrapper goes too, so no orphaned control caption is printed.
+   `data-print-keep` opts a control back in when it also carries report content
+   (e.g. the engagement legend rows, which show real values). */
+.pdf-document button:not([data-print-keep="true"]),
+.pdf-document [role="button"]:not([data-print-keep="true"]),
 .pdf-document [role="tablist"],
 .pdf-document input,
 .pdf-document select,
@@ -425,13 +1360,13 @@
 
 @page {
   size: A4 portrait;
-  margin: 14mm 12mm 16mm 12mm;
+  margin: 12mm 11mm 14mm 11mm;
 }
 
 @media print {
   html,
   body {
-    background-color: #09090b !important;
+    background-color: #0c0e12 !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
@@ -445,5 +1380,23 @@
   *::after {
     animation: none !important;
     transition: none !important;
+  }
+
+  .report-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .report-section__heading {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .report-chart-panel,
+  .report-content-card,
+  .report-leaderboard-row,
+  .report-kpi-strip__item {
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
 }

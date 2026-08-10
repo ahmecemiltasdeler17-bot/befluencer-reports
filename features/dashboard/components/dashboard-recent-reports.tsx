@@ -27,39 +27,39 @@ export function DashboardRecentReports({
   return (
     <section
       aria-labelledby="dashboard-reports-heading"
-      className="rounded-xl border border-zinc-800 bg-zinc-950/40"
+      className="admin-panel overflow-hidden"
     >
-      <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+      <div className="flex items-center justify-between border-b border-[var(--bf-border)] px-4 py-3">
         <h2
           id="dashboard-reports-heading"
-          className="text-sm font-medium text-white"
+          className="text-sm font-medium text-[var(--bf-text)]"
         >
           Son raporlar
         </h2>
         <Link
           href="/reports"
-          className="text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+          className="text-xs text-[var(--bf-text-muted)] transition-colors hover:text-[var(--bf-text-secondary)]"
         >
           Raporlar
         </Link>
       </div>
 
       {reports.length === 0 ? (
-        <p className="px-4 py-6 text-sm text-zinc-500">
+        <p className="px-4 py-6 text-sm text-[var(--bf-text-muted)]">
           Henüz oluşturulmuş rapor sürümü yok.
         </p>
       ) : (
-        <ul className="divide-y divide-zinc-800/70">
+        <ul className="divide-y divide-[var(--bf-border)]">
           {reports.map((report) => (
             <li
               key={report.id}
               className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-white">
+                <p className="truncate text-sm font-medium text-[var(--bf-text)]">
                   {report.campaignName}
                 </p>
-                <p className="mt-0.5 text-xs text-zinc-500">
+                <p className="mt-0.5 text-xs text-[var(--bf-text-muted)]">
                   {report.reportNumber ? `${report.reportNumber} · ` : null}v
                   {report.versionNumber} · {formatDateTime(report.generatedAt)}
                 </p>

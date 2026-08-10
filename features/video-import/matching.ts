@@ -159,6 +159,7 @@ export function buildPreviewRow(input: {
   if (
     videoStatus === "invalid_url" ||
     videoStatus === "provider_empty" ||
+    videoStatus === "login_required_content" ||
     videoStatus === "already_in_campaign" ||
     videoStatus === "exists_elsewhere"
   ) {

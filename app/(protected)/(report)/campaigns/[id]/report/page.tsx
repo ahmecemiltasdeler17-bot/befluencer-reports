@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 
 import { CampaignReportView } from "@/components/report/campaign-report-view";
+import { ReportCanvas } from "@/components/report/report-canvas";
 import { ReportPanelLink } from "@/components/report/report-panel-link";
 import { getCampaignReportData } from "@/features/reports/queries";
 
@@ -33,16 +34,10 @@ export default async function LiveCampaignReportPage({
   const report = await getCampaignReportData(id);
 
   return (
-    <div className="min-h-screen bg-[#09090B] font-sans">
-      <div className="relative mx-auto max-w-[1360px] px-6 pt-10 min-[1100px]:px-12">
-        <ReportPanelLink href={`/campaigns/${id}`} />
-        <Suspense fallback={null}>
-          <CampaignReportView
-            report={report}
-            presentationContext="live"
-          />
-        </Suspense>
-      </div>
-    </div>
+    <ReportCanvas topSlot={<ReportPanelLink href={`/campaigns/${id}`} />}>
+      <Suspense fallback={null}>
+        <CampaignReportView report={report} presentationContext="live" />
+      </Suspense>
+    </ReportCanvas>
   );
 }

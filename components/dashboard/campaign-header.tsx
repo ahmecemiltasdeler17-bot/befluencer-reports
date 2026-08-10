@@ -14,7 +14,7 @@ const statusStyles: Record<Campaign["status"], string> = {
   active: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
   completed: "border-zinc-500/20 bg-zinc-500/10 text-zinc-400",
   draft: "border-amber-500/20 bg-amber-500/10 text-amber-400",
-  paused: "border-orange-500/20 bg-orange-500/10 text-orange-400",
+  paused: "border-primary/20 bg-primary/10 text-primary",
 };
 
 export function CampaignHeader({ campaign }: CampaignHeaderProps) {

@@ -97,7 +97,8 @@ and can be called manually or from a future scheduled job.
 `features/pdf/services/generate-report-pdf.ts` owns the whole lifecycle:
 
 1. Re-validate that the print URL is same-origin.
-2. Launch a browser (`features/pdf/services/get-browser.ts`).
+2. Launch a browser (`lib/pdf/launch-browser.ts` via
+   `features/pdf/services/get-browser.ts`).
 3. Set a 1240×1754 viewport at DPR 2 so the report keeps its desktop layout.
 4. `emulateMediaType("screen")` — the dark design lives in screen styles.
 5. Enable request interception via `decidePrintRequest()` — see
@@ -186,7 +187,15 @@ auto-detection fails. Executable paths are never logged.
 
 - `serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core"]` in
   `next.config.ts` — the bundler cannot trace the native binary.
+- `outputFileTracingIncludes` ships the exact `@sparticuz/chromium/bin/*.br`
+  packs (plus `build/**` and `tar-fs`) with both PDF API routes.
+- Production builds use `next build --webpack` so NFT tracing includes those
+  packs (Turbopack previously traced only the JS entry and omitted `*.br`).
+- Serverless launch uses `args: chromium.args`, an explicit bin dir passed to
+  `executablePath(binDir)`, and `headless: "shell"`.
+- Diagnose packaging locally with `npm run pdf:diagnose` after a build.
 - The route declares `runtime = "nodejs"`. Chromium cannot run on Edge.
+- Prefer Node 22.x (`engines.node`) — `@sparticuz/chromium@149` requires it.
 - The route exports `maxDuration = 60`. This is the supported way to set duration
   for App Router handlers; no `vercel.json` is used. A `functions` pattern in
   `vercel.json` would be risky here because those patterns are PCRE-compatible,

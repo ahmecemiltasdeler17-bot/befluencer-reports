@@ -15,8 +15,8 @@ export default async function CreatorListsPage() {
     <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Creator Listeleri</h1>
-          <p className="mt-1 text-sm text-zinc-400">
+          <h1 className="text-2xl font-semibold text-bf-text">Creator Listeleri</h1>
+          <p className="mt-1 text-sm text-bf-steel">
             Seçilmiş creator gruplarını yönetin, dışa aktarın ve paylaşın
           </p>
         </div>
@@ -29,32 +29,35 @@ export default async function CreatorListsPage() {
       </div>
 
       {lists.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-zinc-800 px-6 py-12 text-center text-sm text-zinc-400">
+        <div className="rounded-lg border border-dashed border-bf-border px-6 py-12 text-center text-sm text-bf-steel">
           Henüz liste yok. Creator dizininden seçim yapıp &quot;Liste Oluştur&quot;
           ile başlayın.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-zinc-800">
-          <table className="min-w-full divide-y divide-zinc-800 text-sm">
-            <thead className="bg-zinc-950/80 text-left text-zinc-400">
+        <div className="overflow-hidden rounded-xl border border-bf-border">
+          <table className="min-w-full divide-y divide-bf-border text-sm">
+            <thead className="bg-bf-surface text-left text-bf-steel">
               <tr>
-                <th className="px-4 py-3 font-medium">Liste</th>
-                <th className="px-4 py-3 font-medium">Durum</th>
-                <th className="px-4 py-3 font-medium">Creator</th>
-                <th className="px-4 py-3 font-medium">Toplam takipçi</th>
-                <th className="px-4 py-3 font-medium">Ortalama</th>
-                <th className="px-4 py-3 font-medium">Paylaşım</th>
-                <th className="px-4 py-3 font-medium">Güncellendi</th>
-                <th className="px-4 py-3 font-medium text-right">İşlemler</th>
+                <th className="px-4 py-2.5 font-medium">Liste</th>
+                <th className="px-4 py-2.5 font-medium">Durum</th>
+                <th className="px-4 py-2.5 font-medium">Creator</th>
+                <th className="px-4 py-2.5 font-medium">Toplam takipçi</th>
+                <th className="px-4 py-2.5 font-medium">Ortalama</th>
+                <th className="px-4 py-2.5 font-medium">Paylaşım</th>
+                <th className="px-4 py-2.5 font-medium">Güncellendi</th>
+                <th className="px-4 py-2.5 font-medium text-right">İşlemler</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/80 bg-zinc-950/40 text-zinc-200">
+            <tbody className="divide-y divide-bf-border/80 bg-bf-bg/40 text-bf-text/90">
               {lists.map((list) => (
-                <tr key={list.id}>
+                <tr
+                  key={list.id}
+                  className="transition-colors hover:bg-primary/[0.04]"
+                >
                   <td className="px-4 py-3">
-                    <p className="font-medium text-white">{list.name}</p>
+                    <p className="font-medium text-bf-text">{list.name}</p>
                     {list.description ? (
-                      <p className="mt-0.5 line-clamp-1 text-xs text-zinc-500">
+                      <p className="mt-0.5 line-clamp-1 text-xs text-bf-steel">
                         {list.description}
                       </p>
                     ) : null}
@@ -82,7 +85,7 @@ export default async function CreatorListsPage() {
                   <td className="px-4 py-3 tabular-nums">
                     {list.active_share_count}
                   </td>
-                  <td className="px-4 py-3 text-xs text-zinc-500">
+                  <td className="px-4 py-3 text-xs text-bf-steel">
                     {new Date(list.updated_at).toLocaleString("tr-TR")}
                   </td>
                   <td className="px-4 py-3">

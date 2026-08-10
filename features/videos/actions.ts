@@ -10,13 +10,17 @@ import {
   getVideoSnapshotCount,
 } from "@/features/videos/queries";
 import {
+  commitPreviewMetadataCore,
+  removePreviewMediaCore,
+} from "@/features/videos/preview-upload-core";
+import {
   statusToDb,
   toIsoTimestamp,
   toVideoFormValues,
   videoFormSchema,
   parseVideoFormData,
 } from "@/features/videos/schemas";
-import type { VideoFormState } from "@/features/videos/types";
+import type { VideoFormState, VideoPreviewActionState } from "@/features/videos/types";
 import { getVerifiedAuth } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -243,4 +247,134 @@ export async function deleteVideo(
 
   revalidateVideoPaths(campaignId);
   return {};
+}
+
+/**
+ * Metadata-only commit after the browser uploaded the MP4/WebM directly to
+ * Storage. Accepts object path + MIME — never binary FormData.
+ */
+export async function commitVideoPreviewMetadata(input: {
+  campaignId: string;
+  videoId: string;
+  objectPath: string;
+  mediaType: string;
+}): Promise<VideoPreviewActionState> {
+  console.info("[VideoPreviewUpload]", { stage: "action-entered" });
+
+  // Never throw/redirect — keep failures typed for the video detail page.
+  try {
+    const supabase = await createClient();
+    const auth = await getVerifiedAuth(supabase);
+    if (!auth) {
+      return { error: "Oturum açmanız gerekiyor." };
+    }
+
+    const campaign = await getCampaignById(input.campaignId);
+    if (!campaign) {
+      return { error: "Kampanya bulunamadı." };
+    }
+
+    let existing;
+    try {
+      existing = await getVideoById(input.videoId, supabase);
+    } catch (error) {
+      console.info("[VideoPreviewUpload]", {
+        stage: "failed",
+        errorName: error instanceof Error ? error.name : "Error",
+        errorMessage: error instanceof Error ? error.message : "unknown",
+      });
+      return { error: "Önizleme videosu yüklenemedi." };
+    }
+
+    if (!existing || existing.campaign_id !== input.campaignId) {
+      return { error: "Video bulunamadı." };
+    }
+
+    console.info("[VideoPreviewUpload]", { stage: "metadata-commit-start" });
+
+    const result = await commitPreviewMetadataCore({
+      supabase,
+      campaignId: input.campaignId,
+      videoId: input.videoId,
+      objectPath: input.objectPath,
+      mediaType: input.mediaType,
+      previousPreviewUrl: existing.preview_media_url ?? null,
+      onRevalidate: () => {
+        revalidateVideoPaths(input.campaignId, input.videoId);
+        revalidatePath(`/campaigns/${input.campaignId}/report`);
+      },
+    });
+
+    if (!result.ok) {
+      return { error: result.error };
+    }
+
+    console.info("[VideoPreviewUpload]", { stage: "metadata-commit-complete" });
+    return { success: true };
+  } catch (error) {
+    console.info("[VideoPreviewUpload]", {
+      stage: "failed",
+      errorName: error instanceof Error ? error.name : "Error",
+      errorMessage: error instanceof Error ? error.message : "unknown",
+    });
+    return { error: "Önizleme videosu yüklenemedi." };
+  }
+}
+
+export async function removeVideoPreview(
+  campaignId: string,
+  videoId: string
+): Promise<VideoPreviewActionState> {
+  try {
+    const supabase = await createClient();
+    const auth = await getVerifiedAuth(supabase);
+    if (!auth) {
+      return { error: "Oturum açmanız gerekiyor." };
+    }
+
+    const campaign = await getCampaignById(campaignId);
+    if (!campaign) {
+      return { error: "Kampanya bulunamadı." };
+    }
+
+    let existing;
+    try {
+      existing = await getVideoById(videoId, supabase);
+    } catch (error) {
+      console.info("[VideoPreviewUpload]", {
+        stage: "failed",
+        errorName: error instanceof Error ? error.name : "Error",
+        errorMessage: error instanceof Error ? error.message : "unknown",
+      });
+      return { error: "Önizleme videosu kaldırılamadı." };
+    }
+
+    if (!existing || existing.campaign_id !== campaignId) {
+      return { error: "Video bulunamadı." };
+    }
+
+    const result = await removePreviewMediaCore({
+      supabase,
+      campaignId,
+      videoId,
+      previousPreviewUrl: existing.preview_media_url ?? null,
+      onRevalidate: () => {
+        revalidateVideoPaths(campaignId, videoId);
+        revalidatePath(`/campaigns/${campaignId}/report`);
+      },
+    });
+
+    if (!result.ok) {
+      return { error: result.error };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.info("[VideoPreviewUpload]", {
+      stage: "failed",
+      errorName: error instanceof Error ? error.name : "Error",
+      errorMessage: error instanceof Error ? error.message : "unknown",
+    });
+    return { error: "Önizleme videosu kaldırılamadı." };
+  }
 }

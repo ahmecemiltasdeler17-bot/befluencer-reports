@@ -69,6 +69,7 @@ function createRecordingPort(options: {
     snapshots: [] as CreatorSnapshotCandidate[],
     creatorPatches: [] as CreatorSyncPatch[],
     markedFailed: [] as string[],
+    markedUnavailable: [] as Array<{ id: string; reason: string }>,
     completedJobs: [] as Array<{
       status: "success" | "failed";
       errorMessage: string | null;
@@ -96,6 +97,9 @@ function createRecordingPort(options: {
     async markCreatorFailed(creatorId) {
       calls.markedFailed.push(creatorId);
     },
+    async markCreatorUnavailable(creatorId, reason) {
+      calls.markedUnavailable.push({ id: creatorId, reason });
+    },
     async completeJob(_jobId, status, _completedAt, errorMessage) {
       calls.completedJobs.push({ status, errorMessage });
     },
@@ -122,6 +126,22 @@ function stubProvider(
       }
 
       return result;
+    },
+    async fetchCreatorProfilesBatch(batchInputs) {
+      const results = new Map();
+      for (const input of batchInputs) {
+        inputs.push(input);
+        const key = (input.username ?? "").toLowerCase();
+        if (result instanceof Error) {
+          results.set(key, {
+            status: "error",
+            error: result,
+          });
+        } else {
+          results.set(key, { status: "ok", profile: result });
+        }
+      }
+      return { results, actorRunsStarted: batchInputs.length > 0 ? 1 : 0 };
     },
   };
 }
@@ -221,7 +241,14 @@ describe("runCreatorSync", () => {
       },
     });
 
-    const result = await runCreatorSync(CREATOR_ID, stubProvider(profile()), port);
+    // force: bypass stale-only gate so this test isolates snapshot-append rules.
+    const result = await runCreatorSync(
+      CREATOR_ID,
+      stubProvider(profile()),
+      port,
+      () => new Date(),
+      { force: true }
+    );
 
     assert.equal(result.outcome, "success");
     assert.equal(result.snapshotCreated, false);
@@ -371,6 +398,20 @@ describe("runCreatorSync", () => {
     assert.equal(calls.completedJobs[0].status, "failed");
   });
 
+  it("preserves metrics when Apify usage/payment quota is exhausted", async () => {
+    const { port, calls } = createRecordingPort({});
+    const provider = stubProvider(new TikTokProviderError("payment_required"));
+
+    const result = await runCreatorSync(CREATOR_ID, provider, port);
+
+    assert.equal(result.outcome, "failed");
+    assert.match(result.message, /kullanım kotası/i);
+    assert.equal(result.followerCount, 10_000);
+    assert.equal(calls.creatorPatches.length, 0);
+    assert.equal(calls.snapshots.length, 0);
+    assert.deepEqual(calls.markedFailed, [CREATOR_ID]);
+  });
+
   it("does not patch or snapshot when follower count is unavailable", async () => {
     const { port, calls } = createRecordingPort({});
     const provider = stubProvider(
@@ -428,25 +469,96 @@ describe("runCreatorSync", () => {
     assert.equal(calls.completedJobs[0].status, "failed");
   });
 
-  it("stores a sanitized Turkish failure message, not the upstream text", async () => {
+  it("marks definitive private/unavailable profiles as unavailable, not generic failed", async () => {
     const { port, calls } = createRecordingPort({});
     const provider = stubProvider(
-      new TikTokProviderError("private_profile", undefined)
+      new TikTokProviderError("private_profile", undefined, "private")
     );
 
     const result = await runCreatorSync(CREATOR_ID, provider, port);
 
-    assert.equal(result.message, "TikTok profili gizli veya kullanılamıyor.");
+    assert.equal(result.outcome, "unavailable");
+    assert.match(result.message, /Hesap erişilemiyor/);
+    assert.deepEqual(calls.markedUnavailable, [
+      { id: CREATOR_ID, reason: "private" },
+    ]);
+    assert.deepEqual(calls.markedFailed, []);
     assert.equal(
       calls.completedJobs[0].errorMessage,
       "TikTok profili gizli veya kullanılamıyor."
     );
   });
 
+  it("marks definitive account-not-found as unavailable", async () => {
+    const { port, calls } = createRecordingPort({});
+    const provider = stubProvider(
+      new TikTokProviderError("creator_not_found", undefined, "not_found")
+    );
+
+    const result = await runCreatorSync(CREATOR_ID, provider, port);
+
+    assert.equal(result.outcome, "unavailable");
+    assert.deepEqual(calls.markedUnavailable, [
+      { id: CREATOR_ID, reason: "not_found" },
+    ]);
+    assert.deepEqual(calls.markedFailed, []);
+  });
+
+  it("keeps temporary provider errors as failed + active", async () => {
+    const { port, calls } = createRecordingPort({});
+    const provider = stubProvider(
+      new TikTokProviderError("rate_limit", undefined)
+    );
+
+    const result = await runCreatorSync(CREATOR_ID, provider, port);
+
+    assert.equal(result.outcome, "failed");
+    assert.deepEqual(calls.markedFailed, [CREATOR_ID]);
+    assert.deepEqual(calls.markedUnavailable, []);
+  });
+
+  it("does not mark empty_result as unavailable", async () => {
+    const { port, calls } = createRecordingPort({});
+    const provider = stubProvider(new TikTokProviderError("empty_result"));
+
+    const result = await runCreatorSync(CREATOR_ID, provider, port);
+
+    assert.equal(result.outcome, "failed");
+    assert.deepEqual(calls.markedUnavailable, []);
+    assert.deepEqual(calls.markedFailed, [CREATOR_ID]);
+  });
+
+  it("skips unavailable accounts before provider calls unless force", async () => {
+    const { port, calls } = createRecordingPort({
+      creator: {
+        ...creatorRecord(),
+        accountStatus: "unavailable",
+      },
+    });
+    const provider = stubProvider(profile());
+
+    const skipped = await runCreatorSync(CREATOR_ID, provider, port);
+    assert.equal(skipped.outcome, "skipped");
+    assert.match(skipped.message, /erişilemiyor|pasif/i);
+    assert.equal(provider.inputs.length, 0);
+
+    const forced = await runCreatorSync(CREATOR_ID, provider, port, () => new Date(), {
+      force: true,
+    });
+    assert.equal(forced.outcome, "success");
+    assert.equal(provider.inputs.length, 1);
+    assert.equal(calls.creatorPatches.at(-1)?.account_status, "active");
+    assert.equal(calls.creatorPatches.at(-1)?.unavailable_reason, null);
+    assert.equal(calls.creatorPatches.at(-1)?.unavailable_at, null);
+  });
+
   it("does not leak a raw provider payload through an unexpected error", async () => {
     const { port, calls } = createRecordingPort({});
     const provider: TikTokCreatorProvider = {
       async fetchCreatorProfile() {
+        throw { token: "secret-token", body: "raw payload" };
+      },
+      async fetchCreatorProfilesBatch() {
         throw { token: "secret-token", body: "raw payload" };
       },
     };

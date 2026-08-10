@@ -8,6 +8,8 @@ export type CampaignSoundConfiguration = {
   soundId: string | null;
   soundTitle: string | null;
   soundAuthor: string | null;
+  /** Provider cover URL when available; never fabricated. */
+  soundCoverUrl?: string | null;
   lastSyncedAt: string | null;
   syncStatus: SoundSyncStatus;
   syncError: string | null;

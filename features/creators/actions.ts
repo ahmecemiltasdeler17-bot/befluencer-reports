@@ -21,6 +21,12 @@ import {
   isCreatorAssignedToCampaign,
   searchCreators,
 } from "@/features/creators/queries";
+import {
+  CREATOR_HAS_VIDEOS_DELETE_ERROR,
+  countVideosByCreatorId,
+  runDeleteCreators,
+  type DeleteCreatorsPort,
+} from "@/features/creators/services/delete-creators-core";
 import type {
   AssignCreatorFormState,
   Creator,
@@ -42,6 +48,14 @@ function mapSupabaseMutationError(
       return "Bu içerik üreticisi zaten bu kampanyaya eklenmiş.";
     }
     return "Bu platform ve kullanıcı adı kombinasyonu zaten kayıtlı.";
+  }
+
+  if (
+    code === "23503" ||
+    message.toLowerCase().includes("videos_creator_id_fkey") ||
+    message.toLowerCase().includes("violates foreign key constraint")
+  ) {
+    return CREATOR_HAS_VIDEOS_DELETE_ERROR;
   }
 
   const normalized = message.toLowerCase();
@@ -446,4 +460,188 @@ export async function updateCampaignCreator(
   revalidateCampaignCreatorPaths(campaignId, creatorId);
   revalidateCreatorPaths(creatorId);
   redirect(`/campaigns/${campaignId}`);
+}
+
+async function createDeleteCreatorsPort(): Promise<DeleteCreatorsPort> {
+  const supabase = await requireAuthenticatedClient();
+
+  return {
+    async isAuthenticated() {
+      return true;
+    },
+    async loadCandidates(ids: string[]) {
+      const { data: creators, error } = await supabase
+        .from("creators")
+        .select("id, username")
+        .in("id", ids);
+
+      if (error) {
+        throw new Error(mapSupabaseMutationError(error.message, error.code));
+      }
+
+      const found = creators ?? [];
+      if (found.length === 0) {
+        return [];
+      }
+
+      const foundIds = found.map((row) => row.id as string);
+
+      // Fail-closed: any relation query error must abort delete (never treat as 0 videos).
+      const [assignmentsResult, videosResult] = await Promise.all([
+        supabase
+          .from("campaign_creators")
+          .select("creator_id")
+          .in("creator_id", foundIds),
+        supabase
+          .from("videos")
+          .select("creator_id")
+          .in("creator_id", foundIds),
+      ]);
+
+      if (videosResult.error) {
+        throw new Error(
+          "Bağlı videolar doğrulanamadı. Silme iptal edildi. Lütfen tekrar deneyin."
+        );
+      }
+
+      if (assignmentsResult.error) {
+        throw new Error(
+          "Kampanya atamaları doğrulanamadı. Silme iptal edildi. Lütfen tekrar deneyin."
+        );
+      }
+
+      const campaignCountById = new Map<string, number>();
+      for (const row of assignmentsResult.data ?? []) {
+        const id = row.creator_id as string;
+        campaignCountById.set(id, (campaignCountById.get(id) ?? 0) + 1);
+      }
+
+      const videoCountById = countVideosByCreatorId(
+        (videosResult.data ?? []) as Array<{ creator_id: string }>,
+        foundIds
+      );
+
+      return found.map((row) => ({
+        id: row.id as string,
+        username: (row.username as string) ?? "unknown",
+        campaignCount: campaignCountById.get(row.id as string) ?? 0,
+        videoCount: videoCountById.get(row.id as string) ?? 0,
+      }));
+    },
+    async deleteByIds(ids: string[]) {
+      // Defense in depth: re-check videos immediately before delete.
+      const { count, error: countError } = await supabase
+        .from("videos")
+        .select("id", { count: "exact", head: true })
+        .in("creator_id", ids);
+
+      if (countError) {
+        throw new Error(
+          "Bağlı videolar doğrulanamadı. Silme iptal edildi. Lütfen tekrar deneyin."
+        );
+      }
+
+      if ((count ?? 0) > 0) {
+        throw new Error(CREATOR_HAS_VIDEOS_DELETE_ERROR);
+      }
+
+      // campaign_creators / list items / metric snapshots cascade.
+      // videos FK must be RESTRICT. report_versions JSONB is untouched.
+      const { error } = await supabase.from("creators").delete().in("id", ids);
+      if (error) {
+        throw new Error(
+          mapSupabaseMutationError(error.message, error.code, "creator")
+        );
+      }
+    },
+  };
+}
+
+/**
+ * Hard-deletes creators from the global pool after video RESTRICT preflight.
+ * Requires explicit UI confirmation — never called automatically.
+ */
+export async function deleteCreatorsAction(
+  creatorIds: string[]
+): Promise<{
+  error?: string;
+  success?: string;
+  deleted?: number;
+  blocked?: number;
+  failed?: number;
+  deletedIds?: string[];
+  blockedIds?: string[];
+}> {
+  const uniqueIds = [...new Set(creatorIds)].filter((id) =>
+    UUID_PATTERN.test(id)
+  );
+
+  if (uniqueIds.length === 0) {
+    return { error: "Silinecek içerik üreticisi seçilmedi." };
+  }
+
+  try {
+    const port = await createDeleteCreatorsPort();
+    const result = await runDeleteCreators(uniqueIds, port);
+
+    if (result.deleted > 0) {
+      revalidatePath("/creators");
+      revalidatePath("/campaigns");
+      revalidatePath("/creator-lists");
+    }
+
+    return {
+      success: result.deleted > 0 ? result.success : undefined,
+      error: result.error,
+      deleted: result.deleted,
+      blocked: result.blocked,
+      failed: result.failed,
+      deletedIds: result.deletedIds,
+      blockedIds: result.blockedIds,
+    };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Silme işlemi tamamlanamadı. Lütfen tekrar deneyin.",
+    };
+  }
+}
+
+/**
+ * Hard-deletes creators that are soft-marked unavailable.
+ * Requires explicit confirmation from the UI — never called automatically.
+ * Uses the same video preflight as general delete.
+ */
+export async function deleteUnavailableCreatorsAction(
+  creatorIds: string[]
+): Promise<{ error?: string; success?: string; deleted?: number }> {
+  const supabase = await requireAuthenticatedClient();
+
+  const uniqueIds = [...new Set(creatorIds)].filter((id) =>
+    UUID_PATTERN.test(id)
+  );
+
+  if (uniqueIds.length === 0) {
+    return { error: "Silinecek pasif hesap seçilmedi." };
+  }
+
+  const { data: rows, error: readError } = await supabase
+    .from("creators")
+    .select("id")
+    .in("id", uniqueIds)
+    .eq("account_status", "unavailable");
+
+  if (readError) {
+    return { error: mapSupabaseMutationError(readError.message, readError.code) };
+  }
+
+  const unavailableIds = (rows ?? []).map((row) => row.id as string);
+
+  if (unavailableIds.length === 0) {
+    return { error: "Seçilen kayıtlar arasında pasif hesap bulunamadı." };
+  }
+
+  return deleteCreatorsAction(unavailableIds);
 }

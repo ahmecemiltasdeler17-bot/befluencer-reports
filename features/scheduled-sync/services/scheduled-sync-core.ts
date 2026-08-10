@@ -48,6 +48,15 @@ export type ScheduledSyncPort = {
   syncCampaignCreators(campaignId: string): Promise<SyncCampaignCreatorsResult>;
   syncCampaignSound(campaignId: string): Promise<SyncSoundResult>;
   revalidateCampaign(campaignId: string): Promise<void>;
+  /** Optional: build freshness plan before spending Apify runs. */
+  buildSyncPlan?(campaignIds: string[]): Promise<
+    NonNullable<ScheduledSyncSummary["plan"]>
+  >;
+  /**
+   * Optional: batch-fetch all unique stale creators across campaigns once,
+   * before per-campaign apply. Prevents one-actor-run-per-creator.
+   */
+  prefetchCreatorBatches?(campaignIds: string[]): Promise<void>;
 };
 
 function asTaskCounts(
@@ -203,6 +212,11 @@ export async function runScheduledTikTokSync(
 
     const eligible = await port.listEligibleCampaigns();
 
+    let plan: ScheduledSyncSummary["plan"] | undefined;
+    if (port.buildSyncPlan && eligible.length > 0) {
+      plan = await port.buildSyncPlan(eligible.map((item) => item.id));
+    }
+
     if (eligible.length === 0) {
       const completedAt = now().toISOString();
       const summary: ScheduledSyncSummary = {
@@ -248,6 +262,12 @@ export async function runScheduledTikTokSync(
         continue;
       }
       toProcess.push(campaign);
+    }
+
+    // Creator Apify spend happens here in multi-profile batches — not inside
+    // per-campaign loops that would collapse to profiles: [one].
+    if (port.prefetchCreatorBatches && toProcess.length > 0) {
+      await port.prefetchCreatorBatches(toProcess.map((item) => item.id));
     }
 
     const processed = await mapWithConcurrency(
@@ -308,6 +328,27 @@ export async function runScheduledTikTokSync(
       video: totals.video,
       creators: totals.creators,
       sound: totals.sound,
+      plan,
+      // Do not report estimatedProviderRuns as "used" — executeScheduledTikTokSync
+      // overlays the real Apify start counter after the run.
+      message: plan
+        ? [
+            `Plan: ${plan.totalEntities} varlık`,
+            `${plan.freshSkipped} zaten günceldi`,
+            `${plan.staleEligible} senkronize edilecek`,
+            plan.skippedUnavailable > 0
+              ? `${plan.skippedUnavailable} hesap erişilemiyor / pasif`
+              : null,
+            plan.nonRetriable > 0
+              ? `${plan.nonRetriable} yeniden denenmeyecek`
+              : null,
+            `Video ${totals.video.success}/${totals.video.failed}`,
+            `Profil ${totals.creators.success}/${totals.creators.failed}`,
+            `Ses ${totals.sound.success}/${totals.sound.failed}`,
+          ]
+            .filter(Boolean)
+            .join(" · ")
+        : undefined,
     };
   } catch (error) {
     const completedAt = now().toISOString();

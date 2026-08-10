@@ -28,6 +28,8 @@ export type RawVideoRow = {
   video_url: string;
   platform_video_id: string | null;
   thumbnail_url: string | null;
+  preview_media_url?: string | null;
+  preview_media_type?: string | null;
   caption: string | null;
   published_at: string | null;
   status: string;
@@ -74,6 +76,7 @@ export type RawCampaignRow = {
   tiktok_sound_id?: string | null;
   tiktok_sound_title?: string | null;
   tiktok_sound_author?: string | null;
+  tiktok_sound_cover_url?: string | null;
   status: string;
   start_date: string | null;
   end_date: string | null;

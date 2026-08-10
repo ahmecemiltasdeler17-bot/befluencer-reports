@@ -1,3 +1,5 @@
+import { BeFluencerMark } from "@/components/report/brand/befluencer-mark";
+
 export function PublicReportHeader({
   campaignName,
   versionNumber,
@@ -20,14 +22,12 @@ export function PublicReportHeader({
     : null;
 
   return (
-    <header className="border-b border-zinc-800/80 pb-5 print:hidden">
-      <p className="text-[11px] tracking-[0.18em] text-zinc-500 uppercase">
-        BeFluencer Reports
-      </p>
-      <h1 className="mt-2 text-lg font-semibold text-white sm:text-xl">
+    <header className="border-b border-white/[0.06] pb-5 print:hidden">
+      <BeFluencerMark />
+      <h1 className="mt-3 text-lg font-semibold tracking-tight text-white sm:text-xl">
         {campaignName}
       </h1>
-      <p className="mt-1 text-xs text-zinc-500">
+      <p className="mt-1.5 text-xs text-zinc-500">
         {archived
           ? `Arşivlenmiş rapor sürümü v${versionNumber}`
           : `Rapor sürümü v${versionNumber}`}

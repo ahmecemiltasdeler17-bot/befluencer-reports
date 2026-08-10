@@ -61,7 +61,7 @@ export function SyncSoundButton({
         type="button"
         disabled={isPending || !hasSoundUrl}
         onClick={handleSync}
-        className="bg-orange-500 text-white hover:bg-orange-500/90"
+        className="bg-primary text-primary-foreground hover:bg-primary/90"
       >
         {isPending ? "Güncelleniyor…" : "Sesi Güncelle"}
       </Button>

@@ -112,17 +112,17 @@ export default async function CampaignDetailPage({
         <div>
           <Link
             href="/campaigns"
-            className="text-sm text-zinc-400 transition-colors hover:text-white"
+            className="text-sm text-bf-steel transition-colors hover:text-bf-text"
           >
             ← Kampanyalara dön
           </Link>
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold text-white">
+            <h1 className="text-2xl font-semibold text-bf-text">
               {campaign.name}
             </h1>
             <CampaignStatusBadge status={campaign.status} />
           </div>
-          <p className="mt-1 text-sm text-zinc-400">
+          <p className="mt-1 text-sm text-bf-steel">
             {campaign.artist_name} — {campaign.track_name}
           </p>
         </div>
@@ -130,10 +130,7 @@ export default async function CampaignDetailPage({
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/campaigns/${campaign.id}/report`}
-            className={cn(
-              buttonVariants({ variant: "default" }),
-              "bg-orange-500 text-white hover:bg-orange-500/90"
-            )}
+            className={cn(buttonVariants({ variant: "default" }))}
           >
             Canlı Raporu Aç
           </Link>
@@ -178,7 +175,7 @@ export default async function CampaignDetailPage({
                   href={campaign.sound_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="break-all text-orange-400 hover:text-orange-300"
+                  className="break-all text-primary hover:text-primary/80"
                 >
                   {campaign.sound_url}
                 </a>
@@ -276,8 +273,8 @@ function DetailCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-6">
-      <h2 className="text-base font-medium text-white">{title}</h2>
+    <section className="rounded-xl border border-bf-border bg-bf-surface/80 p-5">
+      <h2 className="text-base font-medium text-bf-text">{title}</h2>
       <dl className="mt-4 space-y-3">{children}</dl>
     </section>
   );
@@ -292,8 +289,8 @@ function DetailRow({
 }) {
   return (
     <div className="grid gap-1 sm:grid-cols-[140px_1fr] sm:gap-4">
-      <dt className="text-sm text-zinc-500">{label}</dt>
-      <dd className="text-sm text-zinc-200">{value}</dd>
+      <dt className="text-sm text-bf-steel">{label}</dt>
+      <dd className="text-sm text-bf-text/90">{value}</dd>
     </div>
   );
 }

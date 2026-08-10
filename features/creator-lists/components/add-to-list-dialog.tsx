@@ -71,25 +71,25 @@ export function AddToListDialog({
           aria-modal="true"
           aria-labelledby="add-to-list-title"
         >
-          <div className="w-full max-w-md space-y-4 rounded-lg border border-zinc-800 bg-zinc-950 p-5 shadow-xl">
+          <div className="w-full max-w-md space-y-4 rounded-lg border border-bf-border bg-bf-elevated p-5 shadow-xl shadow-black/40">
             <div>
               <h2
                 id="add-to-list-title"
-                className="text-sm font-semibold text-white"
+                className="text-sm font-semibold text-bf-text"
               >
                 Mevcut listeye ekle
               </h2>
-              <p className="mt-1 text-xs text-zinc-500">
+              <p className="mt-1 text-xs text-bf-steel">
                 {selectedIds.length} creator · yinelenenler yok sayılır
               </p>
             </div>
 
-            <label className="block space-y-1 text-xs text-zinc-400">
+            <label className="block space-y-1 text-xs text-bf-steel">
               Liste
               <select
                 value={listId}
                 onChange={(event) => setListId(event.target.value)}
-                className="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white"
+                className="h-10 w-full rounded-lg border border-bf-border bg-bf-bg px-3 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
               >
                 {activeLists.map((list) => (
                   <option key={list.id} value={list.id}>

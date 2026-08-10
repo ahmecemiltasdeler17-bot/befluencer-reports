@@ -39,7 +39,7 @@ export function VideoMetricSummaryPanel({
             href={`/campaigns/${campaignId}/videos/${videoId}/metrics/new`}
             className={cn(
               buttonVariants({ variant: "default" }),
-              "bg-orange-500 text-white hover:bg-orange-500/90"
+              "bg-primary text-primary-foreground hover:bg-primary/90"
             )}
           >
             Metrik Ekle
@@ -64,7 +64,7 @@ export function VideoMetricSummaryPanel({
           href={`/campaigns/${campaignId}/videos/${videoId}/metrics/new`}
           className={cn(
             buttonVariants({ variant: "default" }),
-            "bg-orange-500 text-white hover:bg-orange-500/90"
+            "bg-primary text-primary-foreground hover:bg-primary/90"
           )}
         >
           Metrik Ekle

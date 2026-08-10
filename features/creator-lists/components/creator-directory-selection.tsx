@@ -23,10 +23,12 @@ import {
 } from "@/features/creator-sync/components/creator-sync-state";
 import { SyncCreatorButton } from "@/features/creator-sync/components/sync-creator-button";
 import type { CreatorGrowth } from "@/features/creator-sync/queries";
+import { BulkDeleteCreatorsButton } from "@/features/creators/components/bulk-delete-creators-button";
 import { CreatorAvatar } from "@/features/creators/components/creator-avatar";
 import { CreatorCategoryBadge } from "@/features/creators/components/creator-category-badge";
 import { CreatorDirectorySortHeader } from "@/features/creators/components/creator-directory-sort-header";
 import { CreatorPlatformBadge } from "@/features/creators/components/creator-platform-badge";
+import { DeleteCreatorButton } from "@/features/creators/components/delete-creator-button";
 import {
   cycleCreatorDirectorySort,
   parseCreatorDirectorySortState,
@@ -84,6 +86,8 @@ export function CreatorDirectorySelection({
   const [sortState, setSortState] = useState<CreatorDirectorySortState>(
     initialSortState
   );
+  const [removedIds, setRemovedIds] = useState<string[]>([]);
+  const [deleteFeedback, setDeleteFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     function onPopState() {
@@ -93,9 +97,18 @@ export function CreatorDirectorySelection({
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
+  const visibleCreators = useMemo(() => {
+    if (removedIds.length === 0) {
+      return creators;
+    }
+    const hidden = new Set(removedIds);
+    return creators.filter((creator) => !hidden.has(creator.id));
+  }, [creators, removedIds]);
+
   const sortedCreators = useMemo(
-    () => sortCreatorDirectoryRows(creators, growthByCreator, sortState),
-    [creators, growthByCreator, sortState]
+    () =>
+      sortCreatorDirectoryRows(visibleCreators, growthByCreator, sortState),
+    [visibleCreators, growthByCreator, sortState]
   );
 
   const visibleIds = useMemo(
@@ -107,6 +120,31 @@ export function CreatorDirectorySelection({
     visibleIds
   );
 
+  const selectedAssignedCount = useMemo(() => {
+    const selected = new Set(selection.selectedIds);
+    return visibleCreators.filter(
+      (creator) => selected.has(creator.id) && creator.campaign_count > 0
+    ).length;
+  }, [selection.selectedIds, visibleCreators]);
+
+  const handleCreatorsDeleted = useCallback((deletedIds: string[]) => {
+    if (deletedIds.length === 0) {
+      return;
+    }
+    setRemovedIds((current) => [...new Set([...current, ...deletedIds])]);
+    setSelection((current) => {
+      const remaining = current.selectedIds.filter(
+        (id) => !deletedIds.includes(id)
+      );
+      return { ...current, selectedIds: remaining, limited: false };
+    });
+    setDeleteFeedback(
+      deletedIds.length === 1
+        ? "İçerik üreticisi silindi."
+        : `${deletedIds.length} içerik üreticisi silindi.`
+    );
+  }, []);
+
   const handleSort = useCallback((column: CreatorDirectorySortKey) => {
     setSortState((current) => {
       const next = cycleCreatorDirectorySort(current, column);
@@ -117,9 +155,13 @@ export function CreatorDirectorySelection({
 
   return (
     <div className="space-y-4">
+      {deleteFeedback ? (
+        <p className="text-sm text-emerald-400">{deleteFeedback}</p>
+      ) : null}
+
       {selection.selectedIds.length > 0 ? (
-        <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-orange-500/30 bg-zinc-950/95 px-4 py-3 backdrop-blur">
-          <p className="text-sm text-zinc-200">
+        <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/30 bg-bf-elevated/95 px-4 py-3 shadow-lg shadow-black/20 backdrop-blur">
+          <p className="text-sm text-bf-text">
             {selection.selectedIds.length} creator seçildi
             {selection.limited
               ? ` · en fazla ${CREATOR_SELECTION_MAX}`
@@ -135,6 +177,11 @@ export function CreatorDirectorySelection({
               lists={lists}
               onAdded={() => setSelection(clearCreatorSelection())}
             />
+            <BulkDeleteCreatorsButton
+              selectedIds={selection.selectedIds}
+              assignedCount={selectedAssignedCount}
+              onDeleted={handleCreatorsDeleted}
+            />
             <Button
               type="button"
               size="sm"
@@ -147,12 +194,12 @@ export function CreatorDirectorySelection({
         </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-xl border border-zinc-800">
+      <div className="overflow-hidden rounded-xl border border-bf-border">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-zinc-800 text-sm">
-            <thead className="bg-zinc-950/80">
-              <tr className="text-left text-zinc-400">
-                <th className="px-4 py-3 font-medium">
+          <table className="min-w-full divide-y divide-bf-border text-sm">
+            <thead className="bg-bf-surface">
+              <tr className="text-left text-bf-steel">
+                <th className="px-4 py-2.5 font-medium">
                   <input
                     type="checkbox"
                     aria-label="Görünen sonuçların tümünü seç"
@@ -166,7 +213,7 @@ export function CreatorDirectorySelection({
                         )
                       )
                     }
-                    className="h-4 w-4 rounded border-zinc-600"
+                    className="h-4 w-4 rounded border-bf-border accent-primary"
                   />
                 </th>
                 <CreatorDirectorySortHeader
@@ -175,7 +222,7 @@ export function CreatorDirectorySelection({
                   state={sortState}
                   onSort={handleSort}
                 />
-                <th className="px-4 py-3 font-medium">Platform</th>
+                <th className="px-4 py-2.5 font-medium">Platform</th>
                 <CreatorDirectorySortHeader
                   column="category"
                   label="Kategori"
@@ -206,14 +253,17 @@ export function CreatorDirectorySelection({
                   state={sortState}
                   onSort={handleSort}
                 />
-                <th className="px-4 py-3 font-medium text-right">İşlemler</th>
+                <th className="px-4 py-2.5 font-medium text-right">İşlemler</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800/80 bg-zinc-950/40">
+            <tbody className="divide-y divide-bf-border/80 bg-bf-bg/40">
               {sortedCreators.map((creator) => {
                 const checked = selection.selectedIds.includes(creator.id);
                 return (
-                  <tr key={creator.id} className="text-zinc-200">
+                  <tr
+                    key={creator.id}
+                    className="text-bf-text/90 transition-colors hover:bg-primary/[0.04]"
+                  >
                     <td className="px-4 py-3">
                       <input
                         type="checkbox"
@@ -228,7 +278,7 @@ export function CreatorDirectorySelection({
                             )
                           )
                         }
-                        className="h-4 w-4 rounded border-zinc-600"
+                        className="h-4 w-4 rounded border-bf-border accent-primary"
                       />
                     </td>
                     <td className="px-4 py-3">
@@ -240,10 +290,10 @@ export function CreatorDirectorySelection({
                           size="sm"
                         />
                         <div>
-                          <p className="font-medium text-white">
+                          <p className="font-medium text-bf-text">
                             @{creator.username}
                           </p>
-                          <p className="text-xs text-zinc-500">
+                          <p className="text-xs text-bf-steel">
                             {creator.display_name ?? "—"}
                           </p>
                         </div>
@@ -279,6 +329,7 @@ export function CreatorDirectorySelection({
                       <CreatorSyncStateCell
                         status={creator.sync_status ?? "pending"}
                         lastSyncedAt={creator.last_synced_at}
+                        accountStatus={creator.account_status ?? "active"}
                       />
                     </td>
                     <td className="px-4 py-3 tabular-nums">
@@ -290,6 +341,7 @@ export function CreatorDirectorySelection({
                           creatorId={creator.id}
                           platform={creator.platform}
                           syncConfigured={syncConfigured}
+                          accountStatus={creator.account_status ?? "active"}
                           compact
                         />
                         <Link
@@ -308,6 +360,12 @@ export function CreatorDirectorySelection({
                         >
                           Düzenle
                         </Link>
+                        <DeleteCreatorButton
+                          creatorId={creator.id}
+                          username={creator.username}
+                          campaignCount={creator.campaign_count}
+                          onDeleted={handleCreatorsDeleted}
+                        />
                       </div>
                     </td>
                   </tr>

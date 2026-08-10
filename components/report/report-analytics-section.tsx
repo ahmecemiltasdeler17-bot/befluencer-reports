@@ -40,7 +40,9 @@ export function ReportAnalyticsSection({
         description="İçerik üreticisi katkıları ile etkileşim bileşenlerinin dağılımı."
         contentClassName="mt-6"
       >
-        <div className="grid grid-cols-1 gap-12 min-[1000px]:grid-cols-[minmax(0,65%)_minmax(0,35%)] min-[1000px]:gap-10">
+        {/* Below ~1180px the donut column becomes too narrow for its legend,
+            so the two blocks stack instead of squeezing. */}
+        <div className="grid grid-cols-1 gap-12 min-[1180px]:grid-cols-[minmax(0,62%)_minmax(0,38%)] min-[1180px]:gap-10">
           <CreatorContributionList
             creators={data.creators}
             totalReach={data.totalReach.value}

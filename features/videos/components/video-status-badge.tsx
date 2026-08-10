@@ -13,7 +13,7 @@ const STATUS_LABELS: Record<VideoStatus, string> = {
 };
 
 const STATUS_STYLES: Record<VideoStatus, string> = {
-  draft: "border-zinc-700 bg-zinc-800/80 text-zinc-300",
+  draft: "border-bf-border bg-bf-elevated text-bf-steel",
   published: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
   removed: "border-red-500/30 bg-red-500/10 text-red-300",
 };

@@ -125,7 +125,9 @@ function VideoPosterFallback({
 
       <div
         className="absolute -top-8 -right-10 size-40 rounded-full blur-3xl opacity-50"
-        style={{ backgroundColor: featured ? "#FF5A00" : theme.glow }}
+        style={{
+          backgroundColor: featured ? "rgba(168, 212, 240, 0.55)" : theme.glow,
+        }}
       />
       <div
         className="absolute bottom-16 -left-8 size-32 rounded-full blur-2xl opacity-35"
@@ -136,7 +138,7 @@ function VideoPosterFallback({
       />
       <div
         className="absolute top-1/3 right-0 size-24 rounded-full blur-2xl opacity-30"
-        style={{ backgroundColor: "#FF5A00" }}
+        style={{ backgroundColor: "rgba(107, 163, 199, 0.55)" }}
       />
 
       <div

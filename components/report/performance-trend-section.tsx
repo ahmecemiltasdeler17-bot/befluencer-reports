@@ -4,6 +4,7 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
+  Dot,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -11,9 +12,14 @@ import {
 } from "recharts";
 
 import {
-  formatTurkishDayMonth,
-  formatTurkishReport,
-} from "@/lib/format";
+  ReportChartActiveDot,
+  ReportChartCursor,
+  ReportChartDefs,
+  ReportMetricTooltip,
+} from "@/components/report/charts/report-chart-primitives";
+import { ReportMeasurementNote } from "@/components/report/charts/report-measurement-note";
+import { REPORT_THEME } from "@/components/report/report-theme";
+import { formatTurkishDayMonth, formatTurkishReport } from "@/lib/format";
 import type { GrowthDataPoint, TrendDataPoint } from "@/lib/types";
 
 interface PerformanceTrendSectionProps {
@@ -28,6 +34,27 @@ interface TrendSummary {
   last7Days: number;
   dailyAverage: number;
   peakDate: string;
+}
+
+/** Chart row: cumulative value plus the previous REAL observation. */
+export interface TrendChartPoint {
+  label: string;
+  views: number;
+  previousViews: number | null;
+}
+
+/**
+ * Maps real snapshots to chart rows. One row per stored observation — no
+ * interpolated, resampled or synthesized entries are added.
+ */
+export function buildTrendChartData(
+  growth: GrowthDataPoint[]
+): TrendChartPoint[] {
+  return growth.map((point, index) => ({
+    label: point.date,
+    views: point.cumulativeViews,
+    previousViews: index > 0 ? growth[index - 1].cumulativeViews : null,
+  }));
 }
 
 function computeTrendSummary(
@@ -74,18 +101,19 @@ function ChartTooltip({
   label,
 }: {
   active?: boolean;
-  payload?: Array<{ value: number }>;
+  payload?: Array<{ payload: TrendChartPoint }>;
   label?: string;
 }) {
   if (!active || !payload?.length) return null;
+  const point = payload[0].payload;
 
   return (
-    <div className="rounded-lg border border-white/10 bg-[#18181B] px-3 py-2 shadow-xl">
-      <p className="text-xs text-zinc-500">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-white tabular-nums">
-        {formatTurkishReport(payload[0].value)} izlenme
-      </p>
-    </div>
+    <ReportMetricTooltip
+      label={label}
+      metricLabel="Toplam izlenme"
+      value={point.views}
+      previousValue={point.previousViews}
+    />
   );
 }
 
@@ -97,8 +125,8 @@ export function PerformanceTrendSection({
 }: PerformanceTrendSectionProps) {
   if (!hasTimeline || growth.length < 2) {
     return (
-      <div className="rounded-xl border border-white/[0.06] px-6 py-12 text-center">
-        <p className="text-sm text-zinc-500">
+      <div className="report-chart-panel report-empty-panel pdf-avoid-break px-6 py-12 text-center">
+        <p className="text-sm text-[var(--report-text-tertiary)]">
           Trend grafiği için en az iki metrik kaydı gerekli.
         </p>
       </div>
@@ -106,81 +134,107 @@ export function PerformanceTrendSection({
   }
 
   const summary = computeTrendSummary(growth, trend);
-
-  const chartData = growth.map((point) => ({
-    label: point.date,
-    views: point.cumulativeViews,
-  }));
+  const chartData = buildTrendChartData(growth);
+  const sparse = chartData.length <= 6;
 
   return (
-    <div className="w-full" aria-label={hideHeading ? undefined : "Performans trendi"}>
+    <div
+      className="w-full"
+      aria-label={hideHeading ? undefined : "Performans trendi"}
+    >
       {!hideHeading ? (
         <div className="mb-8 max-w-xl">
-          <h2 className="text-[24px] font-semibold tracking-tight text-white min-[1100px]:text-[28px]">
+          <h2 className="text-[24px] font-semibold tracking-tight text-[var(--report-text)] min-[1100px]:text-[28px]">
             Performans Trendi
           </h2>
-          <p className="mt-2 text-sm text-zinc-400">
+          <p className="mt-2 text-sm text-[var(--report-text-secondary)]">
             Kampanya başlangıcından itibaren toplam izlenme
           </p>
         </div>
       ) : null}
 
-      <div className="mb-8 flex flex-wrap gap-6 min-[1000px]:justify-end">
-        <SummaryItem
-          label="Son 7 gün"
-          value={`+${formatTurkishReport(summary.last7Days)}`}
-        />
-        <SummaryItem
-          label="Günlük ortalama"
-          value={formatTurkishReport(summary.dailyAverage)}
-        />
-        <SummaryItem
-          label="En yüksek gün"
-          value={formatTurkishDayMonth(summary.peakDate)}
-        />
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+        <ReportMeasurementNote count={chartData.length} />
+
+        <div className="flex flex-wrap items-end gap-x-8 gap-y-3">
+          <SummaryItem
+            label="Son 7 gün"
+            value={`+${formatTurkishReport(summary.last7Days)}`}
+          />
+          <SummaryItem
+            label="Günlük ortalama"
+            value={formatTurkishReport(summary.dailyAverage)}
+          />
+          <SummaryItem
+            label="En yüksek gün"
+            value={formatTurkishDayMonth(summary.peakDate)}
+          />
+        </div>
       </div>
 
-      <div className="rounded-xl border border-white/[0.06] bg-white/[0.015] px-2 py-6 min-[800px]:px-4">
-        <div className="h-[280px] w-full min-[1100px]:h-[320px]">
+      <div className="report-chart-panel pdf-avoid-break px-2 py-5 min-[800px]:px-4 min-[800px]:py-6">
+        <div className="report-chart-panel__plot report-chart-reveal h-[262px] w-full min-[1100px]:h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={chartData}
-              margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+              margin={{ top: 16, right: 12, left: 2, bottom: 6 }}
             >
-              <defs>
-                <linearGradient id="reachGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#FF5A00" stopOpacity={0.16} />
-                  <stop offset="100%" stopColor="#FF5A00" stopOpacity={0} />
-                </linearGradient>
-              </defs>
+              <ReportChartDefs gradientId="reachGradient" />
               <CartesianGrid
-                stroke="rgba(255,255,255,0.04)"
-                strokeDasharray="3 3"
+                stroke={REPORT_THEME.grid}
+                strokeDasharray="4 8"
                 vertical={false}
               />
               <XAxis
                 dataKey="label"
-                tick={{ fill: "#71717A", fontSize: 11 }}
+                tick={{
+                  fill: REPORT_THEME.textFaint,
+                  fontSize: 11,
+                  fontFamily: "inherit",
+                }}
                 axisLine={false}
                 tickLine={false}
-                dy={10}
-                minTickGap={28}
+                dy={8}
+                minTickGap={32}
               />
               <YAxis
                 tickFormatter={(value) => formatTurkishReport(value)}
-                tick={{ fill: "#71717A", fontSize: 11 }}
+                tick={{
+                  fill: REPORT_THEME.textFaint,
+                  fontSize: 11,
+                  fontFamily: "inherit",
+                }}
                 axisLine={false}
                 tickLine={false}
-                width={52}
+                width={54}
               />
-              <Tooltip content={<ChartTooltip />} />
+              <Tooltip
+                content={<ChartTooltip />}
+                cursor={<ReportChartCursor />}
+                offset={16}
+                allowEscapeViewBox={{ x: false, y: false }}
+              />
               <Area
                 type="monotone"
                 dataKey="views"
                 name="İzlenme"
-                stroke="#FF5A00"
+                stroke={REPORT_THEME.chartPrimary}
                 strokeWidth={2}
                 fill="url(#reachGradient)"
+                isAnimationActive={false}
+                dot={
+                  sparse ? (
+                    <Dot
+                      r={3}
+                      fill={REPORT_THEME.bg}
+                      stroke={REPORT_THEME.chartPrimary}
+                      strokeWidth={2}
+                    />
+                  ) : (
+                    false
+                  )
+                }
+                activeDot={<ReportChartActiveDot />}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -193,10 +247,12 @@ export function PerformanceTrendSection({
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[10px] tracking-[0.18em] text-zinc-500 uppercase">
+      <p className="text-[10px] tracking-[0.14em] text-[var(--report-text-tertiary)] uppercase">
         {label}
       </p>
-      <p className="mt-1 text-sm font-semibold text-white tabular-nums">{value}</p>
+      <p className="mt-1 text-sm font-semibold text-[var(--report-text)] tabular-nums">
+        {value}
+      </p>
     </div>
   );
 }

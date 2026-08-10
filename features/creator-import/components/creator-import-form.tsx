@@ -193,7 +193,7 @@ export function CreatorImportForm() {
             rows={14}
             spellCheck={false}
             placeholder={`https://www.tiktok.com/@ornek\nhttps://www.tiktok.com/@baska_ornek?is_from_webapp=1\n[https://www.tiktok.com/@ucuncu](https://www.tiktok.com/@ucuncu)`}
-            className="w-full rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 py-3 font-mono text-sm text-white outline-none focus:border-orange-500/60 focus:ring-2 focus:ring-orange-500/20"
+            className="w-full rounded-lg border border-zinc-800 bg-zinc-950/80 px-3 py-3 font-mono text-sm text-white outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
           />
 
           <div className="flex flex-wrap items-center gap-3">
@@ -220,7 +220,7 @@ export function CreatorImportForm() {
               onClick={handlePreview}
               className={cn(
                 buttonVariants({ variant: "default" }),
-                "bg-orange-500 text-white hover:bg-orange-500/90 disabled:opacity-50"
+                "bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               )}
             >
               {isPending ? "Hazırlanıyor…" : "Önizleme"}
@@ -277,7 +277,7 @@ export function CreatorImportForm() {
                             href={row.profileUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-orange-400 hover:text-orange-300"
+                            className="text-primary hover:text-[var(--bf-accent-soft)]"
                           >
                             {row.profileUrl}
                           </a>
@@ -302,7 +302,7 @@ export function CreatorImportForm() {
               onClick={handleImport}
               className={cn(
                 buttonVariants({ variant: "default" }),
-                "bg-orange-500 text-white hover:bg-orange-500/90 disabled:opacity-50"
+                "bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               )}
             >
               {isPending
@@ -364,7 +364,7 @@ export function CreatorImportForm() {
                 onClick={handleSync}
                 className={cn(
                   buttonVariants({ variant: "default" }),
-                  "bg-orange-500 text-white hover:bg-orange-500/90 disabled:opacity-50"
+                  "bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 )}
               >
                 {isPending
@@ -393,7 +393,7 @@ export function CreatorImportForm() {
               href="/creators"
               className={cn(
                 buttonVariants({ variant: "default" }),
-                "bg-orange-500 text-white hover:bg-orange-500/90"
+                "bg-primary text-primary-foreground hover:bg-primary/90"
               )}
             >
               Creator Listesine Dön
@@ -433,7 +433,7 @@ function Stat({
       <p
         className={cn(
           "mt-1 text-xl font-semibold tabular-nums",
-          accent ? "text-orange-400" : "text-white"
+          accent ? "text-primary" : "text-white"
         )}
       >
         {value}

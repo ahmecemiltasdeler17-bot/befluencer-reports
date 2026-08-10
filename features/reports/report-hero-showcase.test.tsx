@@ -9,6 +9,7 @@ import { ReportHeader } from "@/components/report/report-header";
 import {
   dedupeShowcaseCreators,
   ReportCreatorShowcase,
+  splitShowcaseRows,
   type ShowcaseCreator,
 } from "@/components/report/report-creator-showcase";
 import {
@@ -43,10 +44,12 @@ describe("report creator showcase", () => {
 
     assert.match(html, /data-report-creator-showcase/);
     assert.match(html, /data-creator-count="30"/);
-    assert.equal(
-      (html.match(/report-creator-showcase__item/g) ?? []).length,
-      30
-    );
+    assert.match(html, /report-creator-showcase--motion/);
+    // Visual marquee clones double the DOM nodes; AT-facing items exclude clones.
+    const items = html.match(/report-creator-showcase__item/g) ?? [];
+    const clones = html.match(/report-creator-showcase__clone/g) ?? [];
+    assert.equal(items.length, 60);
+    assert.equal(clones.length, 30);
     for (let index = 0; index < 30; index += 1) {
       assert.match(html, new RegExp(`@user_${index}`));
     }
@@ -60,11 +63,31 @@ describe("report creator showcase", () => {
     );
   });
 
+  it("does not clone avatars when the set is too small for marquee", () => {
+    const html = renderToStaticMarkup(
+      <ReportCreatorShowcase creators={makeCreators(4)} />
+    );
+    assert.equal(html.includes("report-creator-showcase--motion"), false);
+    assert.equal(html.includes("report-creator-showcase__clone"), false);
+    assert.equal(
+      (html.match(/report-creator-showcase__item/g) ?? []).length,
+      4
+    );
+  });
+
+  it("splits large showcase sets into two visual rows", () => {
+    const [a, b] = splitShowcaseRows(makeCreators(20));
+    assert.equal(a.length + b.length, 20);
+    assert.equal(a.length, 10);
+    assert.equal(b.length, 10);
+  });
+
   it("renders 100 creators without an overflow badge", () => {
     const html = renderToStaticMarkup(
       <ReportCreatorShowcase creators={makeCreators(100)} />
     );
     assert.match(html, /data-creator-count="100"/);
+    // One accessible name per real creator (clones are aria-hidden / no sr-only).
     assert.equal((html.match(/sr-only/g) ?? []).length >= 100, true);
     assert.equal(/\+\d+/.test(html), false);
   });
@@ -112,13 +135,19 @@ describe("report creator showcase", () => {
     assert.equal(html.includes(longHandle.replace(/^@/, "")), true);
   });
 
-  it("uses print-safe showcase classes", () => {
+  it("uses print-safe showcase classes and disables marquee clones in PDF", () => {
     const css = read("app/globals.css");
     assert.match(css, /\.report-creator-showcase/);
     assert.match(css, /\.pdf-document \.report-creator-showcase/);
     assert.match(css, /flex-wrap:\s*wrap/);
+    assert.match(
+      css,
+      /\.pdf-document \.report-creator-showcase--motion \.report-creator-showcase__clone/
+    );
+    assert.match(css, /prefers-reduced-motion:\s*reduce/);
     const component = read("components/report/report-creator-showcase.tsx");
     assert.match(component, /pdf-avoid-break/);
+    assert.match(component, /decorative/);
     assert.equal(component.includes("maxVisible"), false);
     assert.equal(component.includes("overflowCount"), false);
   });

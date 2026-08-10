@@ -48,11 +48,11 @@ export function FeaturedContentMetrics({
           size={44}
         />
         <div>
-          <p className="flex items-center gap-1.5 text-base font-semibold text-white">
+          <p className="flex items-center gap-1.5 text-base font-semibold text-[var(--report-text)]">
             {video.creatorHandle}
             {creatorLink && <ReportExternalLinkIcon />}
           </p>
-          <p className="mt-0.5 text-sm text-zinc-400">
+          <p className="mt-0.5 text-sm text-[var(--report-text-secondary)]">
             <CompactCountText
               value={creator?.followers ?? 0}
               showNoun
@@ -67,35 +67,37 @@ export function FeaturedContentMetrics({
         </div>
       </ReportCreatorLink>
 
-      <p className="mt-5 text-sm text-zinc-500">
+      <p className="mt-5 text-sm text-[var(--report-text-tertiary)]">
         Yayın Tarihi:{" "}
-        <span className="text-zinc-300">{formatTurkishDate(video.publishedAt)}</span>
+        <span className="text-[var(--report-text-secondary)]">
+          {formatTurkishDate(video.publishedAt)}
+        </span>
       </p>
 
       <div className="mt-8 grid grid-cols-1 gap-8 min-[800px]:grid-cols-2 min-[800px]:gap-12">
         <div>
-          <p className="text-[10px] font-medium tracking-[0.22em] text-zinc-500 uppercase">
+          <p className="text-[10px] font-medium tracking-[0.14em] text-[var(--report-text-tertiary)] uppercase">
             İzlenme
           </p>
-          <p className="mt-2 text-[40px] leading-none font-bold tracking-tight text-white tabular-nums min-[800px]:text-[48px]">
+          <p className="mt-2 text-[40px] leading-none font-bold tracking-tight text-[var(--report-text)] tabular-nums min-[800px]:text-[48px]">
             {formatTurkishReport(video.views)}
           </p>
         </div>
         <div>
-          <p className="text-[10px] font-medium tracking-[0.22em] text-zinc-500 uppercase">
+          <p className="text-[10px] font-medium tracking-[0.14em] text-[var(--report-text-tertiary)] uppercase">
             Etkileşim Oranı
           </p>
-          <p className="mt-2 text-[40px] leading-none font-bold tracking-tight text-white tabular-nums min-[800px]:text-[48px]">
+          <p className="mt-2 text-[40px] leading-none font-bold tracking-tight text-[var(--report-text)] tabular-nums min-[800px]:text-[48px]">
             {formatTurkishPercent(engagementRate)}
           </p>
-          <p className="mt-2 text-sm text-[#FF5A00]">
+          <p className="mt-2 text-sm text-[var(--report-accent)]">
             Kampanya ortalamasının %{Math.round(vsAverage).toLocaleString("tr-TR")}{" "}
             üzerinde
           </p>
         </div>
       </div>
 
-      <div className="mt-10 grid grid-cols-2 border-t border-white/[0.06] min-[800px]:grid-cols-4">
+      <div className="mt-10 grid grid-cols-2 border-t border-[var(--report-border)] min-[800px]:grid-cols-4">
         <MetricCell label="Beğeni" value={formatTurkishReport(video.likes)} />
         <MetricCell
           label="Yorum"
@@ -129,13 +131,15 @@ function MetricCell({
   return (
     <div
       className={`px-3 py-5 text-center min-[800px]:px-4 ${
-        bordered ? "border-l border-white/[0.06]" : ""
+        bordered ? "border-l border-[var(--report-border)]" : ""
       }`}
     >
-      <p className="text-[10px] tracking-[0.18em] text-zinc-500 uppercase">
+      <p className="text-[10px] tracking-[0.14em] text-[var(--report-text-tertiary)] uppercase">
         {label}
       </p>
-      <p className="mt-2 text-lg font-bold text-white tabular-nums">{value}</p>
+      <p className="mt-2 text-lg font-bold text-[var(--report-text)] tabular-nums">
+        {value}
+      </p>
     </div>
   );
 }

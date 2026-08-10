@@ -37,9 +37,9 @@ export function isAccessNonce(value: string): boolean {
 }
 
 /**
- * Builds `/r/<raw-token>` against the trusted public-report origin
- * (`PUBLIC_REPORT_URL`, falling back to `APP_URL`).
- * Never derives the host from a request header.
+ * Builds `/r/<raw-token>` against a trusted public-report origin.
+ * Prefer `getPublicReportUrl(\`/r/${token}\`)` at call sites so the configured
+ * `PUBLIC_REPORT_URL` is always used. Never derives the host from a request header.
  */
 export function buildPublicShareUrl(
   publicReportOrigin: string,

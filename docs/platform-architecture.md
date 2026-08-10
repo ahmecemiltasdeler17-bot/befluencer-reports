@@ -28,9 +28,12 @@ Does **not** own:
 
 | Variable | Purpose | Local | Production |
 |----------|---------|-------|------------|
-| `APP_URL` | Internal app origin (PDF print, admin absolute URLs) | `http://localhost:3000` | `https://app.befluencer.co` |
-| `PUBLIC_REPORT_URL` | Public share absolute URLs | `http://localhost:3000` (fallback = `APP_URL`) | `https://reports.befluencer.co` |
+| `APP_URL` | Internal app origin (PDF print, admin absolute URLs) | `http://localhost:3000` | `https://app.befluencer.co` (temp: vercel.app) |
+| `PUBLIC_REPORT_URL` | Public share absolute URLs | `http://localhost:3000` (fallback = `APP_URL`) | `https://reports.befluencer.co` (temp: vercel.app) |
 | `MARKETING_SITE_URL` | Future corporate site helper | optional `http://localhost:3001` | `https://befluencer.co` |
+
+Helpers: `getAppOrigin()`, `getAppUrl(path)`, `getPublicReportOrigin()`,
+`getPublicReportUrl(path)`.
 
 Rules:
 
@@ -67,4 +70,6 @@ The raw public share token is never passed to the internal print URL.
 - Marketing design can evolve independently
 - Easier future team ownership
 
-See also: [domain-and-deployment.md](./domain-and-deployment.md), [corporate-website-plan.md](./corporate-website-plan.md).
+See also: [domain-and-deployment.md](./domain-and-deployment.md),
+[production-domain-launch.md](./production-domain-launch.md),
+[corporate-website-plan.md](./corporate-website-plan.md).

@@ -52,13 +52,15 @@ export function DashboardKpiCards({ kpis }: { kpis: DashboardKpis }) {
           <Link
             key={card.key}
             href={card.href}
-            className="rounded-xl border border-zinc-800 bg-zinc-950/50 px-4 py-4 transition-colors hover:border-zinc-700 hover:bg-zinc-900/40"
+            className="rounded-xl border border-[var(--bf-border)] bg-[var(--bf-surface)] px-4 py-4 transition-colors hover:border-[var(--bf-border-strong)] hover:bg-[var(--bf-elevated)]"
           >
-            <p className="text-xs text-zinc-500">{card.label}</p>
-            <p className="mt-2 text-2xl font-semibold tabular-nums text-white">
+            <p className="text-xs text-[var(--bf-text-muted)]">{card.label}</p>
+            <p className="mt-2 text-2xl font-semibold tabular-nums text-[var(--bf-text)]">
               {formatManagementCompactCount(kpis[card.key])}
             </p>
-            <p className="mt-1 text-[11px] text-zinc-500">{card.hint(kpis)}</p>
+            <p className="mt-1 text-[11px] text-[var(--bf-text-secondary)]">
+              {card.hint(kpis)}
+            </p>
           </Link>
         ))}
       </div>

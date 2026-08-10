@@ -24,8 +24,8 @@ export function ShareLinkResult({
   }
 
   return (
-    <div className="space-y-3 rounded-md border border-orange-500/30 bg-orange-500/5 p-3">
-      <p className="text-xs text-orange-200/90">
+    <div className="space-y-3 rounded-md border border-primary/30 bg-primary/5 p-3">
+      <p className="text-xs text-[var(--bf-accent-soft)]/90">
         Bu bağlantı daha sonra tekrar görüntülenemez. Kaybetmeniz halinde yeni
         bağlantı oluşturmanız gerekir.
       </p>

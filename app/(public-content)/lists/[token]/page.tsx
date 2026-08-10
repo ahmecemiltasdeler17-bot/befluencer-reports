@@ -5,7 +5,6 @@ import { PublicListAccessBeacon } from "@/features/creator-lists/components/publ
 import { PublicListUnavailable } from "@/features/creator-lists/components/public-list-unavailable";
 import { resolvePublicCreatorList } from "@/features/creator-lists/queries";
 import {
-  buildPublicCreatorListUrl,
   isRawShareToken,
   normalizeRouteShareToken,
 } from "@/features/creator-lists/token";
@@ -13,7 +12,7 @@ import { CreatorAvatar } from "@/features/creators/components/creator-avatar";
 import { CreatorCategoryBadge } from "@/features/creators/components/creator-category-badge";
 import { CreatorPlatformBadge } from "@/features/creators/components/creator-platform-badge";
 import type { CreatorCategory, CreatorPlatform } from "@/features/creators/types";
-import { getPublicReportOrigin } from "@/lib/origins";
+import { getPublicReportUrl } from "@/lib/origins";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -39,7 +38,7 @@ export async function generateMetadata({
   if (isRawShareToken(token)) {
     try {
       metadata.alternates = {
-        canonical: buildPublicCreatorListUrl(getPublicReportOrigin(), token),
+        canonical: getPublicReportUrl(`/lists/${token}`),
       };
     } catch {
       // Origin misconfiguration — omit canonical.
@@ -76,7 +75,7 @@ export default async function PublicCreatorListPage({
       <PublicListAccessBeacon />
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <header className="space-y-3 border-b border-zinc-800 pb-8">
-          <p className="text-sm font-semibold tracking-wide text-orange-400">
+          <p className="text-sm font-semibold tracking-wide text-primary">
             BeFluencer
           </p>
           <h1 className="text-3xl font-semibold text-white">
@@ -150,7 +149,7 @@ export default async function PublicCreatorListPage({
                         href={profileHref}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-medium text-white hover:text-orange-300"
+                        className="font-medium text-white hover:text-[var(--bf-accent-soft)]"
                       >
                         @{creator.username}
                       </a>

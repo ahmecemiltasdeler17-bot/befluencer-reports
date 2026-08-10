@@ -80,6 +80,7 @@ export function mapCreatorImportSyncError(message: string | null | undefined): {
     normalized.includes("profili bulunamadı") ||
     normalized.includes("gizli veya kullanılamıyor") ||
     normalized.includes("hesabı bulunamadı") ||
+    normalized.includes("hesap erişilemiyor") ||
     normalized.includes("creator_not_found") ||
     normalized.includes("private_profile")
   ) {
@@ -106,6 +107,18 @@ export function mapCreatorImportSyncError(message: string | null | undefined): {
     return {
       errorCode: "invalid_username",
       errorMessage: ERROR_MESSAGES.invalid_username,
+    };
+  }
+
+  if (
+    normalized.includes("kullanım kotası") ||
+    normalized.includes("payment_required") ||
+    normalized.includes("apify hesab")
+  ) {
+    return {
+      errorCode: "upstream_temporary",
+      errorMessage:
+        "Sağlayıcı kullanım kotası doldu. Apify hesabınızı kontrol edin.",
     };
   }
 

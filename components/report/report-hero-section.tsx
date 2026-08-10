@@ -62,8 +62,8 @@ export function ReportHeroSection({
         subtitle={subtitle}
       />
 
-      <div className="relative z-[1] mt-10 border-t border-white/[0.06] pt-8 pb-2 min-[1100px]:mt-12">
-        <p className="mb-5 text-center text-[11px] font-medium tracking-[0.2em] text-zinc-500 uppercase">
+      <div className="relative z-[1] mt-9 border-t border-[var(--report-border)] pt-8 pb-1 min-[1100px]:mt-11">
+        <p className="mb-5 text-center text-[11px] font-medium tracking-[0.14em] text-[var(--report-text-tertiary)] uppercase">
           Genel Bakış
         </p>
         <ReportKpiStrip data={data} />

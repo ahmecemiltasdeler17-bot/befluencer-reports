@@ -4,6 +4,7 @@ import { formatTurkishReport } from "@/lib/format";
 import { resolveCreatorLink } from "@/lib/report-links/resolve-report-links";
 import type { ReportLinkOrNull } from "@/lib/report-links/types";
 import type { Creator } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 import { SafeAvatar } from "./content/safe-media";
 
@@ -67,60 +68,83 @@ export function CreatorContributionList({
 
   return (
     <section aria-label="Erişim katkısı" className="w-full">
-      <h3 className="text-[11px] font-medium tracking-[0.24em] text-zinc-500 uppercase">
+      <h3 className="text-[11px] font-medium tracking-[0.16em] text-[var(--report-text-tertiary)] uppercase">
         Erişim Katkısı
       </h3>
 
-      <div className="mt-8 space-y-7">
-        {rows.map((row) => (
-          <div key={row.id} className="space-y-3">
-            <div className="flex items-center gap-3">
-              {row.avatar ? (
-                <ReportCreatorLink link={row.link} className="block shrink-0">
-                  <SafeAvatar
-                    src={row.avatar}
-                    name={row.handle.replace("@", "")}
-                    seed={row.id}
-                    size={36}
-                  />
-                </ReportCreatorLink>
-              ) : (
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-zinc-800 text-xs font-medium text-zinc-400 ring-1 ring-white/10">
-                  +
-                </div>
-              )}
+      <div className="mt-7 space-y-3.5">
+        {rows.map((row) => {
+          const isOthers = row.id === "others";
 
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline justify-between gap-3">
-                  <ReportCreatorLink
-                    link={row.link}
-                    className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-white"
-                  >
-                    <span className="truncate">{row.handle}</span>
-                    {row.link && <ReportExternalLinkIcon />}
+          return (
+            <div
+              key={row.id}
+              className="report-contribution-row report-interactive space-y-2.5"
+            >
+              <div className="flex items-center gap-3">
+                {row.avatar ? (
+                  <ReportCreatorLink link={row.link} className="block shrink-0">
+                    <SafeAvatar
+                      src={row.avatar}
+                      name={row.handle.replace("@", "")}
+                      seed={row.id}
+                      size={36}
+                      className="report-contribution-row__avatar"
+                    />
                   </ReportCreatorLink>
-                  <div className="flex shrink-0 items-baseline gap-3 text-sm tabular-nums">
-                    <span className="font-semibold text-[#FF5A00]">
-                      {row.percentage.toFixed(1).replace(".", ",")}%
-                    </span>
-                    <span className="text-zinc-400">
-                      {formatTurkishReport(row.views)}
-                    </span>
+                ) : (
+                  <div className="report-contribution-row__avatar flex size-9 shrink-0 items-center justify-center rounded-full bg-[var(--report-surface-elevated)] text-xs font-medium text-[var(--report-text-tertiary)] ring-1 ring-[var(--report-border)]">
+                    +
+                  </div>
+                )}
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <ReportCreatorLink
+                      link={row.link}
+                      className={cn(
+                        "report-interactive flex min-w-0 items-center gap-1.5 text-sm font-medium",
+                        isOthers
+                          ? "text-[var(--report-text-tertiary)]"
+                          : "text-[var(--report-text-secondary)] hover:text-[var(--report-text)]"
+                      )}
+                    >
+                      <span className="truncate">{row.handle}</span>
+                      {row.link && <ReportExternalLinkIcon />}
+                    </ReportCreatorLink>
+                    <div className="flex shrink-0 items-baseline gap-3 text-sm tabular-nums">
+                      <span
+                        className={cn(
+                          "font-semibold",
+                          isOthers
+                            ? "text-[var(--report-text-secondary)]"
+                            : "text-[var(--report-accent)]"
+                        )}
+                      >
+                        {row.percentage.toFixed(1).replace(".", ",")}%
+                      </span>
+                      <span className="text-[var(--report-text-secondary)]">
+                        {formatTurkishReport(row.views)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-              <div
-                className="h-full rounded-full bg-[#FF5A00] transition-all"
-                style={{
-                  width: `${(row.percentage / maxPercentage) * 100}%`,
-                }}
-              />
+              <div className="report-bar-track">
+                <div
+                  className={cn(
+                    "report-bar-fill",
+                    isOthers && "report-bar-fill--muted"
+                  )}
+                  style={{
+                    width: `${(row.percentage / maxPercentage) * 100}%`,
+                  }}
+                />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

@@ -2,7 +2,10 @@ import "server-only";
 
 import { revalidatePath } from "next/cache";
 
-import { syncCampaignTikTokCreators } from "@/features/creator-sync/services/sync-tiktok-creator";
+import {
+  prefetchCreatorBatchesForCampaigns,
+  syncCampaignTikTokCreators,
+} from "@/features/creator-sync/services/sync-tiktok-creator";
 import {
   runScheduledTikTokSync,
   type ScheduledSyncPort,
@@ -14,13 +17,20 @@ import type {
 } from "@/features/scheduled-sync/types";
 import { syncTikTokSound } from "@/features/sound-sync/services/sync-tiktok-sound";
 import type { SyncDbClient } from "@/features/sync/db-client";
-import { syncCampaignTikTokVideos } from "@/features/sync/services/sync-tiktok-video";
+import { buildGlobalTikTokSyncPlan } from "@/features/sync/services/build-global-sync-plan";
+import {
+  syncCampaignTikTokVideos,
+  type TikTokSyncOperationCache,
+} from "@/features/sync/services/sync-tiktok-video";
 import { isTikTokSoundUrl } from "@/lib/providers/tiktok/sound-url";
 import { createServiceClient } from "@/lib/supabase/admin";
 
 const DEFAULT_MAX_DURATION_MS = 300_000;
 
-function createScheduledSyncPort(supabase: SyncDbClient): ScheduledSyncPort {
+function createScheduledSyncPort(
+  supabase: SyncDbClient,
+  operationCache: TikTokSyncOperationCache
+): ScheduledSyncPort {
   return {
     async tryAcquireLock() {
       const { data, error } = await supabase.rpc(
@@ -87,13 +97,49 @@ function createScheduledSyncPort(supabase: SyncDbClient): ScheduledSyncPort {
     },
 
     syncCampaignVideos: (campaignId) =>
-      syncCampaignTikTokVideos(campaignId, undefined, { client: supabase }),
+      syncCampaignTikTokVideos(campaignId, undefined, {
+        client: supabase,
+        force: false,
+        manualCooldown: false,
+        operationCache,
+      }),
 
     syncCampaignCreators: (campaignId) =>
-      syncCampaignTikTokCreators(campaignId, undefined, { client: supabase }),
+      syncCampaignTikTokCreators(campaignId, undefined, {
+        client: supabase,
+        force: false,
+        manualCooldown: false,
+        operationCache,
+      }),
 
     syncCampaignSound: (campaignId) =>
-      syncTikTokSound(campaignId, undefined, { client: supabase }),
+      syncTikTokSound(campaignId, undefined, {
+        client: supabase,
+        force: false,
+        manualCooldown: false,
+      }),
+
+    async buildSyncPlan(campaignIds) {
+      const plan = await buildGlobalTikTokSyncPlan(supabase, campaignIds);
+      return {
+        totalEntities: plan.totalEntities,
+        freshSkipped: plan.freshSkipped,
+        staleEligible: plan.staleEligible,
+        nonRetriable: plan.nonRetriable,
+        skippedUnavailable: plan.skippedUnavailable,
+        estimatedProviderRuns: plan.estimatedProviderRuns,
+        plannedVideoBatches: plan.plannedVideoBatches,
+        plannedCreatorBatches: plan.plannedCreatorBatches,
+        plannedSoundRuns: plan.plannedSoundRuns,
+      };
+    },
+
+    async prefetchCreatorBatches(campaignIds) {
+      await prefetchCreatorBatchesForCampaigns(campaignIds, operationCache, {
+        client: supabase,
+        force: false,
+      });
+    },
 
     async revalidateCampaign(campaignId) {
       revalidatePath(`/campaigns/${campaignId}`);
@@ -193,19 +239,50 @@ export async function executeScheduledTikTokSync(input: {
   maxDurationMs?: number;
 }): Promise<ScheduledSyncSummary> {
   const supabase = createServiceClient();
-  const port = createScheduledSyncPort(supabase);
+  const operationCache: TikTokSyncOperationCache = {
+    videoResults: new Map(),
+    creatorResults: new Map(),
+    actorRunsStarted: { value: 0 },
+  };
+  const port = createScheduledSyncPort(supabase, operationCache);
   const maxDurationMs = input.maxDurationMs ?? DEFAULT_MAX_DURATION_MS;
 
-  return runScheduledTikTokSync(port, {
+  const summary = await runScheduledTikTokSync(port, {
     triggeredBy: input.triggeredBy,
     deadlineMs: Date.now() + maxDurationMs,
   });
+
+  // Prefer the real Apify start counter from the shared operation cache.
+  return {
+    ...summary,
+    providerRunsStarted: operationCache.actorRunsStarted.value,
+    message: [
+      summary.plan
+        ? [
+            `Plan: ${summary.plan.totalEntities} varlık`,
+            `${summary.plan.freshSkipped} zaten günceldi`,
+            `${summary.plan.staleEligible} senkronize edilecek`,
+            summary.plan.skippedUnavailable > 0
+              ? `${summary.plan.skippedUnavailable} hesap erişilemiyor / pasif`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")
+        : null,
+      `${summary.video.success} güncellendi`,
+      `${summary.video.skipped} zaten günceldi`,
+      summary.video.failed > 0 ? `${summary.video.failed} başarısız` : null,
+      `${operationCache.actorRunsStarted.value} sağlayıcı çalıştırması kullanıldı`,
+    ]
+      .filter(Boolean)
+      .join(" · "),
+  };
 }
 
-/** Sanitized JSON body for HTTP responses — strips internal message. */
+/** Sanitized JSON body for HTTP responses — strips internal debug-only fields. */
 export function toPublicScheduledSyncSummary(
   summary: ScheduledSyncSummary
-): Omit<ScheduledSyncSummary, "message"> {
+): Omit<ScheduledSyncSummary, never> {
   return {
     runId: summary.runId,
     status: summary.status,
@@ -218,5 +295,8 @@ export function toPublicScheduledSyncSummary(
     video: summary.video,
     creators: summary.creators,
     sound: summary.sound,
+    plan: summary.plan,
+    providerRunsStarted: summary.providerRunsStarted,
+    message: summary.message,
   };
 }

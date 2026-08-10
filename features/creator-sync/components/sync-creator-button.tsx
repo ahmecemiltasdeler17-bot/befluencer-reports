@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { syncTikTokCreatorAction } from "@/features/creator-sync/actions";
-import type { CreatorPlatform } from "@/features/creators/types";
+import type { CreatorAccountStatus, CreatorPlatform } from "@/features/creators/types";
 
 const NOT_CONFIGURED_MESSAGE =
   "TikTok senkronizasyonu yapılandırılmamış. APIFY_API_TOKEN ve APIFY_TIKTOK_ACTOR_ID değerlerini .env.local dosyasına ekleyin.";
@@ -16,20 +16,21 @@ const MANUAL_ONLY_MESSAGE =
 /**
  * Refreshes one creator profile.
  *
- * `compact` renders the table-row variant. Both variants disable the button
- * while pending so a double click cannot start two provider runs, and neither
- * triggers anything on mount — a sync only ever happens on an explicit click.
+ * For unavailable accounts, the compact label becomes "Tekrar kontrol et" and
+ * force=true so the soft skip is bypassed once.
  */
 export function SyncCreatorButton({
   creatorId,
   platform,
   syncConfigured,
   compact = false,
+  accountStatus = "active",
 }: {
   creatorId: string;
   platform: CreatorPlatform;
   syncConfigured: boolean;
   compact?: boolean;
+  accountStatus?: CreatorAccountStatus | string | null;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -37,6 +38,8 @@ export function SyncCreatorButton({
     type: "success" | "error";
     message: string;
   } | null>(null);
+
+  const unavailable = (accountStatus ?? "active") === "unavailable";
 
   if (platform !== "tiktok") {
     if (compact) {
@@ -55,7 +58,9 @@ export function SyncCreatorButton({
         return;
       }
 
-      const result = await syncTikTokCreatorAction(creatorId);
+      const result = await syncTikTokCreatorAction(creatorId, {
+        force: unavailable,
+      });
 
       if (result.error) {
         setFeedback({ type: "error", message: result.error });
@@ -76,9 +81,17 @@ export function SyncCreatorButton({
         disabled={isPending}
         onClick={handleSync}
         title={feedback?.message}
-        className="text-orange-400 hover:text-orange-300"
+        className={
+          unavailable
+            ? "text-amber-400 hover:text-amber-300"
+            : "text-primary hover:text-[var(--bf-accent-soft)]"
+        }
       >
-        {isPending ? "Güncelleniyor…" : "Güncelle"}
+        {isPending
+          ? "Güncelleniyor…"
+          : unavailable
+            ? "Tekrar kontrol et"
+            : "Güncelle"}
       </Button>
     );
   }
@@ -89,9 +102,13 @@ export function SyncCreatorButton({
         type="button"
         disabled={isPending}
         onClick={handleSync}
-        className="bg-orange-500 text-white hover:bg-orange-500/90"
+        className="bg-primary text-primary-foreground hover:bg-primary/90"
       >
-        {isPending ? "Güncelleniyor…" : "TikTok Profilini Güncelle"}
+        {isPending
+          ? "Güncelleniyor…"
+          : unavailable
+            ? "Tekrar Kontrol Et"
+            : "TikTok Profilini Güncelle"}
       </Button>
 
       {feedback?.type === "success" ? (

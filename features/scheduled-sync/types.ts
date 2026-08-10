@@ -15,6 +15,18 @@ export type TaskCountSummary = {
   skipped: number;
 };
 
+export type ScheduledSyncPlanSummary = {
+  totalEntities: number;
+  freshSkipped: number;
+  staleEligible: number;
+  nonRetriable: number;
+  skippedUnavailable: number;
+  estimatedProviderRuns: number;
+  plannedVideoBatches: number;
+  plannedCreatorBatches: number;
+  plannedSoundRuns: number;
+};
+
 export type ScheduledSyncSummary = {
   runId: string | null;
   status: ScheduledSyncStatus;
@@ -29,6 +41,9 @@ export type ScheduledSyncSummary = {
   sound: TaskCountSummary;
   /** Present only for internal debugging logs — never returned to cron HTTP. */
   message?: string;
+  /** Pre-run cost plan (manual global sync UX). */
+  plan?: ScheduledSyncPlanSummary;
+  providerRunsStarted?: number;
 };
 
 export type ScheduledSyncRunRow = {

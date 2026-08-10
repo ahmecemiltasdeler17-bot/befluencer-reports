@@ -44,10 +44,10 @@ type VideoFormProps = {
 
 function fieldClass(hasError: boolean) {
   return cn(
-    "w-full rounded-lg border bg-zinc-950/80 px-3 text-sm text-white outline-none transition-colors placeholder:text-zinc-600 focus:ring-2 disabled:opacity-60",
+    "w-full rounded-lg border bg-bf-bg px-3 text-sm text-bf-text outline-none transition-colors placeholder:text-bf-steel/60 focus:ring-2 disabled:opacity-60",
     hasError
       ? "border-red-500/50 focus:border-red-500/60 focus:ring-red-500/20"
-      : "border-zinc-800 focus:border-orange-500/60 focus:ring-orange-500/20"
+      : "border-bf-border focus:border-primary/60 focus:ring-primary/20"
   );
 }
 
@@ -73,7 +73,7 @@ export function VideoForm({
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2 md:col-span-2">
           <label htmlFor="creator_id" className="text-sm font-medium text-zinc-300">
-            İçerik üreticisi <span className="text-orange-400">*</span>
+            İçerik üreticisi <span className="text-primary">*</span>
           </label>
           <select
             id="creator_id"
@@ -99,7 +99,7 @@ export function VideoForm({
 
         <div className="space-y-2">
           <label htmlFor="platform" className="text-sm font-medium text-zinc-300">
-            Platform <span className="text-orange-400">*</span>
+            Platform <span className="text-primary">*</span>
           </label>
           <select
             id="platform"
@@ -121,7 +121,7 @@ export function VideoForm({
 
         <div className="space-y-2">
           <label htmlFor="status" className="text-sm font-medium text-zinc-300">
-            Durum <span className="text-orange-400">*</span>
+            Durum <span className="text-primary">*</span>
           </label>
           <select
             id="status"
@@ -143,7 +143,7 @@ export function VideoForm({
 
         <div className="space-y-2 md:col-span-2">
           <label htmlFor="video_url" className="text-sm font-medium text-zinc-300">
-            Video URL <span className="text-orange-400">*</span>
+            Video URL <span className="text-primary">*</span>
           </label>
           <input
             id="video_url"
@@ -188,7 +188,7 @@ export function VideoForm({
             htmlFor="published_at"
             className="text-sm font-medium text-zinc-300"
           >
-            Yayın tarihi <span className="text-orange-400">*</span>
+            Yayın tarihi <span className="text-primary">*</span>
           </label>
           <input
             id="published_at"
@@ -224,7 +224,7 @@ export function VideoForm({
         </div>
       </div>
 
-      <div className="rounded-lg border border-zinc-800 bg-zinc-950/30 px-3 py-2">
+      <div className="rounded-lg border border-bf-border bg-bf-surface/50 px-3 py-2">
         <p className="text-xs text-zinc-500">
           Seçilen platform:{" "}
           <CreatorPlatformBadge platform={values.platform} className="ml-1" />
@@ -240,11 +240,11 @@ export function VideoForm({
         </p>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-zinc-800 pt-6">
+      <div className="flex flex-wrap items-center gap-3 border-t border-bf-border pt-6">
         <Button
           type="submit"
           disabled={isPending}
-          className="bg-orange-500 text-white hover:bg-orange-500/90"
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
           {isPending ? "Kaydediliyor…" : submitLabel}
         </Button>

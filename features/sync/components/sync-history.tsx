@@ -79,7 +79,7 @@ export function SyncHistory({
                     <div className="space-y-1">
                       <Link
                         href={`/campaigns/${campaignId}/videos/${job.video.id}`}
-                        className="text-orange-400 hover:text-orange-300"
+                        className="text-primary hover:text-[var(--bf-accent-soft)]"
                       >
                         Video
                       </Link>

@@ -61,7 +61,7 @@ export async function getCampaignSoundConfiguration(
   const { data, error } = await supabase
     .from("campaigns")
     .select(
-      "id, sound_url, tiktok_sound_id, tiktok_sound_title, tiktok_sound_author, sound_last_synced_at, sound_sync_status, sound_sync_error"
+      "id, sound_url, tiktok_sound_id, tiktok_sound_title, tiktok_sound_author, tiktok_sound_cover_url, sound_last_synced_at, sound_sync_status, sound_sync_error"
     )
     .eq("id", campaignId)
     .maybeSingle();
@@ -80,6 +80,7 @@ export async function getCampaignSoundConfiguration(
     soundId: (data.tiktok_sound_id as string | null) ?? null,
     soundTitle: (data.tiktok_sound_title as string | null) ?? null,
     soundAuthor: (data.tiktok_sound_author as string | null) ?? null,
+    soundCoverUrl: (data.tiktok_sound_cover_url as string | null) ?? null,
     lastSyncedAt: (data.sound_last_synced_at as string | null) ?? null,
     syncStatus:
       (data.sound_sync_status as CampaignSoundConfiguration["syncStatus"]) ??

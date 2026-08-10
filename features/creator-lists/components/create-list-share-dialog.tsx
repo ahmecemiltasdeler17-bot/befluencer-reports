@@ -97,15 +97,15 @@ export function CreateListShareDialog({
           aria-modal="true"
           aria-labelledby="create-list-share-title"
         >
-          <div className="w-full max-w-md space-y-4 rounded-lg border border-zinc-800 bg-zinc-950 p-5 shadow-xl">
+          <div className="w-full max-w-md space-y-4 rounded-lg border border-bf-border bg-bf-elevated p-5 shadow-xl shadow-black/40">
             <div>
               <h2
                 id="create-list-share-title"
-                className="text-sm font-semibold text-white"
+                className="text-sm font-semibold text-bf-text"
               >
                 Creator listesi paylaşımı
               </h2>
-              <p className="mt-1 text-xs text-zinc-500">
+              <p className="mt-1 text-xs text-bf-steel">
                 Üyelik sabittir; takipçi ve avatar canlı veriden gelir. Ham
                 bağlantı yalnızca bir kez gösterilir.
               </p>
@@ -137,14 +137,14 @@ export function CreateListShareDialog({
               </>
             ) : (
               <>
-                <label className="block space-y-1 text-xs text-zinc-400">
+                <label className="block space-y-1 text-xs text-bf-steel">
                   Süre
                   <select
                     value={expiration}
                     onChange={(event) =>
                       setExpiration(event.target.value as ShareExpirationPreset)
                     }
-                    className="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white"
+                    className="h-10 w-full rounded-lg border border-bf-border bg-bf-bg px-3 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
                   >
                     <option value="never">Süresiz</option>
                     <option value="24h">24 saat</option>
@@ -155,7 +155,7 @@ export function CreateListShareDialog({
                 </label>
 
                 {expiration === "custom" ? (
-                  <label className="block space-y-1 text-xs text-zinc-400">
+                  <label className="block space-y-1 text-xs text-bf-steel">
                     Bitiş
                     <input
                       type="datetime-local"
@@ -163,29 +163,30 @@ export function CreateListShareDialog({
                       onChange={(event) =>
                         setCustomExpiresAt(event.target.value)
                       }
-                      className="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white"
+                      className="h-10 w-full rounded-lg border border-bf-border bg-bf-bg px-3 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
                     />
                   </label>
                 ) : null}
 
-                <label className="flex items-center gap-2 text-xs text-zinc-300">
+                <label className="flex items-center gap-2 text-xs text-bf-text/90">
                   <input
                     type="checkbox"
                     checked={allowCsvDownload}
                     onChange={(event) =>
                       setAllowCsvDownload(event.target.checked)
                     }
+                    className="accent-primary"
                   />
                   CSV indirmeye izin ver
                 </label>
 
-                <label className="block space-y-1 text-xs text-zinc-400">
+                <label className="block space-y-1 text-xs text-bf-steel">
                   Etiket (opsiyonel)
                   <input
                     value={label}
                     onChange={(event) => setLabel(event.target.value)}
                     maxLength={120}
-                    className="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white"
+                    className="h-10 w-full rounded-lg border border-bf-border bg-bf-bg px-3 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
                   />
                 </label>
 

@@ -1,13 +1,15 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
-import { buildPublicCreatorListUrl } from "@/features/creator-lists/token";
 import { buildPrintUrl, getAppOrigin as getPdfAppOrigin } from "@/features/pdf/origin";
 import {
-  buildPublicShareUrl,
   generateRawShareToken,
   hashShareToken,
 } from "@/features/public-reports/token";
+import {
+  getAppUrl,
+  getPublicReportUrl,
+} from "@/lib/origins/build-origin-url";
 import {
   isLocalhostOriginCandidate,
   resolveAppUrlCandidate,
@@ -225,13 +227,29 @@ describe("origin candidates and getters", () => {
 });
 
 describe("share and PDF origin wiring", () => {
+  it("builds admin and public path helpers for custom domains", () => {
+    clearOriginEnv();
+    process.env.APP_URL = "https://app.befluencer.co";
+    process.env.PUBLIC_REPORT_URL = "https://reports.befluencer.co";
+
+    assert.equal(getAppUrl("/campaigns"), "https://app.befluencer.co/campaigns");
+    assert.equal(
+      getPublicReportUrl("/r/token"),
+      "https://reports.befluencer.co/r/token"
+    );
+    assert.equal(
+      getPublicReportUrl("/lists/token"),
+      "https://reports.befluencer.co/lists/token"
+    );
+  });
+
   it("builds public report share URLs from PUBLIC_REPORT_URL", () => {
     clearOriginEnv();
     process.env.APP_URL = "https://app.befluencer.co";
     process.env.PUBLIC_REPORT_URL = "https://reports.befluencer.co";
 
     const raw = generateRawShareToken();
-    const url = buildPublicShareUrl(getPublicReportOrigin(), raw);
+    const url = getPublicReportUrl(`/r/${raw}`);
 
     assert.equal(url, `https://reports.befluencer.co/r/${raw}`);
     assert.ok(!url.startsWith("https://app.befluencer.co"));
@@ -240,17 +258,26 @@ describe("share and PDF origin wiring", () => {
 
   it("builds creator-list share URLs from the public origin", () => {
     clearOriginEnv();
-    process.env.PUBLIC_REPORT_URL = "https://befluencer-reports.vercel.app";
-    process.env.APP_URL = "https://befluencer-reports.vercel.app";
+    process.env.PUBLIC_REPORT_URL = "https://reports.befluencer.co";
+    process.env.APP_URL = "https://app.befluencer.co";
 
     const raw = generateRawShareToken();
-    const url = buildPublicCreatorListUrl(getPublicReportOrigin(), raw);
+    const url = getPublicReportUrl(`/lists/${raw}`);
 
-    assert.equal(
-      url,
-      `https://befluencer-reports.vercel.app/lists/${raw}`
-    );
+    assert.equal(url, `https://reports.befluencer.co/lists/${raw}`);
     assert.ok(!url.includes("localhost"));
+  });
+
+  it("keeps temporary vercel.app shares valid when both origins match", () => {
+    clearOriginEnv();
+    process.env.APP_URL = "https://befluencer-reports.vercel.app";
+    process.env.PUBLIC_REPORT_URL = "https://befluencer-reports.vercel.app";
+
+    const raw = generateRawShareToken();
+    assert.equal(
+      getPublicReportUrl(`/r/${raw}`),
+      `https://befluencer-reports.vercel.app/r/${raw}`
+    );
   });
 
   it("never emits localhost share URLs when Vercel production origin is available", () => {
@@ -261,8 +288,8 @@ describe("share and PDF origin wiring", () => {
     process.env.VERCEL_PROJECT_PRODUCTION_URL = "befluencer-reports.vercel.app";
 
     const raw = generateRawShareToken();
-    const reportUrl = buildPublicShareUrl(getPublicReportOrigin(), raw);
-    const listUrl = buildPublicCreatorListUrl(getPublicReportOrigin(), raw);
+    const reportUrl = getPublicReportUrl(`/r/${raw}`);
+    const listUrl = getPublicReportUrl(`/lists/${raw}`);
 
     assert.equal(
       reportUrl,

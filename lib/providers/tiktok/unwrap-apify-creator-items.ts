@@ -247,3 +247,41 @@ export function logApifyCreatorRunDiagnostics(input: {
     detectedCandidateType: detectApifyCreatorCandidateType(input.items),
   });
 }
+
+/** Development-only stage breadcrumbs. Never logs tokens or payloads. */
+export function logApifyCreatorSyncStage(input: {
+  operation: string;
+  stage: string;
+  actorIdPresent?: boolean;
+  tokenPresent?: boolean;
+  httpStatus?: number;
+  runId?: string | null;
+  runStatus?: string | null;
+  defaultDatasetIdPresent?: boolean;
+  datasetItemCount?: number;
+  authorCacheFound?: boolean;
+  errorCode?: string;
+  durationMs?: number;
+}): void {
+  if (
+    process.env.NODE_ENV === "production" ||
+    process.env.NODE_TEST === "1"
+  ) {
+    return;
+  }
+
+  console.info("[tiktok-creator-sync:stage]", {
+    operation: input.operation,
+    stage: input.stage,
+    actorIdPresent: input.actorIdPresent ?? null,
+    tokenPresent: input.tokenPresent ?? null,
+    httpStatus: input.httpStatus ?? null,
+    runId: input.runId ?? null,
+    runStatus: input.runStatus ?? null,
+    defaultDatasetIdPresent: input.defaultDatasetIdPresent ?? null,
+    datasetItemCount: input.datasetItemCount ?? null,
+    authorCacheFound: input.authorCacheFound ?? null,
+    errorCode: input.errorCode ?? null,
+    durationMs: input.durationMs ?? null,
+  });
+}

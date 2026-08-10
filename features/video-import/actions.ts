@@ -8,7 +8,6 @@ import { mapWithConcurrency } from "@/features/creator-sync/services/creator-syn
 import {
   VIDEO_IMPORT_MESSAGES,
   VIDEO_IMPORT_MAX_URLS,
-  VIDEO_IMPORT_PROVIDER_CONCURRENCY,
 } from "@/features/video-import/constants";
 import {
   buildPreviewRow,
@@ -46,6 +45,16 @@ import {
   createApifyTikTokProvider,
   toTurkishProviderMessage,
 } from "@/lib/providers/tiktok";
+import { chunkArray } from "@/lib/providers/tiktok/sync-eligibility";
+import {
+  PROVIDER_BATCH_CONCURRENCY,
+  VIDEO_BATCH_SIZE,
+} from "@/lib/providers/tiktok/sync-policy";
+import type { TikTokVideoBatchItemResult } from "@/lib/providers/tiktok/types";
+import {
+  getVideoImportPreviewCache,
+  setVideoImportPreviewCache,
+} from "@/lib/providers/tiktok/video-import-preview-cache";
 import { getVerifiedAuth } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -142,22 +151,71 @@ export async function previewCampaignVideoImportAction(
 
     const provider = createApifyTikTokProvider();
 
-    const fetched = await mapWithConcurrency(
-      parsed.urls,
-      VIDEO_IMPORT_PROVIDER_CONCURRENCY,
-      async (item) => {
-        try {
-          const metrics = await provider.fetchVideoMetrics(item.normalizedUrl);
-          return { item, metrics, error: null as string | null };
-        } catch (error) {
-          return {
-            item,
-            metrics: null,
-            error: sanitizePublicError(error),
+    // Deduplicate scrape keys within this preview; fan results back to rows.
+    type UrlItem = (typeof parsed.urls)[number];
+    const uniqueByUrl = new Map<string, UrlItem>();
+    for (const item of parsed.urls) {
+      if (!uniqueByUrl.has(item.normalizedUrl)) {
+        uniqueByUrl.set(item.normalizedUrl, item);
+      }
+    }
+
+    const scrapeResults = new Map<string, TikTokVideoBatchItemResult>();
+    const toFetch: UrlItem[] = [];
+
+    for (const [url, item] of uniqueByUrl) {
+      const cached = getVideoImportPreviewCache(url);
+      if (cached) {
+        scrapeResults.set(url, cached);
+      } else {
+        toFetch.push(item);
+      }
+    }
+
+    const batches = chunkArray(toFetch, VIDEO_BATCH_SIZE);
+
+    await mapWithConcurrency(
+      batches,
+      PROVIDER_BATCH_CONCURRENCY,
+      async (batch) => {
+        const batchResults = await provider.fetchVideoMetricsBatch(
+          batch.map((item) => ({
+            videoUrl: item.normalizedUrl,
+            platformVideoId: item.platformVideoId,
+          }))
+        );
+        for (const item of batch) {
+          const result = batchResults.results.get(item.normalizedUrl) ?? {
+            status: "error" as const,
+            error: new TikTokProviderError("empty_result"),
           };
+          scrapeResults.set(item.normalizedUrl, result);
+          setVideoImportPreviewCache(item.normalizedUrl, result);
         }
       }
     );
+
+    const fetched = parsed.urls.map((item) => {
+      const result = scrapeResults.get(item.normalizedUrl);
+      if (!result || result.status === "error") {
+        const error =
+          result?.status === "error"
+            ? result.error
+            : new TikTokProviderError("empty_result");
+        return {
+          item,
+          metrics: null,
+          error: sanitizePublicError(error),
+          errorCode: error.code,
+        };
+      }
+      return {
+        item,
+        metrics: result.metrics,
+        error: null as string | null,
+        errorCode: null as string | null,
+      };
+    });
 
     const usernames = fetched
       .map((row) => normalizeHandle(row.metrics?.creatorUsername))
@@ -193,8 +251,10 @@ export async function previewCampaignVideoImportAction(
       const rowKey = createVideoImportRowKey(row.item.normalizedUrl, index);
 
       if (!row.metrics) {
+        const loginRequired = row.errorCode === "login_required_content";
         return buildPreviewRow({
           rowKey,
+          // Preserve the pasted URL even when the anonymous actor cannot open it.
           originalUrl: row.item.originalUrl,
           normalizedUrl: row.item.normalizedUrl,
           platformVideoId: row.item.platformVideoId,
@@ -212,8 +272,12 @@ export async function previewCampaignVideoImportAction(
           shares: null,
           saves: null,
           matchedCreator: null,
-          forcedVideoStatus: "provider_empty",
-          forcedMessage: row.error || VIDEO_IMPORT_MESSAGES.provider_empty,
+          forcedVideoStatus: loginRequired
+            ? "login_required_content"
+            : "provider_empty",
+          forcedMessage: loginRequired
+            ? VIDEO_IMPORT_MESSAGES.login_required_content
+            : row.error || VIDEO_IMPORT_MESSAGES.provider_empty,
         });
       }
 

@@ -41,7 +41,7 @@ export function SoundUrlForm({
           type="url"
           defaultValue={value}
           placeholder="https://www.tiktok.com/music/..."
-          className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:border-orange-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:border-primary focus:outline-none"
         />
         <p className="mt-1 text-xs text-zinc-500">
           Yalnızca TikTok /music/ ses sayfası bağlantıları kabul edilir.

@@ -285,6 +285,7 @@ export function buildSoundGrowthData(input: {
   soundId?: string | null;
   soundAuthor?: string | null;
   soundUrl?: string | null;
+  soundCoverUrl?: string | null;
 }) {
   if (input.snapshots.length === 0) {
     return {
@@ -297,6 +298,7 @@ export function buildSoundGrowthData(input: {
       soundId: input.soundId ?? null,
       soundAuthor: input.soundAuthor ?? null,
       soundUrl: input.soundUrl ?? null,
+      soundCoverUrl: input.soundCoverUrl ?? null,
       timeline: [] as Array<{ date: string; uses: number }>,
     };
   }
@@ -323,6 +325,7 @@ export function buildSoundGrowthData(input: {
     soundId: input.soundId ?? null,
     soundAuthor: input.soundAuthor ?? null,
     soundUrl: input.soundUrl ?? null,
+    soundCoverUrl: input.soundCoverUrl ?? null,
     timeline: sorted.map((snapshot) => ({
       date: snapshot.captured_at,
       uses: Number(snapshot.usage_count),

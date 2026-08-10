@@ -36,6 +36,9 @@ export type Video = {
   video_url: string;
   platform_video_id: string | null;
   thumbnail_url: string | null;
+  /** Public Storage URL for optional manual MP4/WebM preview. */
+  preview_media_url?: string | null;
+  preview_media_type?: string | null;
   caption: string | null;
   published_at: string | null;
   status: VideoDbStatus;
@@ -43,6 +46,11 @@ export type Video = {
   sync_status: VideoSyncStatus;
   created_at: string;
   updated_at: string;
+};
+
+export type VideoPreviewActionState = {
+  error?: string;
+  success?: boolean;
 };
 
 export type VideoWithCreator = Video & {

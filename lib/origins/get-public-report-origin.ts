@@ -5,6 +5,12 @@ import { normalizeConfiguredOrigin } from "@/lib/origins/validate-origin";
 /**
  * Public report origin (`PUBLIC_REPORT_URL`, falling back to `APP_URL`).
  *
+ * Canonical meanings:
+ * - Production admin: APP_URL = https://app.befluencer.co
+ * - Production public: PUBLIC_REPORT_URL = https://reports.befluencer.co
+ * - Temporary single-host: both may be https://befluencer-reports.vercel.app
+ * - Local: both typically http://localhost:3000
+ *
  * Priority (via resolvePublicReportUrlCandidate):
  * 1. PUBLIC_REPORT_URL
  * 2. APP_URL
@@ -19,7 +25,7 @@ export function getPublicReportOrigin(): string {
   if (!candidate) {
     throw new OriginConfigError(
       "missing",
-      "PUBLIC_REPORT_URL / APP_URL is missing. Set PUBLIC_REPORT_URL and APP_URL to the public https origin (e.g. https://befluencer-reports.vercel.app)."
+      "PUBLIC_REPORT_URL / APP_URL is missing. Set PUBLIC_REPORT_URL=https://reports.befluencer.co (or temporary vercel.app) and APP_URL=https://app.befluencer.co."
     );
   }
 

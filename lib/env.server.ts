@@ -73,6 +73,14 @@ export function isTikTokSyncConfigured(): boolean {
 }
 
 /**
+ * Optional dedicated actor for direct video URL metric fetch.
+ * Falls back to `APIFY_TIKTOK_ACTOR_ID` when unset — no migration required.
+ */
+export function getTikTokVideoActorId(): string | null {
+  return process.env.APIFY_TIKTOK_VIDEO_ACTOR_ID?.trim() || null;
+}
+
+/**
  * Optional dedicated actor for creator profile scraping.
  *
  * Creator sync reuses `APIFY_TIKTOK_ACTOR_ID` by default, because most TikTok
@@ -198,16 +206,22 @@ function requirePlatformEnv(): PlatformEnv {
       [
         "BeFluencer Reports — platform / PDF configuration is invalid.",
         "",
-        "Add the following server-only variables for Production on Vercel:",
+        "Production (custom domains):",
+        "  APP_URL=https://app.befluencer.co",
+        "  PUBLIC_REPORT_URL=https://reports.befluencer.co",
+        "",
+        "Temporary (before DNS, same Vercel project):",
         "  APP_URL=https://befluencer-reports.vercel.app",
         "  PUBLIC_REPORT_URL=https://befluencer-reports.vercel.app",
-        "Local .env.local may use:",
+        "",
+        "Local .env.local:",
         "  APP_URL=http://localhost:3000",
         "  PUBLIC_REPORT_URL=http://localhost:3000",
         "  # optional:",
         "  # MARKETING_SITE_URL=http://localhost:3001",
         "  # CHROME_EXECUTABLE_PATH=C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
         "",
+        "Do not set Production APP_URL/PUBLIC_REPORT_URL to localhost.",
         "Validation errors:",
         formatEnvErrors(parsed.error),
       ].join("\n")

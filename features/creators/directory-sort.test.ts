@@ -31,6 +31,9 @@ function makeCreator(
     category_source: "auto",
     last_synced_at: overrides.last_synced_at ?? null,
     sync_status: overrides.sync_status ?? "pending",
+    account_status: overrides.account_status ?? "active",
+    unavailable_reason: overrides.unavailable_reason ?? null,
+    unavailable_at: overrides.unavailable_at ?? null,
     created_at: overrides.created_at ?? "2026-01-01T00:00:00.000Z",
     updated_at: overrides.updated_at ?? "2026-01-01T00:00:00.000Z",
     campaign_count: overrides.campaign_count ?? 0,
@@ -378,6 +381,8 @@ describe("selection compatibility contracts", () => {
       "utf8"
     );
     assert.match(directory, /SyncCreatorButton/);
+    assert.match(directory, /DeleteCreatorButton/);
+    assert.match(directory, /BulkDeleteCreatorsButton/);
     assert.match(directory, /\/creators\/\$\{creator\.id\}/);
     assert.match(directory, /\/creators\/\$\{creator\.id\}\/edit/);
   });

@@ -37,7 +37,4 @@ export type GeneratedReportPdf = {
   byteLength: number;
 };
 
-export type ChromiumLaunchStrategy =
-  | "configured-executable"
-  | "serverless-chromium"
-  | "local-chrome";
+export type { ChromiumLaunchStrategy } from "@/lib/pdf/launch-browser";

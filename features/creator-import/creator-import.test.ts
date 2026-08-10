@@ -255,15 +255,15 @@ describe("import contracts", () => {
     assert.doesNotMatch(source, /\.update\(/);
   });
 
-  it("wires post-import sync with concurrency 2 and no auto-run", () => {
+  it("wires post-import sync with batch orchestration and no auto-run", () => {
     const actions = readFileSync("features/creator-import/actions.ts", "utf8");
     const form = readFileSync(
       "features/creator-import/components/creator-import-form.tsx",
       "utf8"
     );
 
-    assert.match(actions, /BULK_CONCURRENCY/);
-    assert.match(actions, /syncTikTokCreator/);
+    assert.match(actions, /orchestrateCreatorBatchFetches/);
+    assert.match(actions, /fetchCreatorProfilesBatch/);
     assert.match(actions, /buildCreatorImportSyncRow/);
     assert.match(form, /Yeni Eklenen TikTok Profillerini Güncelle/);
     assert.match(form, /sağlayıcı isteği oluşturur/);

@@ -54,18 +54,18 @@ export default async function CreatorListDetailPage({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold text-white">{list.name}</h1>
+            <h1 className="text-2xl font-semibold text-bf-text">{list.name}</h1>
             <ListStatusBadge status={list.status} />
           </div>
           {list.description ? (
-            <p className="max-w-2xl text-sm text-zinc-400">{list.description}</p>
+            <p className="max-w-2xl text-sm text-bf-steel">{list.description}</p>
           ) : null}
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-bf-steel/80">
             {list.stats.creatorCount} creator · oluşturulma{" "}
             {new Date(list.created_at).toLocaleString("tr-TR")}
           </p>
           {list.internal_notes ? (
-            <p className="max-w-2xl rounded-md border border-zinc-800 bg-zinc-950/60 px-3 py-2 text-xs text-zinc-400">
+            <p className="max-w-2xl rounded-md border border-bf-border bg-bf-surface/80 px-3 py-2 text-xs text-bf-steel">
               İç not: {list.internal_notes}
             </p>
           ) : null}
@@ -147,11 +147,11 @@ export default async function CreatorListDetailPage({
       </section>
 
       {categoryEntries.length > 0 ? (
-        <div className="flex flex-wrap gap-2 text-xs text-zinc-400">
+        <div className="flex flex-wrap gap-2 text-xs text-bf-steel">
           {categoryEntries.map(([key, count]) => (
             <span
               key={key}
-              className="rounded-full border border-zinc-800 px-2.5 py-1"
+              className="rounded-full border border-bf-border px-2.5 py-1"
             >
               {key}: {count}
             </span>
@@ -159,24 +159,27 @@ export default async function CreatorListDetailPage({
         </div>
       ) : null}
 
-      <section className="overflow-hidden rounded-xl border border-zinc-800">
-        <table className="min-w-full divide-y divide-zinc-800 text-sm">
-          <thead className="bg-zinc-950/80 text-left text-zinc-400">
+      <section className="overflow-hidden rounded-xl border border-bf-border">
+        <table className="min-w-full divide-y divide-bf-border text-sm">
+          <thead className="bg-bf-surface text-left text-bf-steel">
             <tr>
-              <th className="px-4 py-3 font-medium">Sıra</th>
-              <th className="px-4 py-3 font-medium">Creator</th>
-              <th className="px-4 py-3 font-medium">Platform</th>
-              <th className="px-4 py-3 font-medium">Kategori</th>
-              <th className="px-4 py-3 font-medium">Takipçi</th>
-              <th className="px-4 py-3 font-medium">Büyüme</th>
-              <th className="px-4 py-3 font-medium">Notlar</th>
-              <th className="px-4 py-3 font-medium text-right">İşlemler</th>
+              <th className="px-4 py-2.5 font-medium">Sıra</th>
+              <th className="px-4 py-2.5 font-medium">Creator</th>
+              <th className="px-4 py-2.5 font-medium">Platform</th>
+              <th className="px-4 py-2.5 font-medium">Kategori</th>
+              <th className="px-4 py-2.5 font-medium">Takipçi</th>
+              <th className="px-4 py-2.5 font-medium">Büyüme</th>
+              <th className="px-4 py-2.5 font-medium">Notlar</th>
+              <th className="px-4 py-2.5 font-medium text-right">İşlemler</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800/80 bg-zinc-950/40 text-zinc-200">
+          <tbody className="divide-y divide-bf-border/80 bg-bf-bg/40 text-bf-text/90">
             {list.items.map((item, index) => (
-              <tr key={item.id}>
-                <td className="px-4 py-3 tabular-nums text-zinc-500">
+              <tr
+                key={item.id}
+                className="transition-colors hover:bg-primary/[0.04]"
+              >
+                <td className="px-4 py-3 tabular-nums text-bf-steel">
                   {index + 1}
                 </td>
                 <td className="px-4 py-3">
@@ -188,10 +191,10 @@ export default async function CreatorListDetailPage({
                       size="sm"
                     />
                     <div>
-                      <p className="font-medium text-white">
+                      <p className="font-medium text-bf-text">
                         @{item.creator.username}
                       </p>
-                      <p className="text-xs text-zinc-500">
+                      <p className="text-xs text-bf-steel">
                         {item.creator.display_name ?? "—"}
                       </p>
                     </div>
@@ -224,7 +227,7 @@ export default async function CreatorListDetailPage({
                     }
                   />
                 </td>
-                <td className="px-4 py-3 text-xs text-zinc-500">
+                <td className="px-4 py-3 text-xs text-bf-steel">
                   <p>Public: {item.public_note ?? "—"}</p>
                   <p>İç: {item.internal_note ?? "—"}</p>
                 </td>
@@ -244,25 +247,28 @@ export default async function CreatorListDetailPage({
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-white">Paylaşımlar</h2>
+        <h2 className="text-sm font-semibold text-bf-text">Paylaşımlar</h2>
         {shares.length === 0 ? (
-          <p className="text-sm text-zinc-500">Aktif veya geçmiş paylaşım yok.</p>
+          <p className="text-sm text-bf-steel">Aktif veya geçmiş paylaşım yok.</p>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-zinc-800">
-            <table className="min-w-full divide-y divide-zinc-800 text-sm">
-              <thead className="bg-zinc-950/80 text-left text-zinc-400">
+          <div className="overflow-hidden rounded-xl border border-bf-border">
+            <table className="min-w-full divide-y divide-bf-border text-sm">
+              <thead className="bg-bf-surface text-left text-bf-steel">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Etiket</th>
-                  <th className="px-4 py-3 font-medium">Durum</th>
-                  <th className="px-4 py-3 font-medium">CSV</th>
-                  <th className="px-4 py-3 font-medium">Erişim</th>
-                  <th className="px-4 py-3 font-medium">Bitiş</th>
-                  <th className="px-4 py-3 font-medium text-right">İşlem</th>
+                  <th className="px-4 py-2.5 font-medium">Etiket</th>
+                  <th className="px-4 py-2.5 font-medium">Durum</th>
+                  <th className="px-4 py-2.5 font-medium">CSV</th>
+                  <th className="px-4 py-2.5 font-medium">Erişim</th>
+                  <th className="px-4 py-2.5 font-medium">Bitiş</th>
+                  <th className="px-4 py-2.5 font-medium text-right">İşlem</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/80 bg-zinc-950/40 text-zinc-200">
+              <tbody className="divide-y divide-bf-border/80 bg-bf-bg/40 text-bf-text/90">
                 {shares.map((share) => (
-                  <tr key={share.id}>
+                  <tr
+                    key={share.id}
+                    className="transition-colors hover:bg-primary/[0.04]"
+                  >
                     <td className="px-4 py-3">{share.label ?? "—"}</td>
                     <td className="px-4 py-3">{share.status}</td>
                     <td className="px-4 py-3">
@@ -271,7 +277,7 @@ export default async function CreatorListDetailPage({
                     <td className="px-4 py-3 tabular-nums">
                       {share.access_count}
                     </td>
-                    <td className="px-4 py-3 text-xs text-zinc-500">
+                    <td className="px-4 py-3 text-xs text-bf-steel">
                       {share.expires_at
                         ? new Date(share.expires_at).toLocaleString("tr-TR")
                         : "Süresiz"}
@@ -300,9 +306,9 @@ function StatCard({
   value: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 px-4 py-3">
-      <p className="text-xs text-zinc-500">{label}</p>
-      <div className="mt-1 text-lg font-semibold text-white">{value}</div>
+    <div className="rounded-xl border border-bf-border bg-bf-surface/80 px-4 py-3">
+      <p className="text-xs text-bf-steel">{label}</p>
+      <div className="mt-1 text-lg font-semibold text-bf-text">{value}</div>
     </div>
   );
 }

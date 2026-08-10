@@ -24,6 +24,16 @@ export type AutoCreatorCategory = (typeof AUTO_CREATOR_CATEGORIES)[number];
 export type CreatorCategory = (typeof CREATOR_CATEGORIES)[number];
 export type CreatorCategorySource = (typeof CREATOR_CATEGORY_SOURCES)[number];
 
+export const CREATOR_ACCOUNT_STATUSES = ["active", "unavailable"] as const;
+export type CreatorAccountStatus = (typeof CREATOR_ACCOUNT_STATUSES)[number];
+
+export type CreatorUnavailableReason =
+  | "not_found"
+  | "deleted"
+  | "banned"
+  | "suspended"
+  | "private";
+
 export type Creator = {
   id: string;
   platform: CreatorPlatform;
@@ -39,6 +49,13 @@ export type Creator = {
   last_synced_at: string | null;
   /** Result of the most recent profile sync attempt. Not user-editable. */
   sync_status: "pending" | "success" | "failed";
+  /**
+   * Soft lifecycle for TikTok sync eligibility.
+   * unavailable = skip automatic Apify runs (deleted/banned/private evidence).
+   */
+  account_status: CreatorAccountStatus;
+  unavailable_reason: CreatorUnavailableReason | string | null;
+  unavailable_at: string | null;
   created_at: string;
   updated_at: string;
 };

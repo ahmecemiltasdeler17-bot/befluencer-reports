@@ -27,7 +27,10 @@ Server-only (never prefix with `NEXT_PUBLIC_`):
 | Variable | Purpose |
 |----------|---------|
 | `APIFY_API_TOKEN` | Apify API token |
-| `APIFY_TIKTOK_ACTOR_ID` | Actor ID or `username~actor-name` slug |
+| `APIFY_TIKTOK_ACTOR_ID` | Default actor ID or `username~actor-name` slug |
+| `APIFY_TIKTOK_VIDEO_ACTOR_ID` | Optional dedicated video actor (falls back to `APIFY_TIKTOK_ACTOR_ID`) |
+| `APIFY_TIKTOK_CREATOR_ACTOR_ID` | Optional dedicated creator actor |
+| `APIFY_TIKTOK_SOUND_ACTOR_ID` | Optional dedicated sound actor |
 
 Validated in `lib/env.server.ts` using the `server-only` package. Client bundles must not import this module.
 
@@ -44,20 +47,65 @@ If sync is invoked without Apify configuration, the UI shows a Turkish configura
 2. Copy the actor ID into `APIFY_TIKTOK_ACTOR_ID`.
 3. Add `APIFY_API_TOKEN` from Apify account settings.
 
-The provider calls:
+### Video metrics run path
 
-`POST /v2/acts/{actorId}/run-sync-get-dataset-items`
+Video metrics use the async Apify runs API (start + wait/poll + dataset), not
+`run-sync-get-dataset-items`, so a finished run id is available when the dataset
+is empty:
 
-with input:
+1. `POST /v2/acts/{actorId}/runs?waitForFinish=120`
+2. Poll until a terminal status when needed
+3. `GET /v2/datasets/{datasetId}/items`
+4. On SUCCEEDED with zero usable items: best-effort `GET /v2/actor-runs/{runId}/log`
+
+Input (batched when multiple URLs are eligible):
 
 ```json
 {
-  "postURLs": ["https://www.tiktok.com/@user/video/123..."],
-  "resultsPerPage": 1
+  "postURLs": [
+    "https://www.tiktok.com/@user/video/123...",
+    "https://www.tiktok.com/@user/video/456..."
+  ],
+  "resultsPerPage": 2
 }
 ```
 
+Batch size / concurrency / freshness windows live in
+`lib/providers/tiktok/sync-policy.ts`. Results are rematched by
+`platform_video_id` or normalized URL — never by dataset order.
+
 Timeout is capped at 120 seconds server-side.
+
+Sound sync still uses `run-sync-get-dataset-items` (one music URL per run).
+
+### Cost + speed (Phase 27)
+
+- **Stale-only sync**: skip entities within freshness windows unless `force`
+- **Manual cooldown**: recent successful single-item sync shows “Yakın zamanda güncellendi”
+- **Request dedupe**: same URL / video id / username scraped once per operation
+- **Global planner**: “Tüm TikTok Verilerini Güncelle” builds a plan before Apify spend
+- **Observability**: internal logs with provider run counts (no tokens / payloads)
+
+### Login-required / sensitive content
+
+Some TikTok posts are invisible to anonymous scrapers. Clockworks-style actors
+often finish as `SUCCEEDED` with an empty dataset and a log line such as:
+
+> The video is with sensitive content. The scraper is not able to see posts that require login, skipping
+
+Detection:
+
+- Prefer matching known phrases in the Apify run log
+- Also scan sparse dataset error/skip markers when present
+- **Conservative fallback:** if the log cannot be read or does not match, keep
+  `empty_result` — do **not** invent `login_required_content` without evidence
+
+`login_required_content` is distinct from temporary upstream failures, malformed
+URLs, and deleted/unavailable videos. The anonymous actor is **not** automatically
+retried for that classification (no second paid run in the same request).
+
+Apify only retains the trailing ~5M characters of a run log, and actor wording can
+change — treat log parsing as best-effort.
 
 ## URL validation
 
@@ -119,6 +167,7 @@ Provider errors are mapped to typed codes:
 
 - `invalid_url`
 - `unavailable_video`
+- `login_required_content`
 - `auth_failure`
 - `rate_limit`
 - `empty_result`

@@ -28,18 +28,18 @@ export function DashboardSyncStatus({
   return (
     <section
       aria-labelledby="dashboard-sync-heading"
-      className="rounded-xl border border-zinc-800 bg-zinc-950/40"
+      className="admin-panel overflow-hidden"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--bf-border)] px-4 py-3">
         <h2
           id="dashboard-sync-heading"
-          className="text-sm font-medium text-white"
+          className="text-sm font-medium text-[var(--bf-text)]"
         >
           Senkronizasyon durumu
         </h2>
         <Link
           href="/settings/sync"
-          className="text-xs text-zinc-500 transition-colors hover:text-zinc-300"
+          className="text-xs text-[var(--bf-text-muted)] transition-colors hover:text-[var(--bf-text-secondary)]"
         >
           Senkron geçmişi
         </Link>
@@ -47,32 +47,38 @@ export function DashboardSyncStatus({
 
       <div className="space-y-4 px-4 py-4">
         {!summary.hasRun ? (
-          <p className="text-sm text-zinc-500">{summary.statusLabel}</p>
+          <p className="text-sm text-[var(--bf-text-muted)]">
+            {summary.statusLabel}
+          </p>
         ) : (
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-xs text-zinc-500">Durum</dt>
-              <dd className="mt-0.5 text-zinc-200">{summary.statusLabel}</dd>
+              <dt className="text-xs text-[var(--bf-text-muted)]">Durum</dt>
+              <dd className="mt-0.5 text-[var(--bf-text)]">
+                {summary.statusLabel}
+              </dd>
             </div>
             <div>
-              <dt className="text-xs text-zinc-500">Tetikleyici</dt>
-              <dd className="mt-0.5 text-zinc-200">{summary.triggerLabel}</dd>
+              <dt className="text-xs text-[var(--bf-text-muted)]">Tetikleyici</dt>
+              <dd className="mt-0.5 text-[var(--bf-text)]">
+                {summary.triggerLabel}
+              </dd>
             </div>
             <div>
-              <dt className="text-xs text-zinc-500">Başlangıç</dt>
-              <dd className="mt-0.5 text-zinc-200">
+              <dt className="text-xs text-[var(--bf-text-muted)]">Başlangıç</dt>
+              <dd className="mt-0.5 text-[var(--bf-text)]">
                 {formatDateTime(latestSync!.started_at)}
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-zinc-500">Bitiş</dt>
-              <dd className="mt-0.5 text-zinc-200">
+              <dt className="text-xs text-[var(--bf-text-muted)]">Bitiş</dt>
+              <dd className="mt-0.5 text-[var(--bf-text)]">
                 {formatDateTime(latestSync!.completed_at)}
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-zinc-500">Kampanyalar</dt>
-              <dd className="mt-0.5 text-zinc-200">
+              <dt className="text-xs text-[var(--bf-text-muted)]">Kampanyalar</dt>
+              <dd className="mt-0.5 text-[var(--bf-text)]">
                 {latestSync!.successful_campaigns}/
                 {latestSync!.total_campaigns} başarılı
                 {latestSync!.failed_campaigns > 0
@@ -81,8 +87,10 @@ export function DashboardSyncStatus({
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-zinc-500">Video / Profil / Ses</dt>
-              <dd className="mt-0.5 text-zinc-200">
+              <dt className="text-xs text-[var(--bf-text-muted)]">
+                Video / Profil / Ses
+              </dt>
+              <dd className="mt-0.5 text-[var(--bf-text)]">
                 {latestSync!.video_success}/{latestSync!.video_failed} ·{" "}
                 {latestSync!.creator_success}/{latestSync!.creator_failed} ·{" "}
                 {latestSync!.sound_success}/{latestSync!.sound_failed}
@@ -92,13 +100,17 @@ export function DashboardSyncStatus({
         )}
 
         {latestSync?.error_message ? (
-          <p className="text-xs text-red-400">{latestSync.error_message}</p>
+          <p className="text-xs text-[var(--bf-destructive)]">
+            {latestSync.error_message}
+          </p>
         ) : null}
 
         {recentFailedSyncs.length > 0 ? (
           <div>
-            <p className="text-xs text-zinc-500">Son sorunlu çalıştırmalar</p>
-            <ul className="mt-1 space-y-1 text-xs text-zinc-400">
+            <p className="text-xs text-[var(--bf-text-muted)]">
+              Son sorunlu çalıştırmalar
+            </p>
+            <ul className="mt-1 space-y-1 text-xs text-[var(--bf-text-secondary)]">
               {recentFailedSyncs.slice(0, 3).map((run) => (
                 <li key={run.id}>
                   {formatDateTime(run.started_at)} — {run.status}

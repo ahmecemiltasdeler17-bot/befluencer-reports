@@ -841,6 +841,15 @@ describe("print stylesheet", () => {
   });
 
   it("does not disable pointer events globally when printing", () => {
-    assert.doesNotMatch(css, /pointer-events:\s*none\s*!important/);
+    // PDF must not globally kill pointer events on anchors. Touch preview may
+    // disable the featured bleed overlay on screen without !important.
+    assert.doesNotMatch(
+      css,
+      /\.pdf-document[^{;]*a[^{]*\{[^}]*pointer-events:\s*none/
+    );
+    assert.doesNotMatch(
+      css,
+      /\.pdf-document\s+\*\s*\{[^}]*pointer-events:\s*none\s*!important/
+    );
   });
 });

@@ -39,7 +39,7 @@ export function CreatorDirectorySortHeader({
         aria-label={buttonLabel}
         className={cn(
           "group inline-flex min-h-9 items-center gap-1.5 rounded-md px-1 py-1 text-left",
-          "outline-none focus-visible:ring-2 focus-visible:ring-orange-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
+          "outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
           active ? "text-zinc-100" : "text-zinc-400 hover:text-zinc-200"
         )}
       >

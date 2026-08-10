@@ -125,7 +125,7 @@ export function ContentGallery({
         description="Kampanyadaki tüm videolar."
         className="pb-8"
       >
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-[var(--report-text-tertiary)]">
           Bu kampanyada henüz yayında video yok.
         </p>
       </ReportSection>
@@ -140,8 +140,8 @@ export function ContentGallery({
       description={`${videos.length} içerik · ${populatedCategories} kategori`}
       className="pb-8"
       aside={
-        <label className="flex items-center gap-3 text-sm text-zinc-400">
-          <span className="text-[10px] tracking-[0.18em] uppercase">
+        <label className="flex items-center gap-3 text-sm text-[var(--report-text-secondary)]">
+          <span className="text-[10px] tracking-[0.14em] uppercase">
             Sırala
           </span>
           <select
@@ -149,13 +149,13 @@ export function ContentGallery({
             onChange={(event) =>
               handleSortChange(event.target.value as SortOption)
             }
-            className="rounded-lg border border-white/10 bg-transparent px-3 py-2 text-sm text-white outline-none focus:border-white/20"
+            className="rounded-lg border border-[var(--report-border)] bg-transparent px-3 py-2 text-sm text-[var(--report-text)] outline-none focus:border-[var(--report-border-strong)]"
           >
             {(Object.keys(SORT_LABELS) as SortOption[]).map((option) => (
               <option
                 key={option}
                 value={option}
-                className="bg-[#09090B] text-white"
+                className="bg-[var(--report-surface)] text-[var(--report-text)]"
               >
                 {SORT_LABELS[option]}
               </option>
@@ -164,7 +164,7 @@ export function ContentGallery({
         </label>
       }
     >
-      <div className="space-y-12">
+      <div className="space-y-9">
         {groupedVideos.map(({ category, videos: categoryVideos }) => (
           <ContentCategoryGroup
             key={category}

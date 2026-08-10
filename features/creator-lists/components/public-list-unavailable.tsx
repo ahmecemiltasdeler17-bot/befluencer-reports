@@ -4,7 +4,7 @@ export function PublicListUnavailable() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#09090B] px-6">
       <div className="max-w-md text-center">
-        <p className="text-sm font-semibold tracking-wide text-orange-400">
+        <p className="text-sm font-semibold tracking-wide text-primary">
           BeFluencer
         </p>
         <h1 className="mt-4 text-xl font-semibold text-white">

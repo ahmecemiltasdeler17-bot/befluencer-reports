@@ -10,10 +10,10 @@ const STATUS_LABELS: Record<CampaignStatus, string> = {
 };
 
 const STATUS_STYLES: Record<CampaignStatus, string> = {
-  draft: "border-zinc-700 bg-zinc-800/80 text-zinc-300",
+  draft: "border-bf-border bg-bf-elevated text-bf-steel",
   active: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
-  completed: "border-blue-500/30 bg-blue-500/10 text-blue-300",
-  archived: "border-zinc-600 bg-zinc-900 text-zinc-400",
+  completed: "border-sky-500/30 bg-sky-500/10 text-sky-300",
+  archived: "border-bf-border bg-bf-bg text-bf-steel/80",
 };
 
 export function getCampaignStatusLabel(status: CampaignStatus): string {

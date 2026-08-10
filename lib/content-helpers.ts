@@ -9,6 +9,16 @@ export const CREATOR_CATEGORY_LABELS: Record<CreatorCategory, string> = {
   uncategorized: "Kategorisiz",
 };
 
+/** Same taxonomy, short form — for dense rows where the full label wraps. */
+export const CREATOR_CATEGORY_SHORT_LABELS: Record<CreatorCategory, string> = {
+  mega: "Mega",
+  macro: "Makro",
+  micro: "Mikro",
+  nano: "Nano",
+  template: "Şablon",
+  uncategorized: "Kategorisiz",
+};
+
 export const PLATFORM_LABELS = {
   tiktok: "TikTok",
   instagram: "Instagram",

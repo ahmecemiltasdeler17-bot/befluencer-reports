@@ -16,6 +16,7 @@ import {
   generateRawExportToken,
   hashExportToken,
 } from "@/features/pdf/services/export-token";
+import { invalidateUnusedExportToken } from "@/features/pdf/queries";
 import { generateReportPdf } from "@/features/pdf/services/generate-report-pdf";
 import {
   PUBLIC_SHARE_UNAVAILABLE_MESSAGE,
@@ -29,6 +30,10 @@ import {
   issuePublicReportPrintToken,
 } from "@/features/public-reports/queries";
 import { isRawShareToken } from "@/features/public-reports/token";
+import {
+  logPdfExportFailure,
+  logPdfExportStage,
+} from "@/lib/pdf/pdf-export-log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -57,6 +62,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 function errorResponse(error: unknown, pdfDisabled = false) {
   logPublicShareDiagnostics("Public PDF export failed", error);
   logPdfDiagnostics("Public report PDF export failed", error);
+  logPdfExportFailure("failed", error);
 
   if (
     pdfDisabled ||
@@ -138,6 +144,8 @@ export async function POST(
     );
   }
 
+  let issuedExportToken: string | null = null;
+
   try {
     const appOrigin = getAppOrigin();
 
@@ -183,6 +191,9 @@ export async function POST(
       );
     }
 
+    issuedExportToken = rawExportToken;
+    logPdfExportStage("token-created");
+
     const printUrl = buildPrintUrl({
       appOrigin,
       campaignId: payload.campaignId,
@@ -194,6 +205,9 @@ export async function POST(
       generateReportPdf({ printUrl, appOrigin }),
       PDF_TOTAL_TIMEOUT_MS
     );
+
+    // Success: print page already consumed the one-time export token.
+    issuedExportToken = null;
 
     const filename = buildReportPdfFilename({
       campaignName: payload.campaignName,
@@ -211,6 +225,13 @@ export async function POST(
       },
     });
   } catch (error) {
+    if (issuedExportToken) {
+      const burned = await invalidateUnusedExportToken(issuedExportToken);
+      if (burned) {
+        logPdfExportStage("token-invalidated");
+      }
+    }
+
     return errorResponse(error);
   }
 }

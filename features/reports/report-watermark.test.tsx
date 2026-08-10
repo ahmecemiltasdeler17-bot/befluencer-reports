@@ -33,7 +33,7 @@ describe("report watermark component", () => {
     assert.match(css, /pointer-events:\s*none/);
     assert.match(css, /user-select:\s*none/);
     assert.match(css, /BeFluencer/);
-    assert.match(css, /rotate\(-30/);
+    assert.match(css, /rotate\(-28/);
     assert.match(css, /print-color-adjust:\s*exact/);
     assert.match(css, /\.pdf-document \.report-watermark/);
     assert.match(css, /position:\s*fixed/);
@@ -83,8 +83,12 @@ describe("report watermark surface wiring", () => {
       "app/(print)/campaigns/[id]/reports/[versionId]/print/page.tsx"
     );
     assert.match(page, /CampaignReportView/);
-    assert.match(page, /pdf-document/);
+    assert.match(page, /ReportCanvas/);
+    assert.match(page, /\bpdf\b/);
     assert.match(page, /PdfReadyMarker/);
+
+    const canvas = read("components/report/report-canvas.tsx");
+    assert.match(canvas, /pdf-document/);
 
     const view = read("components/report/campaign-report-view.tsx");
     assert.match(view, /ReportWatermark/);

@@ -1,7 +1,7 @@
 import { ReportSection } from "@/components/report/report-section";
 import type { Creator } from "@/lib/types";
 
-import { CreatorLeaderboardRow } from "./creator-leaderboard-row";
+import { CreatorRankingCard } from "./creator-ranking-card";
 
 interface CreatorLeaderboardProps {
   creators: Creator[];
@@ -20,39 +20,43 @@ export function CreatorLeaderboard({
         title="İçerik Üreticisi Performansı"
         description="Toplam kampanya erişimine göre sıralama."
       >
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-[var(--report-text-tertiary)]">
           Bu kampanyaya henüz içerik üreticisi atanmadı.
         </p>
       </ReportSection>
     );
   }
 
+  const maxContribution =
+    totalReach > 0
+      ? Math.max(...creators.map((c) => (c.views / totalReach) * 100), 1)
+      : 1;
+
   return (
     <ReportSection
       id="creators"
       eyebrow="İçerik üreticileri"
       title="İçerik Üreticisi Performansı"
-      description="Toplam kampanya erişimine göre sıralama."
-      aside={<span>{creators.length} creator</span>}
+      description="Toplam kampanya erişimine göre sıralama. Sıra soldan sağa, satır satır ilerler."
+      aside={
+        <span className="text-[var(--report-text-secondary)]">
+          {creators.length} creator
+        </span>
+      }
     >
-      <div className="overflow-hidden rounded-xl border border-white/[0.06]">
-        <div className="hidden border-b border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[10px] tracking-[0.16em] text-zinc-500 uppercase min-[800px]:grid min-[800px]:grid-cols-[auto_auto_minmax(0,1.4fr)_auto_auto_auto_auto] min-[800px]:gap-4">
-          <span>#</span>
-          <span className="col-span-2">Kimlik</span>
-          <span className="text-right">İzlenme</span>
-          <span className="text-right">Katkı</span>
-          <span className="text-right">Etkileşim</span>
-          <span />
-        </div>
+      {/* An ordered list keeps the ranking sequence explicit for assistive tech
+          even though the grid renders two columns per row on wide screens. */}
+      <ol className="report-ranking-grid report-leaderboard">
         {creators.map((creator) => (
-          <CreatorLeaderboardRow
+          <CreatorRankingCard
             key={creator.id}
             creator={creator}
             totalReach={totalReach}
             isLeader={creator.rank === 1}
+            maxContribution={maxContribution}
           />
         ))}
-      </div>
+      </ol>
     </ReportSection>
   );
 }

@@ -237,7 +237,24 @@ describe("runSoundSync", () => {
 
     assert.equal(patches[0].tiktok_sound_title, undefined);
     assert.equal(patches[0].tiktok_sound_author, undefined);
+    assert.equal(patches[0].tiktok_sound_cover_url, undefined);
     assert.equal(patches[0].tiktok_sound_id, "7149523537730997035");
+  });
+
+  it("persists provider cover URL when present", async () => {
+    const { port, patches } = createPort();
+    const coverUrl = "https://cdn.example.com/sound-cover.jpg";
+
+    await runSoundSync(
+      CAMPAIGN_ID,
+      providerOf(async () => ({
+        ...profile(80_300),
+        coverUrl,
+      })),
+      port
+    );
+
+    assert.equal(patches[0].tiktok_sound_cover_url, coverUrl);
   });
 
   it("fails when the sound URL is missing", async () => {

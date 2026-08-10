@@ -17,6 +17,7 @@ export const VIDEO_IMPORT_VIDEO_STATUS_LABELS = {
   exists_elsewhere: "Sistemde mevcut (kampanyaya bağlanamaz)",
   invalid_url: "Geçersiz bağlantı",
   provider_empty: "Sağlayıcı sonucu alınamadı",
+  login_required_content: "Giriş gerekli içerik",
   creator_unverified: "Creator kimliği doğrulanamadı",
 } as const;
 
@@ -26,6 +27,10 @@ export const VIDEO_IMPORT_MESSAGES = {
   exists_elsewhere: "Video sistemde başka bir kayıtta mevcut; kampanyaya bağlanamaz.",
   creator_unverified: "Video bulundu ancak creator bilgisi doğrulanamadı.",
   provider_empty: "TikTok sağlayıcısı bu bağlantı için sonuç döndürmedi.",
+  login_required_content:
+    "TikTok bu videoyu giriş yapılmadan görüntülemeye izin vermiyor.",
+  login_required_content_detail:
+    "Video hassas/yaş kısıtlı veya oturum gerektiren içerik olabilir.",
   manual_required: "Creator eşleştirmesi gerekli.",
   added: "Video başarıyla eklendi.",
   linked: "Mevcut video kampanyaya bağlandı.",

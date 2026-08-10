@@ -17,6 +17,7 @@ export type Campaign = {
   tiktok_sound_id?: string | null;
   tiktok_sound_title?: string | null;
   tiktok_sound_author?: string | null;
+  tiktok_sound_cover_url?: string | null;
   sound_last_synced_at?: string | null;
   sound_sync_status?: "pending" | "success" | "failed";
   sound_sync_error?: string | null;

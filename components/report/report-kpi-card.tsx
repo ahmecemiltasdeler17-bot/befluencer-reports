@@ -27,8 +27,9 @@ export function ReportKpiCard({
   return (
     <article
       className={cn(
-        "pdf-avoid-break flex h-full min-h-[112px] flex-col justify-between rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-4",
-        emphasis === "secondary" && "min-h-[88px] bg-transparent",
+        "report-kpi-card pdf-avoid-break flex h-full min-h-[120px] flex-col justify-between rounded-2xl bg-white/[0.025] px-5 py-5",
+        "ring-1 ring-inset ring-white/[0.05]",
+        emphasis === "secondary" && "min-h-[96px] bg-transparent ring-white/[0.04]",
         className
       )}
     >
@@ -37,10 +38,10 @@ export function ReportKpiCard({
       </p>
       <p
         className={cn(
-          "mt-3 font-semibold tracking-tight text-white tabular-nums",
+          "mt-4 font-semibold tracking-tight text-white tabular-nums",
           emphasis === "primary"
-            ? "text-[26px] leading-none min-[1100px]:text-[30px]"
-            : "text-[20px] leading-none"
+            ? "text-[28px] leading-none min-[1100px]:text-[32px]"
+            : "text-[22px] leading-none"
         )}
         title={exactLabel}
         aria-label={exactLabel ? `${label}: ${exactLabel}` : undefined}
@@ -48,9 +49,9 @@ export function ReportKpiCard({
         {value}
       </p>
       {helper ? (
-        <p className="mt-2 text-xs leading-relaxed text-zinc-500">{helper}</p>
+        <p className="mt-3 text-xs leading-relaxed text-zinc-500">{helper}</p>
       ) : (
-        <span className="mt-2 block h-4" aria-hidden="true" />
+        <span className="mt-3 block h-4" aria-hidden="true" />
       )}
     </article>
   );

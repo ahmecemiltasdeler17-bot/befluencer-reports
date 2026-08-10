@@ -59,7 +59,7 @@ export function GenerateReportButton({
         type="button"
         disabled={disabled || isPending}
         onClick={handleClick}
-        className="bg-orange-500 text-white hover:bg-orange-500/90"
+        className="bg-primary text-primary-foreground hover:bg-primary/90"
       >
         {isPending
           ? "Oluşturuluyor…"

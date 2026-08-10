@@ -48,7 +48,7 @@ export default async function NewCampaignVideoPage({
           atamalısınız.{" "}
           <Link
             href={`/campaigns/${campaign.id}/creators/add`}
-            className="text-orange-400 hover:text-orange-300"
+            className="text-primary hover:text-[var(--bf-accent-soft)]"
           >
             İçerik üreticisi ekle
           </Link>

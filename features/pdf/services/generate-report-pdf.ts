@@ -20,6 +20,10 @@ import {
 } from "@/features/pdf/services/get-browser";
 import { decidePrintRequest } from "@/features/pdf/services/print-request-policy";
 import type { GeneratedReportPdf } from "@/features/pdf/types";
+import {
+  logPdfExportFailure,
+  logPdfExportStage,
+} from "@/lib/pdf/pdf-export-log";
 
 /**
  * Waits for fonts and already-requested images with a bounded timeout.
@@ -132,17 +136,28 @@ export async function generateReportPdf({
   }
 
   let browser: Browser | null = null;
+  let stage: "browser-launch" | "browser-launched" | "navigate" | "pdf-render" =
+    "browser-launch";
 
   try {
+    logPdfExportStage("browser-launch");
     const launched = await launchBrowser();
     browser = launched.browser;
+    stage = "browser-launched";
+    logPdfExportStage("browser-launched", { strategy: launched.strategy });
 
     const page = await browser.newPage();
 
     await preparePage(page, appOrigin);
+
+    stage = "navigate";
+    logPdfExportStage("navigate");
     await navigate(page, printUrl);
     await waitForReadyMarker(page);
     await waitForAssets(page);
+
+    stage = "pdf-render";
+    logPdfExportStage("pdf-render");
 
     let bytes: Uint8Array;
 
@@ -169,6 +184,9 @@ export async function generateReportPdf({
     }
 
     return { bytes: new Uint8Array(bytes), byteLength: bytes.byteLength };
+  } catch (error) {
+    logPdfExportFailure(stage, error);
+    throw error;
   } finally {
     await closeBrowserQuietly(browser);
   }

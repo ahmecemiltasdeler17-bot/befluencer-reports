@@ -11,6 +11,7 @@ import {
 import {
   VIDEO_IMPORT_CREATOR_STATUS_LABELS,
   VIDEO_IMPORT_MAX_URLS,
+  VIDEO_IMPORT_MESSAGES,
   VIDEO_IMPORT_VIDEO_STATUS_LABELS,
 } from "@/features/video-import/constants";
 import type {
@@ -183,7 +184,6 @@ export function ImportCampaignVideosDialog({
     <>
       <Button
         type="button"
-        className="bg-orange-500 text-white hover:bg-orange-500/90"
         onClick={handleOpen}
       >
         Video Linklerinden Ekle
@@ -196,23 +196,23 @@ export function ImportCampaignVideosDialog({
           aria-modal="true"
           aria-labelledby="video-import-title"
         >
-          <div className="w-full max-w-5xl space-y-4 rounded-lg border border-zinc-800 bg-zinc-950 p-5 shadow-xl">
+          <div className="w-full max-w-5xl space-y-4 rounded-lg border border-bf-border bg-bf-elevated p-5 shadow-xl shadow-black/40">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2
                   id="video-import-title"
-                  className="text-base font-semibold text-white"
+                  className="text-base font-semibold text-bf-text"
                 >
                   Video linklerinden ekle
                 </h2>
-                <p className="mt-1 text-sm text-zinc-400">
+                <p className="mt-1 text-sm text-bf-steel">
                   TikTok video URL’lerini yapıştırın. Önizleme sonrası seçilen
                   satırlar kampanyaya eklenir.
                 </p>
               </div>
               <button
                 type="button"
-                className="text-sm text-zinc-400 hover:text-white"
+                className="text-sm text-bf-steel hover:text-bf-text"
                 onClick={() => {
                   setOpen(false);
                   reset();
@@ -231,7 +231,7 @@ export function ImportCampaignVideosDialog({
             {step === "input" ? (
               <div className="space-y-3">
                 <label className="block space-y-1.5">
-                  <span className="text-sm text-zinc-300">
+                  <span className="text-sm text-bf-text/90">
                     TikTok video bağlantıları (satır başına bir URL)
                   </span>
                   <textarea
@@ -239,10 +239,10 @@ export function ImportCampaignVideosDialog({
                     onChange={(event) => setText(event.target.value)}
                     rows={10}
                     placeholder={"https://www.tiktok.com/@user/video/123...\nhttps://www.tiktok.com/@user/video/456..."}
-                    className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-orange-500 focus:outline-none"
+                    className="w-full rounded-md border border-bf-border bg-bf-bg px-3 py-2 text-sm text-bf-text placeholder:text-bf-steel/60 outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
                   />
                 </label>
-                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-400">
+                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-bf-steel">
                   <span>
                     {lineCount} bağlantı (en fazla {VIDEO_IMPORT_MAX_URLS})
                   </span>
@@ -250,7 +250,6 @@ export function ImportCampaignVideosDialog({
                     type="button"
                     disabled={isPending || lineCount === 0}
                     onClick={handlePreview}
-                    className="bg-orange-500 text-white hover:bg-orange-500/90"
                   >
                     {isPending ? "Kontrol ediliyor…" : "Bağlantıları Kontrol Et"}
                   </Button>
@@ -260,7 +259,7 @@ export function ImportCampaignVideosDialog({
 
             {step === "preview" ? (
               <div className="space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-zinc-400">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-bf-steel">
                   <span>
                     {meta?.urlCount ?? 0} benzersiz URL
                     {meta?.dedupedCount
@@ -282,7 +281,6 @@ export function ImportCampaignVideosDialog({
                       type="button"
                       disabled={isPending || selectedCount === 0}
                       onClick={handleCommit}
-                      className="bg-orange-500 text-white hover:bg-orange-500/90"
                     >
                       {isPending
                         ? "İçe aktarılıyor…"
@@ -292,15 +290,15 @@ export function ImportCampaignVideosDialog({
                 </div>
 
                 {rows.some((row) => row.creatorStatus === "manual_required") ? (
-                  <div className="flex flex-wrap items-end gap-2 rounded-md border border-zinc-800 p-3">
+                  <div className="flex flex-wrap items-end gap-2 rounded-md border border-bf-border bg-bf-surface/40 p-3">
                     <label className="grow space-y-1 text-sm">
-                      <span className="text-zinc-400">
+                      <span className="text-bf-steel">
                         Manuel eşleştirme için creator ara
                       </span>
                       <input
                         value={searchQuery}
                         onChange={(event) => setSearchQuery(event.target.value)}
-                        className="w-full rounded-md border border-zinc-800 bg-zinc-900 px-3 py-1.5 text-zinc-100"
+                        className="w-full rounded-md border border-bf-border bg-bf-bg px-3 py-1.5 text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
                         placeholder="@kullanici"
                       />
                     </label>
@@ -315,9 +313,9 @@ export function ImportCampaignVideosDialog({
                   </div>
                 ) : null}
 
-                <div className="overflow-x-auto rounded-lg border border-zinc-800">
-                  <table className="min-w-full divide-y divide-zinc-800 text-sm">
-                    <thead className="bg-zinc-950/60 text-left text-zinc-400">
+                <div className="overflow-x-auto rounded-lg border border-bf-border">
+                  <table className="min-w-full divide-y divide-bf-border text-sm">
+                    <thead className="bg-bf-surface text-left text-bf-steel">
                       <tr>
                         <th className="px-3 py-2">Seç</th>
                         <th className="px-3 py-2">Önizleme</th>
@@ -327,9 +325,9 @@ export function ImportCampaignVideosDialog({
                         <th className="px-3 py-2">Video durumu</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-800/80">
+                    <tbody className="divide-y divide-bf-border/80">
                       {rows.map((row) => (
-                        <tr key={row.rowKey} className="align-top text-zinc-200">
+                        <tr key={row.rowKey} className="align-top text-bf-text/90">
                           <td className="px-3 py-2">
                             <input
                               type="checkbox"
@@ -341,6 +339,7 @@ export function ImportCampaignVideosDialog({
                                   [row.rowKey]: event.target.checked,
                                 }))
                               }
+                              className="accent-primary"
                             />
                           </td>
                           <td className="px-3 py-2">
@@ -349,22 +348,22 @@ export function ImportCampaignVideosDialog({
                               <img
                                 src={row.thumbnailUrl}
                                 alt=""
-                                className="h-16 w-10 rounded border border-zinc-800 object-cover"
+                                className="h-16 w-10 rounded border border-bf-border object-cover"
                               />
                             ) : (
-                              <span className="text-xs text-zinc-500">—</span>
+                              <span className="text-xs text-bf-steel">—</span>
                             )}
                             {row.caption ? (
-                              <p className="mt-1 max-w-[160px] truncate text-xs text-zinc-500">
+                              <p className="mt-1 max-w-[160px] truncate text-xs text-bf-steel">
                                 {row.caption}
                               </p>
                             ) : null}
                           </td>
                           <td className="px-3 py-2">
-                            <p className="max-w-[220px] truncate text-xs text-zinc-400">
+                            <p className="max-w-[220px] truncate text-xs text-bf-steel">
                               {row.originalUrl}
                             </p>
-                            <p className="max-w-[220px] truncate text-xs text-orange-300/80">
+                            <p className="max-w-[220px] truncate text-xs text-primary/80">
                               {row.normalizedUrl}
                             </p>
                           </td>
@@ -374,12 +373,12 @@ export function ImportCampaignVideosDialog({
                                 ? `@${row.creatorUsername}`
                                 : "—"}
                             </p>
-                            <p className="text-xs text-zinc-500">
+                            <p className="text-xs text-bf-steel">
                               {row.creatorDisplayName ?? "—"}
                             </p>
                             {row.creatorStatus === "manual_required" ? (
                               <select
-                                className="mt-2 w-full max-w-[200px] rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs"
+                                className="mt-2 w-full max-w-[200px] rounded border border-bf-border bg-bf-bg px-2 py-1 text-xs text-bf-text outline-none focus:border-primary/60"
                                 value={manualCreators[row.rowKey] ?? ""}
                                 onChange={(event) =>
                                   setManualCreators((prev) => ({
@@ -416,7 +415,14 @@ export function ImportCampaignVideosDialog({
                               }
                             </p>
                             {row.message ? (
-                              <p className="mt-1 text-zinc-500">{row.message}</p>
+                              <p className="mt-1 text-bf-steel">{row.message}</p>
+                            ) : null}
+                            {row.videoStatus === "login_required_content" ? (
+                              <p className="mt-1 text-[11px] text-amber-400/90">
+                                {
+                                  VIDEO_IMPORT_MESSAGES.login_required_content_detail
+                                }
+                              </p>
                             ) : null}
                           </td>
                         </tr>
@@ -429,7 +435,7 @@ export function ImportCampaignVideosDialog({
 
             {step === "result" && commitResult?.summary ? (
               <div className="space-y-4">
-                <div className="grid gap-2 text-sm text-zinc-300 sm:grid-cols-2">
+                <div className="grid gap-2 text-sm text-bf-text/90 sm:grid-cols-2">
                   <p>Gönderilen: {commitResult.summary.totalSubmitted}</p>
                   <p>Eklenen video: {commitResult.summary.addedVideos}</p>
                   <p>
@@ -452,7 +458,7 @@ export function ImportCampaignVideosDialog({
                       }
                     >
                       {row.message}{" "}
-                      <span className="text-zinc-500">
+                      <span className="text-bf-steel">
                         ({row.normalizedUrl})
                       </span>
                     </li>
@@ -471,7 +477,7 @@ export function ImportCampaignVideosDialog({
                   </Button>
                   <a
                     href={`/campaigns/${campaignId}`}
-                    className={cn(buttonVariants({ variant: "default" }), "bg-orange-500 text-white hover:bg-orange-500/90")}
+                    className={cn(buttonVariants({ variant: "default" }))}
                     onClick={() => setOpen(false)}
                   >
                     Kampanyaya dön

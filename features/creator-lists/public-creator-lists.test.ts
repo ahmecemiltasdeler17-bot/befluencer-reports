@@ -333,14 +333,15 @@ describe("creator-list public page route contracts", () => {
     assert.match(proxy, /private, no-store/);
   });
 
-  it("share action builds URL via getPublicReportOrigin", () => {
+  it("share action builds URL via getPublicReportUrl", () => {
     const actions = readFileSync(
       path.join(process.cwd(), "features", "creator-lists", "actions.ts"),
       "utf8"
     );
     assert.match(actions, /getPublicReportOrigin\(\)/);
-    assert.match(actions, /buildPublicCreatorListUrl/);
+    assert.match(actions, /getPublicReportUrl\(`\/lists\/\$\{rawToken\}`\)/);
     assert.equal(actions.includes("headers().get(\"host\")"), false);
     assert.equal(actions.includes("x-forwarded-host"), false);
+    assert.equal(actions.includes("window.location"), false);
   });
 });

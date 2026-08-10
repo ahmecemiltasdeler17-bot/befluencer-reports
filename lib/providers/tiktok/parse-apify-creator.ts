@@ -1,3 +1,4 @@
+import { detectUnavailableCreatorItem } from "@/lib/providers/tiktok/detect-unavailable-creator";
 import { TikTokProviderError } from "@/lib/providers/tiktok/errors";
 import { readFirstProviderCount } from "@/lib/providers/tiktok/parse-provider-count";
 import {
@@ -299,7 +300,7 @@ export function selectCreatorProfileCandidate(
 
     // Skip explicit unavailable rows during selection; the dataset parser still
     // surfaces not-found when every item is an error.
-    if (detectUnavailableProfile(item)) {
+    if (detectUnavailableCreatorItem(item)) {
       continue;
     }
 
@@ -334,52 +335,6 @@ export function selectCreatorProfileCandidate(
   }
 
   return pick;
-}
-
-function detectUnavailableProfile(
-  item: UnknownRecord
-): "creator_not_found" | "private_profile" | null {
-  const text = [
-    readString(item.error),
-    readString(item.errorMessage),
-    readString(item.message),
-    readString(item.status),
-    readString(item.errorDescription),
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-  if (text) {
-    if (
-      text.includes("not found") ||
-      text.includes("notfound") ||
-      text.includes("does not exist") ||
-      text.includes("no such user") ||
-      text.includes("404")
-    ) {
-      return "creator_not_found";
-    }
-
-    if (
-      text.includes("private") ||
-      text.includes("unavailable") ||
-      text.includes("restricted") ||
-      text.includes("banned") ||
-      text.includes("deleted") ||
-      text.includes("forbidden")
-    ) {
-      return "private_profile";
-    }
-
-    return "creator_not_found";
-  }
-
-  if (item.privateAccount === true || item.isPrivate === true) {
-    return "private_profile";
-  }
-
-  return null;
 }
 
 /**
@@ -550,10 +505,14 @@ export function parseApifyTikTokCreator(
     throw new TikTokProviderError("malformed_result");
   }
 
-  const unavailable = detectUnavailableProfile(item);
+  const unavailable = detectUnavailableCreatorItem(item);
 
   if (unavailable) {
-    throw new TikTokProviderError(unavailable);
+    throw new TikTokProviderError(
+      unavailable.code,
+      undefined,
+      unavailable.reason
+    );
   }
 
   const rawUsername =
@@ -617,13 +576,13 @@ export function parseApifyTikTokCreatorDataset(
 
   // Prefer an explicit unavailable signal when the dataset is nothing but errors.
   const onlyUnavailable = normalizedItems.every(
-    (item) => isRecord(item) && detectUnavailableProfile(item) !== null
+    (item) => detectUnavailableCreatorItem(item) !== null
   );
 
-  if (onlyUnavailable && isRecord(normalizedItems[0])) {
-    const code = detectUnavailableProfile(normalizedItems[0]);
-    if (code) {
-      throw new TikTokProviderError(code);
+  if (onlyUnavailable) {
+    const first = detectUnavailableCreatorItem(normalizedItems[0]);
+    if (first) {
+      throw new TikTokProviderError(first.code, undefined, first.reason);
     }
   }
 

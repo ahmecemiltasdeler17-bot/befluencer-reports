@@ -24,7 +24,6 @@ import {
   updateCreatorListSchema,
 } from "@/features/creator-lists/schemas";
 import {
-  buildPublicCreatorListUrl,
   generateRawShareToken,
   hashShareToken,
 } from "@/features/creator-lists/token";
@@ -42,7 +41,7 @@ import {
 } from "@/features/public-reports/calculations";
 import type { ShareExpirationPreset } from "@/features/public-reports/types";
 import { isUuid } from "@/features/pdf/origin";
-import { getPublicReportOrigin } from "@/lib/origins";
+import { getPublicReportOrigin, getPublicReportUrl } from "@/lib/origins";
 import { getVerifiedAuth } from "@/lib/supabase/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -553,9 +552,8 @@ export async function createCreatorListShareAction(
       throw new CreatorListError("validation_failed");
     }
 
-    let publicReportOrigin: string;
     try {
-      publicReportOrigin = getPublicReportOrigin();
+      getPublicReportOrigin();
     } catch {
       throw new CreatorListError("app_origin_invalid");
     }
@@ -586,7 +584,7 @@ export async function createCreatorListShareAction(
       });
     }
 
-    const publicUrl = buildPublicCreatorListUrl(publicReportOrigin, rawToken);
+    const publicUrl = getPublicReportUrl(`/lists/${rawToken}`);
     revalidateListPaths(input.listId);
 
     return {

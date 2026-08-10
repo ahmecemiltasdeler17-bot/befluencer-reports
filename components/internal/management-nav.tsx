@@ -45,11 +45,20 @@ export function ManagementNav() {
   const pathname = usePathname();
 
   return (
-    <header className="border-b border-zinc-800 bg-zinc-950/90">
+    <header className="border-b border-[var(--bf-border)] bg-[color-mix(in_srgb,var(--bf-elevated)_88%,transparent)] backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-4">
         <div className="flex items-center gap-6">
-          <Link href="/" className="text-sm font-semibold text-white">
-            BeFluencer
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2.5 text-sm font-semibold tracking-tight text-[var(--bf-text)]"
+          >
+            <span
+              className="flex size-6 shrink-0 items-center justify-center rounded-[5px] bg-[var(--bf-accent)] text-[9px] font-semibold tracking-tight text-[var(--bf-bg)]"
+              aria-hidden="true"
+            >
+              BF
+            </span>
+            <span className="tracking-[0.14em] uppercase">BeFluencer</span>
           </Link>
           <nav className="flex flex-wrap items-center gap-1" aria-label="Yönetim">
             {NAV_ITEMS.map((item) => {
@@ -60,10 +69,10 @@ export function ManagementNav() {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "rounded-md px-3 py-1.5 text-sm transition-colors",
+                    "relative rounded-md px-3 py-1.5 text-sm transition-colors",
                     active
-                      ? "bg-zinc-900 text-white"
-                      : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
+                      ? "bg-[color-mix(in_srgb,var(--bf-accent)_12%,transparent)] text-[var(--bf-accent)] before:absolute before:inset-y-1.5 before:left-0 before:w-0.5 before:rounded-full before:bg-[var(--bf-accent)]"
+                      : "text-[var(--bf-text-secondary)] hover:bg-[var(--bf-surface)] hover:text-[var(--bf-text)]"
                   )}
                 >
                   {item.label}
@@ -76,7 +85,7 @@ export function ManagementNav() {
         <form action="/auth/signout" method="post">
           <button
             type="submit"
-            className="rounded-md px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:bg-zinc-900 hover:text-white"
+            className="rounded-md px-3 py-1.5 text-sm text-[var(--bf-text-secondary)] transition-colors hover:bg-[var(--bf-surface)] hover:text-[var(--bf-text)]"
           >
             Çıkış
           </button>

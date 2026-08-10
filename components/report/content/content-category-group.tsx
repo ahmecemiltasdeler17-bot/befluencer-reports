@@ -1,6 +1,7 @@
 import { CREATOR_CATEGORY_LABELS } from "@/lib/content-helpers";
 import type { CreatorCategory, Video } from "@/lib/types";
 
+import { ContentRail } from "./content-rail";
 import { TikTokContentCard } from "./tiktok-content-card";
 
 interface ContentCategoryGroupProps {
@@ -9,6 +10,10 @@ interface ContentCategoryGroupProps {
   campaignAverageEngagement: number;
 }
 
+/**
+ * One category = one horizontal catalog rail. Card order mirrors the active
+ * gallery sort; the rail never filters or truncates the category.
+ */
 export function ContentCategoryGroup({
   category,
   videos,
@@ -16,13 +21,20 @@ export function ContentCategoryGroup({
 }: ContentCategoryGroupProps) {
   if (videos.length === 0) return null;
 
-  return (
-    <div className="space-y-6">
-      <h3 className="text-[11px] font-semibold tracking-[0.24em] text-[#FF5A00] uppercase">
-        {CREATOR_CATEGORY_LABELS[category]}
-      </h3>
+  const label = CREATOR_CATEGORY_LABELS[category];
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,280px))] justify-start gap-4 min-[800px]:gap-5">
+  return (
+    <div className="space-y-4">
+      <div className="flex items-baseline justify-between gap-4">
+        <h3 className="text-[11px] font-semibold tracking-[0.16em] text-[var(--report-accent)] uppercase">
+          {label}
+        </h3>
+        <span className="shrink-0 text-[11px] text-[var(--report-text-tertiary)] tabular-nums">
+          {videos.length} içerik
+        </span>
+      </div>
+
+      <ContentRail label={label}>
         {videos.map((video) => (
           <TikTokContentCard
             key={video.id}
@@ -30,7 +42,7 @@ export function ContentCategoryGroup({
             campaignAverageEngagement={campaignAverageEngagement}
           />
         ))}
-      </div>
+      </ContentRail>
     </div>
   );
 }

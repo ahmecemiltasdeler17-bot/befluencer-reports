@@ -75,26 +75,26 @@ export function AddListToCampaignDialog({
           aria-modal="true"
           aria-labelledby="add-list-campaign-title"
         >
-          <div className="w-full max-w-md space-y-4 rounded-lg border border-zinc-800 bg-zinc-950 p-5 shadow-xl">
+          <div className="w-full max-w-md space-y-4 rounded-lg border border-bf-border bg-bf-elevated p-5 shadow-xl shadow-black/40">
             <div>
               <h2
                 id="add-list-campaign-title"
-                className="text-sm font-semibold text-white"
+                className="text-sm font-semibold text-bf-text"
               >
                 Kampanyaya ekle
               </h2>
-              <p className="mt-1 text-xs text-zinc-500">
+              <p className="mt-1 text-xs text-bf-steel">
                 Yalnızca eksik atamalar eklenir. Ücret veya kampanya alanları
                 üzerine yazılmaz.
               </p>
             </div>
 
-            <label className="block space-y-1 text-xs text-zinc-400">
+            <label className="block space-y-1 text-xs text-bf-steel">
               Kampanya
               <select
                 value={campaignId}
                 onChange={(event) => setCampaignId(event.target.value)}
-                className="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white"
+                className="h-10 w-full rounded-lg border border-bf-border bg-bf-bg px-3 text-sm text-bf-text outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
               >
                 {campaigns.map((campaign) => (
                   <option key={campaign.id} value={campaign.id}>
@@ -104,10 +104,10 @@ export function AddListToCampaignDialog({
               </select>
             </label>
 
-            <div className="rounded-md border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-xs text-zinc-300">
+            <div className="rounded-md border border-bf-border bg-bf-surface/80 px-3 py-2 text-xs text-bf-text/90">
               <p>Seçili creator: {creatorCount}</p>
               <p>Hedef: {selectedCampaign?.name ?? "—"}</p>
-              <p className="mt-1 text-zinc-500">
+              <p className="mt-1 text-bf-steel">
                 Onay sonrası zaten atanmış olanlar atlanır.
               </p>
             </div>

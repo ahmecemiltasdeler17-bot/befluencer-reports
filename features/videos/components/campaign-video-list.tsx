@@ -3,6 +3,7 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { CreatorAvatar } from "@/features/creators/components/creator-avatar";
 import { CreatorPlatformBadge } from "@/features/creators/components/creator-platform-badge";
+import { AdminVideoThumbnail } from "@/features/videos/components/admin-video-thumbnail";
 import { DeleteVideoButton } from "@/features/videos/components/delete-video-button";
 import { VideoEmptyState } from "@/features/videos/components/video-empty-state";
 import { VideoStatusBadge } from "@/features/videos/components/video-status-badge";
@@ -40,15 +41,15 @@ export function CampaignVideoList({
     <section id="videos" className="scroll-mt-24 space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-medium text-white">Videolar</h2>
-          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-zinc-400">
+          <h2 className="text-lg font-medium text-bf-text">Videolar</h2>
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-bf-steel">
             <span>{videos.length} video</span>
             {Object.entries(platformCounts).map(([platform, count]) => (
               <span key={platform} className="inline-flex items-center gap-1.5">
                 <CreatorPlatformBadge
                   platform={platform as VideoWithCreator["platform"]}
                 />
-                <span className="text-xs text-zinc-500">{count}</span>
+                <span className="text-xs text-bf-steel/80">{count}</span>
               </span>
             ))}
           </div>
@@ -79,9 +80,9 @@ export function CampaignVideoList({
           {groups.map((group) => (
             <div
               key={group.creator.id}
-              className="overflow-hidden rounded-xl border border-zinc-800"
+              className="overflow-hidden rounded-xl border border-bf-border"
             >
-              <div className="flex items-center gap-3 border-b border-zinc-800 bg-zinc-950/80 px-4 py-3">
+              <div className="flex items-center gap-3 border-b border-bf-border bg-bf-surface px-4 py-2.5">
                 <CreatorAvatar
                   username={group.creator.username}
                   displayName={group.creator.display_name}
@@ -89,45 +90,42 @@ export function CampaignVideoList({
                   size="sm"
                 />
                 <div>
-                  <p className="font-medium text-white">
+                  <p className="font-medium text-bf-text">
                     @{group.creator.username}
                   </p>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-bf-steel">
                     {group.videos.length} video
                   </p>
                 </div>
               </div>
 
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-zinc-800 text-sm">
-                  <thead className="bg-zinc-950/40">
-                    <tr className="text-left text-zinc-400">
-                      <th className="px-4 py-3 font-medium">Görsel</th>
-                      <th className="px-4 py-3 font-medium">Platform</th>
-                      <th className="px-4 py-3 font-medium">Yayın</th>
-                      <th className="px-4 py-3 font-medium">Durum</th>
-                      <th className="px-4 py-3 font-medium">URL</th>
-                      <th className="px-4 py-3 font-medium text-right">
+                <table className="min-w-full divide-y divide-bf-border text-sm">
+                  <thead className="bg-bf-elevated/60">
+                    <tr className="text-left text-bf-steel">
+                      <th className="px-4 py-2.5 font-medium">Görsel</th>
+                      <th className="px-4 py-2.5 font-medium">Platform</th>
+                      <th className="px-4 py-2.5 font-medium">Yayın</th>
+                      <th className="px-4 py-2.5 font-medium">Durum</th>
+                      <th className="px-4 py-2.5 font-medium">URL</th>
+                      <th className="px-4 py-2.5 font-medium text-right">
                         İşlemler
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/80 bg-zinc-950/20">
+                  <tbody className="divide-y divide-bf-border/80 bg-bf-bg/30">
                     {group.videos.map((video) => (
-                      <tr key={video.id} className="text-zinc-200">
+                      <tr
+                        key={video.id}
+                        className="text-bf-text/90 transition-colors hover:bg-primary/[0.04]"
+                      >
                         <td className="px-4 py-3">
-                          {video.thumbnail_url ? (
-                            <div className="relative h-14 w-8 overflow-hidden rounded border border-zinc-800 bg-zinc-900">
-                              {/* eslint-disable-next-line @next/next/no-img-element -- management list preview */}
-                              <img
-                                src={video.thumbnail_url}
-                                alt=""
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
-                          ) : (
-                            <span className="text-xs text-zinc-500">Yok</span>
-                          )}
+                          <AdminVideoThumbnail
+                            src={video.thumbnail_url}
+                            seed={video.id}
+                            username={group.creator.username}
+                            platform={video.platform}
+                          />
                         </td>
                         <td className="px-4 py-3">
                           <CreatorPlatformBadge platform={video.platform} />
@@ -143,7 +141,7 @@ export function CampaignVideoList({
                             href={video.video_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-orange-400 hover:text-orange-300"
+                            className="text-primary hover:text-primary/80"
                           >
                             {video.video_url}
                           </a>

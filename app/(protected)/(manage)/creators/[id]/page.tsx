@@ -122,7 +122,7 @@ export default async function CreatorDetailPage({
                   href={creator.profile_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="break-all text-orange-400 hover:text-orange-300"
+                  className="break-all text-primary hover:text-[var(--bf-accent-soft)]"
                 >
                   {creator.profile_url}
                 </a>
@@ -187,6 +187,7 @@ export default async function CreatorDetailPage({
             creatorId={creator.id}
             platform={creator.platform}
             syncConfigured={syncConfigured}
+            accountStatus={creator.account_status ?? "active"}
           />
         }
       />
@@ -217,7 +218,7 @@ export default async function CreatorDetailPage({
                     <td className="px-4 py-3">
                       <Link
                         href={`/campaigns/${assignment.campaign_id}`}
-                        className="font-medium text-white hover:text-orange-400"
+                        className="font-medium text-white hover:text-primary"
                       >
                         {assignment.campaign_name}
                       </Link>

@@ -29,7 +29,7 @@ export function ReportVideoLink({ link, className }: ReportVideoLinkProps) {
       aria-label={link.label}
       className={cn(
         "absolute inset-0 z-20 cursor-pointer rounded-[inherit] outline-none",
-        "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#FF5A00]",
+        "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--report-accent)]",
         "print:cursor-auto",
         className
       )}

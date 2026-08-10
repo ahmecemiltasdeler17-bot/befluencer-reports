@@ -58,7 +58,11 @@ export type CreatorWithSyncState = Creator & {
   sync_status: CreatorSyncStatus;
 };
 
-export type SyncCreatorOutcome = "success" | "failed" | "skipped";
+export type SyncCreatorOutcome =
+  | "success"
+  | "failed"
+  | "skipped"
+  | "unavailable";
 
 export type SyncCreatorResult = {
   outcome: SyncCreatorOutcome;
@@ -73,6 +77,7 @@ export type SyncCampaignCreatorsResult = {
   success: number;
   failed: number;
   skipped: number;
+  unavailable: number;
   message: string;
 };
 

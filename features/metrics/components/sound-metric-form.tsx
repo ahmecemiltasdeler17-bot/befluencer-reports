@@ -21,7 +21,7 @@ function fieldClass(hasError: boolean) {
     "h-10 w-full rounded-lg border bg-zinc-950/80 px-3 text-sm text-white outline-none transition-colors placeholder:text-zinc-600 focus:ring-2 disabled:opacity-60",
     hasError
       ? "border-red-500/50 focus:border-red-500/60 focus:ring-red-500/20"
-      : "border-zinc-800 focus:border-orange-500/60 focus:ring-orange-500/20"
+      : "border-zinc-800 focus:border-primary/60 focus:ring-primary/20"
   );
 }
 
@@ -46,7 +46,7 @@ export function SoundMetricForm({
             htmlFor="usage_count"
             className="text-sm font-medium text-zinc-300"
           >
-            Kullanım sayısı <span className="text-orange-400">*</span>
+            Kullanım sayısı <span className="text-primary">*</span>
           </label>
           <input
             id="usage_count"
@@ -67,7 +67,7 @@ export function SoundMetricForm({
             htmlFor="captured_at"
             className="text-sm font-medium text-zinc-300"
           >
-            Yakalanma zamanı <span className="text-orange-400">*</span>
+            Yakalanma zamanı <span className="text-primary">*</span>
           </label>
           <input
             id="captured_at"
@@ -96,7 +96,7 @@ export function SoundMetricForm({
         <Button
           type="submit"
           disabled={isPending}
-          className="bg-orange-500 text-white hover:bg-orange-500/90"
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
           {isPending ? "Kaydediliyor…" : "Ses Kullanımını Kaydet"}
         </Button>

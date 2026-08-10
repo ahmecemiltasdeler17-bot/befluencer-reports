@@ -8,9 +8,9 @@ const LABELS: Record<PublicShareStatus, string> = {
 };
 
 const STYLES: Record<PublicShareStatus, string> = {
-  active: "border-emerald-700/60 bg-emerald-950/40 text-emerald-300",
-  expired: "border-zinc-600 bg-zinc-900/60 text-zinc-400",
-  revoked: "border-red-800/60 bg-red-950/30 text-red-300",
+  active: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
+  expired: "border-bf-border bg-bf-elevated/80 text-bf-steel",
+  revoked: "border-red-500/30 bg-red-500/10 text-red-300",
 };
 
 export function ShareStatusBadge({ status }: { status: PublicShareStatus }) {

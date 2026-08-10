@@ -15,12 +15,14 @@
 - Do **not** delete or rewrite production DNS records now
 - Corporate site first ships on a Vercel **preview** domain
 - DNS cutover only after explicit approval
+- Full launch checklist: [production-domain-launch.md](./production-domain-launch.md)
+- One-page go-live: [go-live-checklist.md](./go-live-checklist.md)
 
 ## Vercel projects
 
 ### Management + public reports (this repository)
 
-Environment (production example):
+Environment (production custom domains):
 
 ```bash
 APP_URL=https://app.befluencer.co
@@ -35,7 +37,14 @@ CRON_SECRET=…
 SUPABASE_SERVICE_ROLE_KEY=…
 ```
 
-Domains attached to this project:
+Temporary single-host (before DNS):
+
+```bash
+APP_URL=https://befluencer-reports.vercel.app
+PUBLIC_REPORT_URL=https://befluencer-reports.vercel.app
+```
+
+Domains attached to this project (when ready):
 
 - `app.befluencer.co`
 - `reports.befluencer.co`
@@ -43,6 +52,14 @@ Domains attached to this project:
 Both hostnames hit the same Next.js deployment. Route groups keep management
 under authenticated layouts, public reports under `(public-report)`, and public
 creator lists under `(public-content)` (`/lists/<token>`).
+
+Absolute URL helpers (server-only):
+
+- `getAppOrigin()` / `getAppUrl(path)` → admin origin
+- `getPublicReportOrigin()` / `getPublicReportUrl(path)` → public shares
+
+Never derive share URLs from request `Host` headers. Localhost env values are
+ignored on Vercel when a deployment URL is available.
 
 ### Corporate website (future separate repository)
 
@@ -62,6 +79,21 @@ MARKETING_SITE_URL=http://localhost:3001
 Local share links remain `http://localhost:3000/r/<token>` and
 `http://localhost:3000/lists/<token>`. Behavior is unchanged from single-origin
 development.
+
+## Supabase Auth (manual)
+
+Site URL (production): `https://app.befluencer.co`
+
+Redirect allowlist:
+
+```text
+http://localhost:3000/**
+https://befluencer-reports.vercel.app/**
+https://app.befluencer.co/**
+```
+
+`reports.befluencer.co` is not required for auth redirects. See
+[production-domain-launch.md](./production-domain-launch.md).
 
 ## Cron
 

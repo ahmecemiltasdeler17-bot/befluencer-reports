@@ -1,4 +1,5 @@
 import type { CreatorSyncStatus } from "@/features/creator-sync/types";
+import type { CreatorAccountStatus } from "@/features/creators/types";
 import { MetricDelta } from "@/features/metrics/components/metric-delta";
 import { cn } from "@/lib/utils";
 
@@ -31,15 +32,23 @@ function formatRelativeDate(value: string | null): string {
 export function CreatorSyncStateCell({
   status,
   lastSyncedAt,
+  accountStatus = "active",
 }: {
   status: CreatorSyncStatus;
   lastSyncedAt: string | null;
+  accountStatus?: CreatorAccountStatus | string | null;
 }) {
+  const unavailable = (accountStatus ?? "active") === "unavailable";
+
   return (
     <div className="space-y-0.5">
-      <p className={cn("text-xs font-medium", STATUS_TONES[status])}>
-        {STATUS_LABELS[status]}
-      </p>
+      {unavailable ? (
+        <p className="text-xs font-medium text-amber-400">Erişilemiyor</p>
+      ) : (
+        <p className={cn("text-xs font-medium", STATUS_TONES[status])}>
+          {STATUS_LABELS[status]}
+        </p>
+      )}
       <p className="text-xs whitespace-nowrap text-zinc-500">
         {formatRelativeDate(lastSyncedAt)}
       </p>

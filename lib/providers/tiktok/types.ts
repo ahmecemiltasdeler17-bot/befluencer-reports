@@ -1,3 +1,5 @@
+import type { TikTokProviderError } from "@/lib/providers/tiktok/errors";
+
 export interface TikTokVideoMetrics {
   platformVideoId: string | null;
   videoUrl: string;
@@ -15,8 +17,30 @@ export interface TikTokVideoMetrics {
   saves: number;
 }
 
+export type TikTokVideoBatchRequest = {
+  videoUrl: string;
+  platformVideoId?: string | null;
+};
+
+export type TikTokVideoBatchItemResult =
+  | { status: "ok"; metrics: TikTokVideoMetrics }
+  | { status: "error"; error: TikTokProviderError };
+
+export type TikTokVideoBatchFetchResult = {
+  results: Map<string, TikTokVideoBatchItemResult>;
+  /** Real actor-start HTTP POSTs performed for this call. */
+  actorRunsStarted: number;
+};
+
 export interface TikTokMetricsProvider {
   fetchVideoMetrics(videoUrl: string): Promise<TikTokVideoMetrics>;
+  /**
+   * One call = one Apify actor run for the full URL batch.
+   * Must NOT loop single-item fetches.
+   */
+  fetchVideoMetricsBatch(
+    requests: TikTokVideoBatchRequest[]
+  ): Promise<TikTokVideoBatchFetchResult>;
 }
 
 /**
@@ -42,10 +66,27 @@ export type FetchCreatorProfileInput = {
   profileUrl?: string;
 };
 
+export type TikTokCreatorBatchItemResult =
+  | { status: "ok"; profile: TikTokCreatorProfile }
+  | { status: "error"; error: TikTokProviderError };
+
+export type TikTokCreatorBatchFetchResult = {
+  results: Map<string, TikTokCreatorBatchItemResult>;
+  /** Real actor-start HTTP POSTs performed for this call. */
+  actorRunsStarted: number;
+};
+
 export interface TikTokCreatorProvider {
   fetchCreatorProfile(
     input: FetchCreatorProfileInput
   ): Promise<TikTokCreatorProfile>;
+  /**
+   * One call = one Apify actor run for the full profile batch.
+   * Must NOT loop single-item fetches.
+   */
+  fetchCreatorProfilesBatch(
+    inputs: FetchCreatorProfileInput[]
+  ): Promise<TikTokCreatorBatchFetchResult>;
 }
 
 /**

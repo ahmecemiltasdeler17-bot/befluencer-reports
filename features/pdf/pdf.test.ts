@@ -532,21 +532,34 @@ describe("browser lifecycle", () => {
   });
 
   it("detects the serverless runtime from environment flags only", () => {
-    const previous = process.env.VERCEL;
+    assert.equal(isServerlessRuntime({ NODE_ENV: "development" }), false);
+    assert.equal(isServerlessRuntime({ VERCEL: "1" }), true);
+  });
 
-    try {
-      delete process.env.VERCEL;
-      assert.equal(isServerlessRuntime(), false);
+  it("browser launch failure maps to controlled 500 Turkish message", () => {
+    const error = new ReportPdfError("browser_launch_failed", "launch failed");
+    assert.equal(error.status, 500);
+    assert.equal(
+      toTurkishPdfMessage(error),
+      "PDF oluşturucu başlatılamadı. Lütfen daha sonra tekrar deneyin."
+    );
+  });
 
-      process.env.VERCEL = "1";
-      assert.equal(isServerlessRuntime(), true);
-    } finally {
-      if (previous === undefined) {
-        delete process.env.VERCEL;
-      } else {
-        process.env.VERCEL = previous;
-      }
-    }
+  it("authenticated PDF route burns unused tokens after failure", () => {
+    const source = readFileSync(
+      "app/api/campaigns/[id]/reports/[versionId]/pdf/route.ts",
+      "utf8"
+    );
+    assert.match(source, /invalidateUnusedExportToken/);
+    assert.match(source, /issuedToken/);
+    // Success clears issuedToken so consume semantics stay one-time via print page.
+    assert.match(source, /issuedToken = null/);
+  });
+
+  it("get-browser logs original cause before ReportPdfError wrap", () => {
+    const source = readFileSync("features/pdf/services/get-browser.ts", "utf8");
+    assert.match(source, /logPdfLaunchCause/);
+    assert.match(source, /ReportPdfError\("browser_launch_failed"/);
   });
 });
 

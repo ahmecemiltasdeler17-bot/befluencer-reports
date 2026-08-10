@@ -65,7 +65,7 @@ export function SyncVideoButton({
         type="button"
         disabled={isPending}
         onClick={handleSync}
-        className="bg-orange-500 text-white hover:bg-orange-500/90"
+        className="bg-primary text-primary-foreground hover:bg-primary/90"
       >
         {isPending ? "Güncelleniyor…" : "TikTok Verisini Güncelle"}
       </Button>

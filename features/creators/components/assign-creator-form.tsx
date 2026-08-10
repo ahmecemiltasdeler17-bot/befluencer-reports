@@ -29,7 +29,7 @@ function fieldClass(hasError: boolean) {
     "h-10 w-full rounded-lg border bg-zinc-950/80 px-3 text-sm text-white outline-none transition-colors placeholder:text-zinc-600 focus:ring-2 disabled:opacity-60",
     hasError
       ? "border-red-500/50 focus:border-red-500/60 focus:ring-red-500/20"
-      : "border-zinc-800 focus:border-orange-500/60 focus:ring-orange-500/20"
+      : "border-zinc-800 focus:border-primary/60 focus:ring-primary/20"
   );
 }
 
@@ -103,7 +103,7 @@ export function AssignCreatorForm({
         <Button
           type="submit"
           disabled={isPending}
-          className="bg-orange-500 text-white hover:bg-orange-500/90"
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
           {isPending ? "Kaydediliyor…" : submitLabel}
         </Button>
@@ -154,7 +154,7 @@ function FormField({
     <div className={as === "textarea" ? "md:col-span-2 space-y-2" : "space-y-2"}>
       <label htmlFor={id} className="text-sm font-medium text-zinc-300">
         {label}
-        {required ? <span className="text-orange-400"> *</span> : null}
+        {required ? <span className="text-primary"> *</span> : null}
       </label>
       {as === "textarea" ? (
         <textarea

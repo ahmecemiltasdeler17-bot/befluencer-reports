@@ -10,6 +10,7 @@ import type {
 } from "@/features/sound-sync/types";
 import { TikTokProviderError } from "@/lib/providers/tiktok/errors";
 import { assertApprovedTikTokSoundUrl } from "@/lib/providers/tiktok/sound-url";
+import { evaluateSoundSyncEligibility } from "@/lib/providers/tiktok/sync-eligibility";
 import type { TikTokSoundProvider } from "@/lib/providers/tiktok/types";
 
 export const UUID_PATTERN =
@@ -23,6 +24,8 @@ export type SoundSyncPatch = {
   sound_sync_error: null;
   tiktok_sound_title?: string;
   tiktok_sound_author?: string;
+  /** Provider cover URL when present; omitted from the patch when empty. */
+  tiktok_sound_cover_url?: string;
 };
 
 export type SoundSyncPort = {
@@ -84,11 +87,18 @@ function mapProviderError(error: unknown): string {
   return "TikTok sesi alınırken beklenmeyen bir hata oluştu.";
 }
 
+export type RunSoundSyncOptions = {
+  force?: boolean;
+  manualCooldown?: boolean;
+  campaignStatus?: string | null;
+};
+
 export async function runSoundSync(
   campaignId: string,
   provider: TikTokSoundProvider,
   port: SoundSyncPort,
-  now: () => Date = () => new Date()
+  now: () => Date = () => new Date(),
+  options?: RunSoundSyncOptions
 ): Promise<SyncSoundResult> {
   if (!UUID_PATTERN.test(campaignId)) {
     return failure("Geçersiz kampanya kimliği.", null);
@@ -102,6 +112,25 @@ export async function runSoundSync(
 
   if (!config.soundUrl) {
     return failure(new SoundSyncError("sound_url_missing").message, null);
+  }
+
+  const eligibility = evaluateSoundSyncEligibility({
+    lastSyncedAt: config.lastSyncedAt,
+    syncStatus: config.syncStatus,
+    campaignStatus: options?.campaignStatus ?? null,
+    force: options?.force,
+    manualCooldown: options?.manualCooldown ?? true,
+    nowMs: now().getTime(),
+  });
+
+  if (!eligibility.eligible) {
+    return {
+      outcome: "skipped",
+      message: eligibility.message,
+      snapshotCreated: false,
+      usageCount: null,
+      jobId: null,
+    };
   }
 
   let normalized: ReturnType<typeof assertApprovedTikTokSoundUrl>;
@@ -149,6 +178,10 @@ export async function runSoundSync(
 
     if (!isMissingText(profile.authorName)) {
       patch.tiktok_sound_author = profile.authorName as string;
+    }
+
+    if (!isMissingText(profile.coverUrl)) {
+      patch.tiktok_sound_cover_url = profile.coverUrl as string;
     }
 
     await port.updateCampaign(campaignId, patch);
