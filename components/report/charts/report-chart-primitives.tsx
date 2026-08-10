@@ -82,25 +82,19 @@ export function ReportChartActiveDot({ cx, cy }: ReportChartActiveDotProps) {
 }
 
 /** Gradient/filter defs shared by report charts. Render once per chart. */
-export function ReportChartDefs({ gradientId }: { gradientId: string }) {
+export function ReportChartDefs({
+  gradientId,
+  stopColor = REPORT_THEME.chartPrimary,
+}: {
+  gradientId: string;
+  stopColor?: string;
+}) {
   return (
     <defs>
       <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-        <stop
-          offset="0%"
-          stopColor={REPORT_THEME.chartPrimary}
-          stopOpacity={0.26}
-        />
-        <stop
-          offset="55%"
-          stopColor={REPORT_THEME.chartPrimary}
-          stopOpacity={0.09}
-        />
-        <stop
-          offset="100%"
-          stopColor={REPORT_THEME.chartPrimary}
-          stopOpacity={0}
-        />
+        <stop offset="0%" stopColor={stopColor} stopOpacity={0.26} />
+        <stop offset="55%" stopColor={stopColor} stopOpacity={0.09} />
+        <stop offset="100%" stopColor={stopColor} stopOpacity={0} />
       </linearGradient>
       <linearGradient id="reportCursorColumn" x1="0" y1="0" x2="0" y2="1">
         <stop

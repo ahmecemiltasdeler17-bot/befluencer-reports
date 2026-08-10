@@ -25,7 +25,12 @@ import { ReportMeasurementNote } from "@/components/report/charts/report-measure
 import { REPORT_THEME } from "@/components/report/report-theme";
 import { formatTurkishChartDate } from "@/lib/format";
 import { generateWaveformBars } from "@/lib/media-fallback-styles";
-import type { SoundGrowth, SoundGrowthPoint } from "@/lib/types";
+import type {
+  SoundGrowth,
+  SoundGrowthPoint,
+  SoundGrowthSeries,
+} from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 function isHttpCoverUrl(value: string | null | undefined): value is string {
   if (!value || value.trim().length === 0) return false;
@@ -36,6 +41,8 @@ function isHttpCoverUrl(value: string | null | undefined): value is string {
     return false;
   }
 }
+
+type SoundMetricTab = "original" | "cluster";
 
 interface SoundGrowthSectionProps {
   data: SoundGrowth;
@@ -63,14 +70,30 @@ export function buildSoundChartData(
   }));
 }
 
+function formatMetricValue(value: number | null | undefined): string {
+  if (value === null || value === undefined) {
+    return "—";
+  }
+  return String(value);
+}
+
+function formatMultiplier(value: number | null | undefined): string {
+  if (value === null || value === undefined) {
+    return "—";
+  }
+  return `×${value.toFixed(1).replace(".", ",")}`;
+}
+
 function ChartTooltip({
   active,
   payload,
   label,
+  metricLabel,
 }: {
   active?: boolean;
   payload?: Array<{ payload: SoundChartPoint }>;
   label?: string;
+  metricLabel: string;
 }) {
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
@@ -78,7 +101,7 @@ function ChartTooltip({
   return (
     <ReportMetricTooltip
       label={label}
-      metricLabel="Ses kullanımı"
+      metricLabel={metricLabel}
       value={point.uses}
       previousValue={point.previousUses}
       unit="kullanım"
@@ -144,21 +167,265 @@ function SoundCoverArtwork({
   );
 }
 
-export function SoundGrowthSection({
-  data,
-  hasTimeline = true,
-}: SoundGrowthSectionProps) {
-  if (!hasTimeline || data.timeline.length < 2) {
-    return null;
+function emptyClusterSeries(): SoundGrowthSeries {
+  return {
+    initialUses: null,
+    currentUses: null,
+    multiplier: null,
+    absoluteGrowth: null,
+    growthPercentage: null,
+    timeline: [],
+  };
+}
+
+function SoundMetricTabs({
+  active,
+  onChange,
+}: {
+  active: SoundMetricTab;
+  onChange: (tab: SoundMetricTab) => void;
+}) {
+  const tabs: Array<{ id: SoundMetricTab; label: string }> = [
+    { id: "original", label: "Orijinal Ses" },
+    { id: "cluster", label: "Toplam Ses Kullanımı" },
+  ];
+
+  return (
+    <div
+      role="tablist"
+      aria-label="Ses metrik türü"
+      className="mt-6 inline-flex max-w-full flex-wrap gap-1 rounded-lg border border-[var(--report-border)] bg-[var(--report-surface)] p-1"
+    >
+      {tabs.map((tab) => {
+        const selected = active === tab.id;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            id={`sound-metric-tab-${tab.id}`}
+            onClick={() => onChange(tab.id)}
+            className={cn(
+              "rounded-md px-3.5 py-1.5 text-sm font-medium transition-colors",
+              selected
+                ? "bg-[var(--report-surface-elevated)] text-[var(--report-text)] shadow-[inset_0_0_0_1px_var(--report-border)]"
+                : "text-[var(--report-text-tertiary)] hover:text-[var(--report-text-secondary)]"
+            )}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function SoundSeriesChart({
+  timeline,
+  stroke,
+  gradientId,
+  metricLabel,
+  emptyMessage,
+}: {
+  timeline: SoundGrowthPoint[];
+  stroke: string;
+  gradientId: string;
+  metricLabel: string;
+  emptyMessage: string;
+}) {
+  if (timeline.length === 0) {
+    return (
+      <div className="report-chart-panel pdf-avoid-break mt-4 flex h-[262px] items-center justify-center px-4 py-5 min-[800px]:h-[292px] min-[800px]:px-4 min-[800px]:py-6">
+        <p className="max-w-md text-center text-sm text-[var(--report-text-secondary)]">
+          {emptyMessage}
+        </p>
+      </div>
+    );
   }
 
-  const chartData = buildSoundChartData(data.timeline);
+  const chartData = buildSoundChartData(timeline);
   const peakPoint = chartData.reduce((best, point) =>
     point.uses > best.uses ? point : best
   );
   const startPoint = chartData[0];
   const currentPoint = chartData[chartData.length - 1];
   const sparse = chartData.length <= 6;
+
+  return (
+    <>
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <ReportMeasurementNote
+          count={chartData.length}
+          hint="Ses kullanımı yalnızca gerçek anlık ölçümlerden gösterilir; ölçümler arası değer üretilmez."
+        />
+      </div>
+
+      <div className="report-chart-panel pdf-avoid-break mt-4 px-2 py-5 min-[800px]:px-4 min-[800px]:py-6">
+        <div className="report-chart-panel__plot report-chart-reveal h-[262px] w-full min-[1100px]:h-[292px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={chartData}
+              margin={{ top: 30, right: 14, left: 2, bottom: 6 }}
+            >
+              <ReportChartDefs gradientId={gradientId} stopColor={stroke} />
+              <CartesianGrid
+                stroke={REPORT_THEME.grid}
+                strokeDasharray="4 8"
+                vertical={false}
+              />
+              <XAxis
+                dataKey="label"
+                tick={{
+                  fill: REPORT_THEME.textFaint,
+                  fontSize: 11,
+                  fontFamily: "inherit",
+                }}
+                axisLine={false}
+                tickLine={false}
+                dy={8}
+                minTickGap={28}
+              />
+              <YAxis
+                tick={{
+                  fill: REPORT_THEME.textFaint,
+                  fontSize: 11,
+                  fontFamily: "inherit",
+                }}
+                axisLine={false}
+                tickLine={false}
+                width={40}
+              />
+              <Tooltip
+                content={
+                  <ChartTooltip metricLabel={metricLabel} />
+                }
+                cursor={<ReportChartCursor />}
+                offset={16}
+              />
+              <Area
+                type="monotone"
+                dataKey="uses"
+                stroke={stroke}
+                strokeWidth={2}
+                fill={`url(#${gradientId})`}
+                isAnimationActive={false}
+                dot={
+                  sparse ? (
+                    <Dot
+                      r={3}
+                      fill={REPORT_THEME.bg}
+                      stroke={stroke}
+                      strokeWidth={2}
+                    />
+                  ) : (
+                    false
+                  )
+                }
+                activeDot={<ReportChartActiveDot />}
+              />
+              {startPoint ? (
+                <ReferenceDot
+                  x={startPoint.label}
+                  y={startPoint.uses}
+                  r={3.5}
+                  fill={stroke}
+                  stroke={REPORT_THEME.bg}
+                  strokeWidth={2}
+                >
+                  <Label
+                    value="Başlangıç"
+                    position="top"
+                    fill={REPORT_THEME.textMuted}
+                    fontSize={11}
+                    offset={8}
+                  />
+                </ReferenceDot>
+              ) : null}
+              {peakPoint &&
+              startPoint &&
+              currentPoint &&
+              peakPoint.label !== startPoint.label &&
+              peakPoint.label !== currentPoint.label ? (
+                <ReferenceDot
+                  x={peakPoint.label}
+                  y={peakPoint.uses}
+                  r={3.5}
+                  fill={REPORT_THEME.accentStrong}
+                  stroke={REPORT_THEME.bg}
+                  strokeWidth={2}
+                >
+                  <Label
+                    value="Zirve"
+                    position="top"
+                    fill={REPORT_THEME.textMuted}
+                    fontSize={11}
+                    offset={8}
+                  />
+                </ReferenceDot>
+              ) : null}
+              {currentPoint ? (
+                <ReferenceDot
+                  x={currentPoint.label}
+                  y={currentPoint.uses}
+                  r={3.5}
+                  fill={REPORT_THEME.accentSoft}
+                  stroke={REPORT_THEME.bg}
+                  strokeWidth={2}
+                >
+                  <Label
+                    value="Güncel"
+                    position="top"
+                    fill={REPORT_THEME.textMuted}
+                    fontSize={11}
+                    offset={8}
+                  />
+                </ReferenceDot>
+              ) : null}
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export function SoundGrowthSection({
+  data,
+  hasTimeline = true,
+}: SoundGrowthSectionProps) {
+  const cluster = data.cluster ?? emptyClusterSeries();
+  const originalReady = data.timeline.length >= 2;
+  const clusterReady = cluster.timeline.length >= 2;
+  const [activeTab, setActiveTab] = useState<SoundMetricTab>(() =>
+    data.timeline.length >= 2 ? "original" : "cluster"
+  );
+
+  if (!hasTimeline || (!originalReady && !clusterReady)) {
+    return null;
+  }
+
+  const isCluster = activeTab === "cluster";
+  const originalHasPoints = data.timeline.length > 0;
+  const activeInitial = isCluster
+    ? cluster.initialUses
+    : originalHasPoints
+      ? data.initialUses
+      : null;
+  const activeCurrent = isCluster
+    ? cluster.currentUses
+    : originalHasPoints
+      ? data.currentUses
+      : null;
+  const activeMultiplier = isCluster
+    ? cluster.multiplier
+    : originalHasPoints
+      ? data.multiplier
+      : null;
+  const activeTimeline = isCluster ? cluster.timeline : data.timeline;
+  const chartStroke = isCluster
+    ? REPORT_THEME.chartViolet
+    : REPORT_THEME.chartPrimary;
 
   return (
     <section
@@ -176,22 +443,27 @@ export function SoundGrowthSection({
           <p className="mt-2 text-sm text-[var(--report-text-secondary)] min-[1100px]:text-base">
             TikTok üzerinde ses kullanımının kampanya boyunca gelişimi.
           </p>
+          <SoundMetricTabs active={activeTab} onChange={setActiveTab} />
         </div>
 
-        <div className="grid grid-cols-3 gap-6 min-[800px]:gap-8">
+        <div
+          role="tabpanel"
+          aria-labelledby={`sound-metric-tab-${activeTab}`}
+          className="grid grid-cols-3 gap-6 min-[800px]:gap-8"
+        >
           <MetricBlock
             label="Büyüme"
-            value={`×${data.multiplier.toFixed(1).replace(".", ",")}`}
+            value={formatMultiplier(activeMultiplier)}
             valueClassName="text-[var(--report-text)]"
           />
           <MetricBlock
             label="Güncel Kullanım"
-            value={String(data.currentUses)}
+            value={formatMetricValue(activeCurrent)}
             valueClassName="text-[var(--report-text)]"
           />
           <MetricBlock
             label="Başlangıç Kullanımı"
-            value={String(data.initialUses)}
+            value={formatMetricValue(activeInitial)}
             valueClassName="text-[var(--report-text-tertiary)]"
           />
         </div>
@@ -221,128 +493,22 @@ export function SoundGrowthSection({
         </div>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-        <ReportMeasurementNote
-          count={chartData.length}
-          hint="Ses kullanımı yalnızca gerçek anlık ölçümlerden gösterilir; ölçümler arası değer üretilmez."
+      <div role="tabpanel" aria-labelledby={`sound-metric-tab-${activeTab}`}>
+        <SoundSeriesChart
+          timeline={activeTimeline}
+          stroke={chartStroke}
+          gradientId={
+            isCluster ? "soundGrowthClusterGradient" : "soundGrowthGradient"
+          }
+          metricLabel={
+            isCluster ? "Toplam ses kullanımı" : "Orijinal ses kullanımı"
+          }
+          emptyMessage={
+            isCluster
+              ? "Henüz toplam ses kullanım ölçümü eklenmedi."
+              : "Henüz orijinal ses kullanım ölçümü yok."
+          }
         />
-      </div>
-
-      <div className="report-chart-panel pdf-avoid-break mt-4 px-2 py-5 min-[800px]:px-4 min-[800px]:py-6">
-        <div className="report-chart-panel__plot report-chart-reveal h-[262px] w-full min-[1100px]:h-[292px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={chartData}
-              margin={{ top: 30, right: 14, left: 2, bottom: 6 }}
-            >
-              <ReportChartDefs gradientId="soundGrowthGradient" />
-              <CartesianGrid
-                stroke={REPORT_THEME.grid}
-                strokeDasharray="4 8"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="label"
-                tick={{
-                  fill: REPORT_THEME.textFaint,
-                  fontSize: 11,
-                  fontFamily: "inherit",
-                }}
-                axisLine={false}
-                tickLine={false}
-                dy={8}
-                minTickGap={28}
-              />
-              <YAxis
-                tick={{
-                  fill: REPORT_THEME.textFaint,
-                  fontSize: 11,
-                  fontFamily: "inherit",
-                }}
-                axisLine={false}
-                tickLine={false}
-                width={40}
-              />
-              <Tooltip
-                content={<ChartTooltip />}
-                cursor={<ReportChartCursor />}
-                offset={16}
-              />
-              <Area
-                type="monotone"
-                dataKey="uses"
-                stroke={REPORT_THEME.chartPrimary}
-                strokeWidth={2}
-                fill="url(#soundGrowthGradient)"
-                isAnimationActive={false}
-                dot={
-                  sparse ? (
-                    <Dot
-                      r={3}
-                      fill={REPORT_THEME.bg}
-                      stroke={REPORT_THEME.chartPrimary}
-                      strokeWidth={2}
-                    />
-                  ) : (
-                    false
-                  )
-                }
-                activeDot={<ReportChartActiveDot />}
-              />
-              <ReferenceDot
-                x={startPoint.label}
-                y={startPoint.uses}
-                r={3.5}
-                fill={REPORT_THEME.chartPrimary}
-                stroke={REPORT_THEME.bg}
-                strokeWidth={2}
-              >
-                <Label
-                  value="Başlangıç"
-                  position="top"
-                  fill={REPORT_THEME.textMuted}
-                  fontSize={11}
-                  offset={8}
-                />
-              </ReferenceDot>
-              {peakPoint.label !== startPoint.label &&
-              peakPoint.label !== currentPoint.label ? (
-                <ReferenceDot
-                  x={peakPoint.label}
-                  y={peakPoint.uses}
-                  r={3.5}
-                  fill={REPORT_THEME.accentStrong}
-                  stroke={REPORT_THEME.bg}
-                  strokeWidth={2}
-                >
-                  <Label
-                    value="Zirve"
-                    position="top"
-                    fill={REPORT_THEME.textMuted}
-                    fontSize={11}
-                    offset={8}
-                  />
-                </ReferenceDot>
-              ) : null}
-              <ReferenceDot
-                x={currentPoint.label}
-                y={currentPoint.uses}
-                r={3.5}
-                fill={REPORT_THEME.accentSoft}
-                stroke={REPORT_THEME.bg}
-                strokeWidth={2}
-              >
-                <Label
-                  value="Güncel"
-                  position="top"
-                  fill={REPORT_THEME.textMuted}
-                  fontSize={11}
-                  offset={8}
-                />
-              </ReferenceDot>
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
       </div>
     </section>
   );

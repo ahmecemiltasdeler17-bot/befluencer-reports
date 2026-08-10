@@ -217,7 +217,21 @@ export function selectFeaturedVideo(videos: Video[]): Video | null {
 export function buildCreatorContributions(
   creators: Creator[]
 ): Creator[] {
-  return [...creators]
+  // Guard against string / array-like inputs. `[..."SIMON"]` would otherwise
+  // invent one pseudo-creator per character and break the report showcase.
+  if (!Array.isArray(creators)) {
+    return [];
+  }
+
+  return creators
+    .filter(
+      (creator) =>
+        creator !== null &&
+        typeof creator === "object" &&
+        typeof creator.id === "string" &&
+        creator.id.trim().length > 0
+    )
+    .slice()
     .sort((left, right) => right.views - left.views)
     .map((creator, index) => ({
       ...creator,
@@ -279,31 +293,28 @@ function normalizeCreatorPlatform(platform: string | null | undefined): Platform
   return "tiktok";
 }
 
-export function buildSoundGrowthData(input: {
-  trackName: string;
-  snapshots: Array<{ captured_at: string; usage_count: number }>;
-  soundId?: string | null;
-  soundAuthor?: string | null;
-  soundUrl?: string | null;
-  soundCoverUrl?: string | null;
-}) {
-  if (input.snapshots.length === 0) {
+function buildSoundGrowthSeriesFromSnapshots(
+  snapshots: Array<{ captured_at: string; usage_count: number }>
+): {
+  initialUses: number;
+  currentUses: number;
+  multiplier: number;
+  absoluteGrowth: number;
+  growthPercentage: number | null;
+  timeline: Array<{ date: string; uses: number }>;
+} {
+  if (snapshots.length === 0) {
     return {
-      soundName: input.trackName,
       initialUses: 0,
       currentUses: 0,
       multiplier: 0,
       absoluteGrowth: 0,
-      growthPercentage: null as number | null,
-      soundId: input.soundId ?? null,
-      soundAuthor: input.soundAuthor ?? null,
-      soundUrl: input.soundUrl ?? null,
-      soundCoverUrl: input.soundCoverUrl ?? null,
-      timeline: [] as Array<{ date: string; uses: number }>,
+      growthPercentage: null,
+      timeline: [],
     };
   }
 
-  const sorted = [...input.snapshots].sort(
+  const sorted = [...snapshots].sort(
     (left, right) =>
       new Date(left.captured_at).getTime() - new Date(right.captured_at).getTime()
   );
@@ -316,20 +327,85 @@ export function buildSoundGrowthData(input: {
     initialUses > 0 ? (absoluteGrowth / initialUses) * 100 : null;
 
   return {
-    soundName: input.trackName,
     initialUses,
     currentUses,
     multiplier,
     absoluteGrowth,
     growthPercentage,
-    soundId: input.soundId ?? null,
-    soundAuthor: input.soundAuthor ?? null,
-    soundUrl: input.soundUrl ?? null,
-    soundCoverUrl: input.soundCoverUrl ?? null,
     timeline: sorted.map((snapshot) => ({
       date: snapshot.captured_at,
       uses: Number(snapshot.usage_count),
     })),
+  };
+}
+
+function buildNullableClusterSeries(
+  snapshots: Array<{ captured_at: string; usage_count: number }>
+): {
+  initialUses: number | null;
+  currentUses: number | null;
+  multiplier: number | null;
+  absoluteGrowth: number | null;
+  growthPercentage: number | null;
+  timeline: Array<{ date: string; uses: number }>;
+} {
+  if (snapshots.length === 0) {
+    return {
+      initialUses: null,
+      currentUses: null,
+      multiplier: null,
+      absoluteGrowth: null,
+      growthPercentage: null,
+      timeline: [],
+    };
+  }
+
+  const series = buildSoundGrowthSeriesFromSnapshots(snapshots);
+  return {
+    initialUses: series.initialUses,
+    currentUses: series.currentUses,
+    multiplier: series.multiplier,
+    absoluteGrowth: series.absoluteGrowth,
+    growthPercentage: series.growthPercentage,
+    timeline: series.timeline,
+  };
+}
+
+export function buildSoundGrowthData(input: {
+  trackName: string;
+  snapshots: Array<{
+    captured_at: string;
+    usage_count: number;
+    metric_type?: string | null;
+  }>;
+  soundId?: string | null;
+  soundAuthor?: string | null;
+  soundUrl?: string | null;
+  soundCoverUrl?: string | null;
+}) {
+  const originalSnapshots = input.snapshots.filter(
+    (snapshot) => snapshot.metric_type !== "cluster"
+  );
+  const clusterSnapshots = input.snapshots.filter(
+    (snapshot) => snapshot.metric_type === "cluster"
+  );
+
+  const original = buildSoundGrowthSeriesFromSnapshots(originalSnapshots);
+  const cluster = buildNullableClusterSeries(clusterSnapshots);
+
+  return {
+    soundName: input.trackName,
+    initialUses: original.initialUses,
+    currentUses: original.currentUses,
+    multiplier: original.multiplier,
+    absoluteGrowth: original.absoluteGrowth,
+    growthPercentage: original.growthPercentage,
+    soundId: input.soundId ?? null,
+    soundAuthor: input.soundAuthor ?? null,
+    soundUrl: input.soundUrl ?? null,
+    soundCoverUrl: input.soundCoverUrl ?? null,
+    timeline: original.timeline,
+    cluster,
   };
 }
 

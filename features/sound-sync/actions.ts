@@ -2,6 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 
+import { getCampaignById } from "@/features/campaigns/queries";
+import {
+  clusterSoundMetricFormSchema,
+  defaultClusterSoundMetricFormValues,
+  parseClusterSoundMetricFormData,
+  toClusterSoundMetricFormValues,
+  toIsoTimestamp,
+} from "@/features/metrics/schemas";
+import type { ClusterSoundMetricFormState } from "@/features/metrics/types";
 import { SoundSyncError } from "@/features/sound-sync/errors";
 import { getSoundMetricSnapshotById } from "@/features/sound-sync/queries";
 import { syncTikTokSound } from "@/features/sound-sync/services/sync-tiktok-sound";
@@ -140,4 +149,97 @@ export async function deleteSoundMetricSnapshotAction(
 
   revalidateSoundPaths(snapshot.campaign_id);
   return {};
+}
+
+function collectFieldErrors(issues: { path: PropertyKey[]; message: string }[]) {
+  const fieldErrors: Record<string, string> = {};
+
+  for (const issue of issues) {
+    const key = issue.path[0];
+    if (typeof key === "string" && !fieldErrors[key]) {
+      fieldErrors[key] = issue.message;
+    }
+  }
+
+  return fieldErrors;
+}
+
+function mapClusterInsertError(message: string, code?: string): string {
+  if (code === "23505" || message.toLowerCase().includes("duplicate")) {
+    return "Bu ölçüm zamanı için zaten bir toplam ses kullanımı kaydı var.";
+  }
+
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes("permission denied")) {
+    return "Bu işlem için yetkiniz yok.";
+  }
+
+  if (normalized.includes("jwt")) {
+    return "Oturumunuz geçersiz. Lütfen tekrar giriş yapın.";
+  }
+
+  return "Toplam ses kullanımı kaydedilemedi. Lütfen tekrar deneyin.";
+}
+
+/**
+ * Appends a single real cluster / total-sound-usage measurement.
+ * Never invents intermediate daily rows between measurements.
+ */
+export async function createClusterSoundUsageSnapshotAction(
+  campaignId: string,
+  _prevState: ClusterSoundMetricFormState,
+  formData: FormData
+): Promise<ClusterSoundMetricFormState> {
+  if (!UUID_PATTERN.test(campaignId)) {
+    return {
+      error: "Geçersiz kampanya kimliği.",
+      values: defaultClusterSoundMetricFormValues(),
+    };
+  }
+
+  const campaign = await getCampaignById(campaignId);
+
+  if (!campaign) {
+    return {
+      error: "Kampanya bulunamadı.",
+      values: defaultClusterSoundMetricFormValues(),
+    };
+  }
+
+  const raw = parseClusterSoundMetricFormData(formData);
+  const parsed = clusterSoundMetricFormSchema.safeParse(raw);
+
+  if (!parsed.success) {
+    return {
+      fieldErrors: collectFieldErrors(parsed.error.issues),
+      values: raw,
+    };
+  }
+
+  const supabase = await requireAuthenticatedClient();
+  const values = parsed.data;
+  const note = values.note.trim().length > 0 ? values.note.trim() : null;
+
+  const { error } = await supabase.from("sound_metric_snapshots").insert({
+    campaign_id: campaignId,
+    usage_count: values.usage_count,
+    captured_at: toIsoTimestamp(values.captured_at),
+    source: "manual",
+    metric_type: "cluster",
+    note,
+  });
+
+  if (error) {
+    return {
+      error: mapClusterInsertError(error.message, error.code),
+      values: toClusterSoundMetricFormValues(values),
+    };
+  }
+
+  revalidateSoundPaths(campaignId);
+  return {
+    success: "Toplam ses kullanımı kaydı eklendi.",
+    values: defaultClusterSoundMetricFormValues(),
+  };
 }

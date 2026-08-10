@@ -1,5 +1,6 @@
 import { ReportCreatorLink } from "@/components/report/links/report-creator-link";
 import { ReportExternalLinkIcon } from "@/components/report/links/report-external-link-icon";
+import { normalizeCreatorList } from "@/features/reports/normalize-creators";
 import { formatTurkishReport } from "@/lib/format";
 import { resolveCreatorLink } from "@/lib/report-links/resolve-report-links";
 import type { ReportLinkOrNull } from "@/lib/report-links/types";
@@ -26,7 +27,10 @@ function buildContributions(
   creators: Creator[],
   totalReach: number
 ): ContributionRow[] {
-  const sorted = [...creators].sort((a, b) => b.views - a.views);
+  // Never `[...string]` — that splits display names into character rows.
+  const sorted = normalizeCreatorList(creators).sort(
+    (a, b) => b.views - a.views
+  );
   const top = sorted.slice(0, 4);
   const topViews = top.reduce((sum, creator) => sum + creator.views, 0);
   const otherViews = Math.max(totalReach - topViews, 0);

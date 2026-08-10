@@ -2,6 +2,9 @@ export type SoundSyncStatus = "pending" | "success" | "failed";
 
 export type SoundSnapshotSource = "manual" | "apify";
 
+/** original = single music page; cluster = total Contains / catalog usage. */
+export type SoundMetricType = "original" | "cluster";
+
 export type CampaignSoundConfiguration = {
   campaignId: string;
   soundUrl: string | null;
@@ -21,6 +24,8 @@ export type SoundMetricSnapshot = {
   captured_at: string;
   usage_count: number;
   source: SoundSnapshotSource;
+  metric_type: SoundMetricType;
+  note: string | null;
   created_at: string;
 };
 

@@ -105,6 +105,8 @@ function mapSnapshot(row: Record<string, unknown>): SoundMetricSnapshot {
     source: ((row.source as string | undefined) ?? "manual") as
       | "manual"
       | "apify",
+    metric_type: row.metric_type === "cluster" ? "cluster" : "original",
+    note: (row.note as string | null | undefined) ?? null,
     created_at: (row.created_at as string | undefined) ?? (row.captured_at as string),
   };
 }
@@ -121,6 +123,7 @@ async function insertSnapshotWithRetry(
       captured_at: capturedAt,
       usage_count: usageCount,
       source,
+      metric_type: "original",
     });
 
   let result = await attemptInsert(new Date().toISOString());
@@ -187,6 +190,7 @@ function createSoundSyncPort(supabase: SupabaseClient): SoundSyncPort {
         .from("sound_metric_snapshots")
         .select("*")
         .eq("campaign_id", campaignId)
+        .eq("metric_type", "original")
         .order("captured_at", { ascending: false })
         .limit(1)
         .maybeSingle();

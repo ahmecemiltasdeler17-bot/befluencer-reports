@@ -121,7 +121,20 @@ function uniqueCreatorsFromVideos(videos: RawVideoRow[]) {
   const creators = new Map<string, RawVideoRow["creator"]>();
 
   for (const video of videos) {
-    creators.set(video.creator.id, video.creator);
+    const raw = video.creator as RawVideoRow["creator"] | RawVideoRow["creator"][] | null;
+    // Supabase embeds can occasionally return a one-element array; unwrap it.
+    const creator = Array.isArray(raw) ? (raw[0] ?? null) : raw;
+
+    if (
+      !creator ||
+      typeof creator !== "object" ||
+      typeof creator.id !== "string" ||
+      creator.id.trim().length === 0
+    ) {
+      continue;
+    }
+
+    creators.set(creator.id, creator);
   }
 
   return [...creators.values()];
@@ -230,6 +243,8 @@ export function mapCampaignReportData(
     coverColor: DEFAULT_COVER_COLOR,
   };
 
+  const clusterTimelineLength = soundGrowth.cluster?.timeline.length ?? 0;
+
   return {
     campaign,
     totalReach: {
@@ -261,6 +276,7 @@ export function mapCampaignReportData(
       }),
     },
     hasTimeline: timeline.length >= 2,
-    hasSoundTimeline: soundGrowth.timeline.length >= 2,
+    hasSoundTimeline:
+      soundGrowth.timeline.length >= 2 || clusterTimelineLength >= 2,
   };
 }

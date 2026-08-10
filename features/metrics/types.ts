@@ -15,7 +15,22 @@ export type SoundMetricSnapshot = {
   captured_at: string;
   usage_count: number;
   source?: "manual" | "apify";
+  metric_type?: "original" | "cluster";
+  note?: string | null;
   created_at?: string;
+};
+
+export type ClusterSoundMetricFormValues = {
+  usage_count: string;
+  captured_at: string;
+  note: string;
+};
+
+export type ClusterSoundMetricFormState = {
+  error?: string;
+  success?: string;
+  fieldErrors?: Partial<Record<keyof ClusterSoundMetricFormValues, string>>;
+  values?: ClusterSoundMetricFormValues;
 };
 
 export type MetricCounts = {

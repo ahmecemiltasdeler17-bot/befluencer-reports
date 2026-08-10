@@ -1,3 +1,4 @@
+import { normalizeShowcaseCreators } from "@/features/reports/normalize-creators";
 import type { ReportFreshness } from "@/features/reports/types";
 import type { DashboardData } from "@/lib/types";
 
@@ -26,14 +27,9 @@ export function ReportHeroSection({
   presentationContext,
   versionLabel,
 }: ReportHeroSectionProps) {
-  const avatarCreators = data.creators.map((creator) => ({
-    id: creator.id,
-    avatar: creator.avatar,
-    name: creator.displayName,
-    handle: creator.handle,
-    platform: creator.platform,
-    profileUrl: creator.profileUrl,
-  }));
+  // Normalize before showcase mapping so a string/array-like never becomes
+  // per-character avatar items (e.g. "SIMON" → S,I,M,O,N).
+  const avatarCreators = normalizeShowcaseCreators(data.creators);
 
   const soundName =
     data.soundGrowth.soundName?.trim() || data.campaign.track?.trim() || "";

@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import {
   buildSoundDailyGrowthSeries,
   computeSoundMetricSummary,
+  filterSoundSnapshotsByMetricType,
   shouldAppendSoundSnapshot,
 } from "@/features/sound-sync/calculations";
 
@@ -52,6 +53,26 @@ describe("computeSoundMetricSummary", () => {
     ]);
 
     assert.equal(summary.growthPercentage, null);
+  });
+});
+
+describe("filterSoundSnapshotsByMetricType", () => {
+  it("treats missing metric_type as original", () => {
+    const rows = [
+      { id: "a", metric_type: "original" as const },
+      { id: "b", metric_type: null },
+      { id: "c", metric_type: "cluster" as const },
+      { id: "d" },
+    ];
+
+    assert.deepEqual(
+      filterSoundSnapshotsByMetricType(rows, "original").map((row) => row.id),
+      ["a", "b", "d"]
+    );
+    assert.deepEqual(
+      filterSoundSnapshotsByMetricType(rows, "cluster").map((row) => row.id),
+      ["c"]
+    );
   });
 });
 

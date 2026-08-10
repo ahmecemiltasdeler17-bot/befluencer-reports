@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { buttonVariants } from "@/components/ui/button";
+import { ClusterSoundUsageForm } from "@/features/sound-sync/components/cluster-sound-usage-form";
 import { SoundMetricSummaryPanel } from "@/features/sound-sync/components/sound-metric-summary";
 import { SoundSnapshotHistory } from "@/features/sound-sync/components/sound-snapshot-history";
 import { SoundUrlForm } from "@/features/sound-sync/components/sound-url-form";
@@ -48,12 +49,14 @@ export function CampaignSoundTrackingSection({
   configuration,
   summary,
   history,
+  clusterHistory,
   syncConfigured,
 }: {
   campaignId: string;
   configuration: CampaignSoundConfiguration;
   summary: SoundMetricSummary;
   history: SoundMetricSnapshot[];
+  clusterHistory: SoundMetricSnapshot[];
   syncConfigured: boolean;
 }) {
   const qualityMessages = buildQualityMessages(configuration, summary);
@@ -67,8 +70,8 @@ export function CampaignSoundTrackingSection({
         <div>
           <h2 className="text-lg font-medium text-white">TikTok Ses Takibi</h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Ses kullanım sayısı TikTok üzerindeki toplam video adedidir; erişim
-            veya kampanya video sayısı değildir.
+            Orijinal ses kullanımı TikTok müzik sayfasındaki video adedidir;
+            toplam ses kullanımı mobildeki “Şunu içerir” cluster değeridir.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -76,7 +79,7 @@ export function CampaignSoundTrackingSection({
             href={`/campaigns/${campaignId}/sound-metrics/new`}
             className={cn(buttonVariants({ variant: "outline" }))}
           >
-            Manuel Kayıt Ekle
+            Orijinal Ses Kaydı
           </Link>
           <SyncSoundButton
             campaignId={campaignId}
@@ -97,7 +100,20 @@ export function CampaignSoundTrackingSection({
         qualityMessages={qualityMessages}
       />
 
-      <SoundSnapshotHistory rows={history} />
+      <SoundSnapshotHistory
+        rows={history}
+        title="Orijinal Ses Geçmişi"
+        emptyLabel="Henüz orijinal ses kullanım kaydı yok."
+      />
+
+      <ClusterSoundUsageForm campaignId={campaignId} />
+
+      <SoundSnapshotHistory
+        rows={clusterHistory}
+        title="Toplam Ses Kullanımı Geçmişi"
+        emptyLabel="Henüz toplam ses kullanım ölçümü eklenmedi."
+        showNote
+      />
     </section>
   );
 }

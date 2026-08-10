@@ -354,7 +354,8 @@ export async function getCampaignCreatorMetricSummary(
 }
 
 export async function listSoundMetricSnapshots(
-  campaignId: string
+  campaignId: string,
+  metricType: "original" | "cluster" = "original"
 ): Promise<SoundMetricSnapshot[]> {
   const supabase = await requireAuthenticatedClient();
 
@@ -362,6 +363,7 @@ export async function listSoundMetricSnapshots(
     .from("sound_metric_snapshots")
     .select("*")
     .eq("campaign_id", campaignId)
+    .eq("metric_type", metricType)
     .order("captured_at", { ascending: false });
 
   if (error) {

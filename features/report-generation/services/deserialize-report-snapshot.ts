@@ -1,5 +1,6 @@
 import { parseReportSnapshot } from "@/features/report-generation/schemas";
 import type { ReportSnapshot } from "@/features/report-generation/schemas";
+import { normalizeCreatorList } from "@/features/reports/normalize-creators";
 import type { CampaignReportData } from "@/features/reports/types";
 
 export function deserializeReportSnapshot(input: unknown): ReportSnapshot {
@@ -11,6 +12,8 @@ export function snapshotToCampaignReportData(
 ): CampaignReportData {
   return {
     ...snapshot.data,
+    // Defensive: never let a non-array / string leak into report UI maps.
+    creators: normalizeCreatorList(snapshot.data.creators),
     featuredVideo: snapshot.data.featuredVideo,
     topVideo: snapshot.data.featuredVideo,
   };

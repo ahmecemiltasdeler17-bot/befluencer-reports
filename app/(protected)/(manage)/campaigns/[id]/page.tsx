@@ -72,6 +72,7 @@ export default async function CampaignDetailPage({
     metricTimeline,
     soundSummary,
     soundHistory,
+    clusterSoundHistory,
     soundConfiguration,
     syncJobs,
     reportSummary,
@@ -83,8 +84,9 @@ export default async function CampaignDetailPage({
     getCampaignMetricSummary(id),
     getCampaignCreatorMetricSummary(id),
     getCampaignMetricTimeline(id),
-    getSoundMetricSummary(id),
-    listSoundMetricSnapshots(id),
+    getSoundMetricSummary(id, "original"),
+    listSoundMetricSnapshots(id, "original"),
+    listSoundMetricSnapshots(id, "cluster"),
     getCampaignSoundConfiguration(id),
     listCampaignSyncJobs(id),
     getCampaignReportSeriesSummary(id),
@@ -251,6 +253,7 @@ export default async function CampaignDetailPage({
         }
         summary={soundSummary}
         history={soundHistory}
+        clusterHistory={clusterSoundHistory}
         syncConfigured={soundSyncConfigured}
       />
 

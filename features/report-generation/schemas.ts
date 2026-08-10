@@ -113,6 +113,20 @@ const growthPointSchema = z.object({
   cumulativeViews: finiteNumber,
 });
 
+const soundGrowthPointSchema = z.object({
+  date: z.string(),
+  uses: finiteNumber,
+});
+
+const soundGrowthClusterSchema = z.object({
+  initialUses: finiteNumber.nullable(),
+  currentUses: finiteNumber.nullable(),
+  multiplier: finiteNumber.nullable(),
+  absoluteGrowth: finiteNumber.nullable().optional(),
+  growthPercentage: finiteNumber.nullable().optional(),
+  timeline: z.array(soundGrowthPointSchema),
+});
+
 const soundGrowthSchema = z.object({
   soundName: z.string(),
   initialUses: finiteNumber,
@@ -126,12 +140,9 @@ const soundGrowthSchema = z.object({
   soundAuthor: z.string().nullable().optional(),
   soundUrl: z.string().nullable().optional(),
   soundCoverUrl: z.string().nullable().optional(),
-  timeline: z.array(
-    z.object({
-      date: z.string(),
-      uses: finiteNumber,
-    })
-  ),
+  timeline: z.array(soundGrowthPointSchema),
+  /** Optional: older frozen reports omit cluster series entirely. */
+  cluster: soundGrowthClusterSchema.optional(),
 });
 
 const freshnessSchema = z.object({

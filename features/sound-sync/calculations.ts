@@ -2,10 +2,25 @@ import type {
   SoundDailyGrowthPoint,
   SoundMetricSnapshot,
   SoundMetricSummary,
+  SoundMetricType,
   SoundSnapshotSource,
 } from "@/features/sound-sync/types";
 
 const SNAPSHOT_STALE_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Rows without metric_type (pre-migration / legacy payloads) count as original.
+ * Never invents daily points — only filters the given list.
+ */
+export function filterSoundSnapshotsByMetricType<
+  T extends { metric_type?: SoundMetricType | string | null },
+>(snapshots: T[], metricType: SoundMetricType): T[] {
+  return snapshots.filter((snapshot) => {
+    const resolved =
+      snapshot.metric_type === "cluster" ? "cluster" : "original";
+    return resolved === metricType;
+  });
+}
 
 export function percentageChange(
   delta: number,

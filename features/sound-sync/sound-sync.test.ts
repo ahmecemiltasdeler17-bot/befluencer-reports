@@ -126,6 +126,8 @@ describe("runSoundSync", () => {
         captured_at: "2026-08-06T10:00:00.000Z",
         usage_count: 80_300,
         source: "manual",
+        metric_type: "original",
+        note: null,
         created_at: "2026-08-06T10:00:00.000Z",
       },
     });
@@ -150,6 +152,8 @@ describe("runSoundSync", () => {
         captured_at: "2026-08-05T11:00:00.000Z",
         usage_count: 80_300,
         source: "apify",
+        metric_type: "original",
+        note: null,
         created_at: "2026-08-05T11:00:00.000Z",
       },
     });
@@ -173,6 +177,8 @@ describe("runSoundSync", () => {
         captured_at: "2026-08-06T10:00:00.000Z",
         usage_count: 70_000,
         source: "manual",
+        metric_type: "original",
+        note: null,
         created_at: "2026-08-06T10:00:00.000Z",
       },
     });

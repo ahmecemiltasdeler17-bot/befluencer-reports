@@ -116,8 +116,22 @@ export interface SoundGrowthPoint {
   uses: number;
 }
 
+/** One metric series (original or cluster). Null counts = no measurements yet. */
+export interface SoundGrowthSeries {
+  initialUses: number | null;
+  currentUses: number | null;
+  multiplier: number | null;
+  absoluteGrowth?: number | null;
+  growthPercentage?: number | null;
+  timeline: SoundGrowthPoint[];
+}
+
 export interface SoundGrowth {
   soundName: string;
+  /**
+   * Flat fields always reflect the **original** (single-page) series for
+   * backwards-compatible reports, KPIs, and PDF snapshots.
+   */
   initialUses: number;
   currentUses: number;
   multiplier: number;
@@ -130,6 +144,11 @@ export interface SoundGrowth {
   /** Provider cover URL when available; never fabricated. */
   soundCoverUrl?: string | null;
   timeline: SoundGrowthPoint[];
+  /**
+   * Total Contains / cluster usage series. Absent on older frozen snapshots.
+   * Empty timeline + null counts when no manual cluster measurements exist.
+   */
+  cluster?: SoundGrowthSeries;
 }
 
 export interface DashboardData {

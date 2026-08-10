@@ -64,6 +64,10 @@ export type RawSoundSnapshotRow = {
   campaign_id: string;
   captured_at: string;
   usage_count: number;
+  /** Absent/null on legacy rows → treated as original. */
+  metric_type?: string | null;
+  note?: string | null;
+  source?: string | null;
 };
 
 export type RawCampaignRow = {

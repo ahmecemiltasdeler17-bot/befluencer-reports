@@ -170,6 +170,7 @@ export async function createSoundMetricSnapshot(
     usage_count: values.usage_count,
     captured_at: toIsoTimestamp(values.captured_at),
     source: "manual",
+    metric_type: "original",
   });
 
   if (error) {

@@ -20,6 +20,9 @@ export const REPORT_THEME = {
   chartFill: "rgba(168, 212, 240, 0.16)",
   chartFillFade: "rgba(168, 212, 240, 0)",
   chartSecondary: "#7A90A8",
+  /** Cluster / total sound usage series accent (violet — never orange). */
+  chartViolet: "#A78BFA",
+  chartVioletFill: "rgba(167, 139, 250, 0.16)",
   engagement: {
     likes: "#A8D4F0",
     comments: "#7A90A8",

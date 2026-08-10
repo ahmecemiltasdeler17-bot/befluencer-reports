@@ -25,8 +25,9 @@ export function SafeAvatar({
   size = 40,
 }: SafeAvatarProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const fallbackSeed = seed ?? name;
-  const initials = name
+  const safeName = typeof name === "string" ? name : "";
+  const fallbackSeed = seed ?? safeName;
+  const initials = safeName
     .split(" ")
     .map((part) => part[0])
     .join("")

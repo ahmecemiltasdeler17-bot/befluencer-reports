@@ -1,6 +1,7 @@
 import { CompactCountText } from "@/components/format/compact-count-text";
 import { ReportKpiCard } from "@/components/report/report-kpi-card";
 import { ReportSection } from "@/components/report/report-section";
+import { normalizeCreatorList } from "@/features/reports/normalize-creators";
 import {
   formatExactTurkishCount,
   formatTurkishPercent,
@@ -30,6 +31,7 @@ export function buildReportOverviewMetrics(
   const creatorKpi = findKpi(data.kpis, "creators");
   const videoKpi = findKpi(data.kpis, "videos-live");
   const sharesKpi = findKpi(data.kpis, "total-shares");
+  const creators = normalizeCreatorList(data.creators);
 
   const totalViews = data.totalReach.value;
   const totalLikes = sumVideoMetric(data.videos, "likes");
@@ -37,9 +39,9 @@ export function buildReportOverviewMetrics(
   const totalShares = sharesKpi?.value ?? sumVideoMetric(data.videos, "shares");
   const totalSaves = sumVideoMetric(data.videos, "saves");
   const totalEngagement = totalLikes + totalComments + totalShares + totalSaves;
-  const creatorCount = creatorKpi?.value ?? data.creators.length;
+  const creatorCount = creatorKpi?.value ?? creators.length;
   const videoCount = videoKpi?.value ?? data.videos.length;
-  const followerNetwork = sumCreatorFollowers(data.creators);
+  const followerNetwork = sumCreatorFollowers(creators);
   const soundUses = data.soundGrowth.currentUses;
 
   return {

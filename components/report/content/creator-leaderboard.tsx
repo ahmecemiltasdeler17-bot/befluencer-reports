@@ -1,4 +1,5 @@
 import { ReportSection } from "@/components/report/report-section";
+import { normalizeCreatorList } from "@/features/reports/normalize-creators";
 import type { Creator } from "@/lib/types";
 
 import { CreatorRankingCard } from "./creator-ranking-card";
@@ -9,9 +10,11 @@ interface CreatorLeaderboardProps {
 }
 
 export function CreatorLeaderboard({
-  creators,
+  creators: creatorsInput,
   totalReach,
 }: CreatorLeaderboardProps) {
+  const creators = normalizeCreatorList(creatorsInput);
+
   if (creators.length === 0) {
     return (
       <ReportSection

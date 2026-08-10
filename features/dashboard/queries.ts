@@ -151,7 +151,8 @@ export async function getDashboardData(): Promise<DashboardData> {
       .limit(500),
     supabase
       .from("sound_metric_snapshots")
-      .select("campaign_id, usage_count, captured_at")
+      .select("campaign_id, usage_count, captured_at, metric_type")
+      .eq("metric_type", "original")
       .order("captured_at", { ascending: false })
       .limit(80),
     supabase

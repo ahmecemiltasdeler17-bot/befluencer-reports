@@ -221,4 +221,85 @@ describe("buildSoundGrowthData", () => {
 
     assert.equal(growth.multiplier, 0);
   });
+
+  it("keeps legacy snapshots as original and isolates cluster series", () => {
+    const growth = buildSoundGrowthData({
+      trackName: "FOTO",
+      snapshots: [
+        {
+          captured_at: "2026-08-01T00:00:00.000Z",
+          usage_count: 786,
+          metric_type: "original",
+        },
+        {
+          captured_at: "2026-08-05T00:00:00.000Z",
+          usage_count: 793,
+        },
+        {
+          captured_at: "2026-08-10T00:00:00.000Z",
+          usage_count: 4890,
+          metric_type: "cluster",
+        },
+        {
+          captured_at: "2026-08-13T00:00:00.000Z",
+          usage_count: 5100,
+          metric_type: "cluster",
+        },
+      ],
+    });
+
+    assert.equal(growth.initialUses, 786);
+    assert.equal(growth.currentUses, 793);
+    assert.equal(growth.timeline.length, 2);
+    assert.equal(growth.cluster?.initialUses, 4890);
+    assert.equal(growth.cluster?.currentUses, 5100);
+    assert.equal(growth.cluster?.multiplier, 5100 / 4890);
+    assert.equal(growth.cluster?.timeline.length, 2);
+  });
+
+  it("returns null cluster metrics when no cluster snapshots exist", () => {
+    const growth = buildSoundGrowthData({
+      trackName: "FOTO",
+      snapshots: [
+        {
+          captured_at: "2026-08-01T00:00:00.000Z",
+          usage_count: 786,
+          metric_type: "original",
+        },
+        {
+          captured_at: "2026-08-05T00:00:00.000Z",
+          usage_count: 793,
+          metric_type: "original",
+        },
+      ],
+    });
+
+    assert.equal(growth.cluster?.initialUses, null);
+    assert.equal(growth.cluster?.currentUses, null);
+    assert.equal(growth.cluster?.multiplier, null);
+    assert.deepEqual(growth.cluster?.timeline, []);
+  });
+
+  it("does not invent cluster points between sparse manual measurements", () => {
+    const growth = buildSoundGrowthData({
+      trackName: "FOTO",
+      snapshots: [
+        {
+          captured_at: "2026-08-10T00:00:00.000Z",
+          usage_count: 4890,
+          metric_type: "cluster",
+        },
+        {
+          captured_at: "2026-08-13T00:00:00.000Z",
+          usage_count: 5100,
+          metric_type: "cluster",
+        },
+      ],
+    });
+
+    assert.equal(growth.cluster?.timeline.length, 2);
+    assert.equal(growth.cluster?.timeline[0]?.date, "2026-08-10T00:00:00.000Z");
+    assert.equal(growth.cluster?.timeline[1]?.date, "2026-08-13T00:00:00.000Z");
+    assert.equal(growth.timeline.length, 0);
+  });
 });

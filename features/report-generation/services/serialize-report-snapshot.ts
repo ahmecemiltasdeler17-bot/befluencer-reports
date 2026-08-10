@@ -15,6 +15,7 @@ import type {
   ReportSnapshotContext,
   ReportVersionMetadata,
 } from "@/features/report-generation/types";
+import { normalizeCreatorList } from "@/features/reports/normalize-creators";
 import type { CampaignReportData } from "@/features/reports/types";
 
 /**
@@ -28,11 +29,20 @@ function emptySoundGrowth(soundName: string) {
     currentUses: 0,
     multiplier: 0,
     timeline: [],
+    cluster: {
+      initialUses: null,
+      currentUses: null,
+      multiplier: null,
+      absoluteGrowth: null,
+      growthPercentage: null,
+      timeline: [],
+    },
   };
 }
 
 function buildSnapshotData(liveReportData: CampaignReportData) {
   const soundGrowth = liveReportData.soundGrowth ?? null;
+  const creators = normalizeCreatorList(liveReportData.creators);
 
   return {
     campaign: liveReportData.campaign,
@@ -47,12 +57,18 @@ function buildSnapshotData(liveReportData: CampaignReportData) {
     platforms: ensureArray(liveReportData.platforms),
     topVideo: liveReportData.topVideo ?? liveReportData.featuredVideo ?? null,
     featuredVideo: liveReportData.featuredVideo ?? null,
-    creators: ensureArray(liveReportData.creators),
+    creators,
     videos: ensureArray(liveReportData.videos),
     soundGrowth: soundGrowth
       ? {
           ...soundGrowth,
           timeline: ensureArray(soundGrowth.timeline),
+          cluster: soundGrowth.cluster
+            ? {
+                ...soundGrowth.cluster,
+                timeline: ensureArray(soundGrowth.cluster.timeline),
+              }
+            : soundGrowth.cluster,
         }
       : emptySoundGrowth(liveReportData.campaign.track),
     metadata: liveReportData.metadata,
@@ -78,7 +94,7 @@ export function buildReportContentSnapshot(
     },
     sourceCounts: {
       videoCount: ensureArray(liveReportData.videos).length,
-      creatorCount: ensureArray(liveReportData.creators).length,
+      creatorCount: normalizeCreatorList(liveReportData.creators).length,
     },
     data: buildSnapshotData(liveReportData),
   });

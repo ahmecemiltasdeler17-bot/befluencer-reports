@@ -25,19 +25,28 @@ function formatSignedDelta(current: number, previous: number | null): string {
 
 export function SoundSnapshotHistory({
   rows,
+  title = "Ses Kullanım Geçmişi",
+  emptyLabel = "Henüz ses kullanım kaydı yok.",
+  showNote = false,
 }: {
   rows: SoundMetricSnapshot[];
+  title?: string;
+  emptyLabel?: string;
+  showNote?: boolean;
 }) {
   if (rows.length === 0) {
     return (
-      <p className="text-sm text-zinc-500">Henüz ses kullanım kaydı yok.</p>
+      <section className="space-y-4">
+        <h3 className="text-base font-medium text-white">{title}</h3>
+        <p className="text-sm text-zinc-500">{emptyLabel}</p>
+      </section>
     );
   }
 
   // rows arrive newest-first from the query; previous value is the next row.
   return (
     <section className="space-y-4">
-      <h3 className="text-base font-medium text-white">Ses Kullanım Geçmişi</h3>
+      <h3 className="text-base font-medium text-white">{title}</h3>
       <div className="overflow-hidden rounded-xl border border-zinc-800">
         <table className="min-w-full divide-y divide-zinc-800 text-sm">
           <thead className="bg-zinc-950/80">
@@ -46,6 +55,9 @@ export function SoundSnapshotHistory({
               <th className="px-4 py-3 font-medium">Kullanım</th>
               <th className="px-4 py-3 font-medium">Değişim</th>
               <th className="px-4 py-3 font-medium">Kaynak</th>
+              {showNote ? (
+                <th className="px-4 py-3 font-medium">Not</th>
+              ) : null}
               <th className="px-4 py-3 font-medium text-right">Sil</th>
             </tr>
           </thead>
@@ -70,6 +82,11 @@ export function SoundSnapshotHistory({
                   <td className="px-4 py-3 text-zinc-400">
                     {SOURCE_LABELS[row.source] ?? row.source}
                   </td>
+                  {showNote ? (
+                    <td className="px-4 py-3 text-zinc-500">
+                      {row.note?.trim() ? row.note : "—"}
+                    </td>
+                  ) : null}
                   <td className="px-4 py-3 text-right">
                     <DeleteSoundSnapshotButton snapshotId={row.id} />
                   </td>

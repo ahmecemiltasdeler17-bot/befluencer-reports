@@ -3,12 +3,14 @@ import "server-only";
 import {
   buildSoundDailyGrowthSeries,
   computeSoundMetricSummary,
+  filterSoundSnapshotsByMetricType,
 } from "@/features/sound-sync/calculations";
 import type {
   CampaignSoundConfiguration,
   SoundDailyGrowthPoint,
   SoundMetricSnapshot,
   SoundMetricSummary,
+  SoundMetricType,
   SoundSyncJob,
 } from "@/features/sound-sync/types";
 import { getVerifiedAuth } from "@/lib/supabase/auth";
@@ -40,6 +42,9 @@ async function requireAuthenticatedClient() {
 }
 
 function mapSnapshot(row: Record<string, unknown>): SoundMetricSnapshot {
+  const metricType =
+    row.metric_type === "cluster" ? "cluster" : ("original" as const);
+
   return {
     id: row.id as string,
     campaign_id: row.campaign_id as string,
@@ -48,6 +53,8 @@ function mapSnapshot(row: Record<string, unknown>): SoundMetricSnapshot {
     source: ((row.source as string | undefined) ?? "manual") as
       | "manual"
       | "apify",
+    metric_type: metricType,
+    note: (row.note as string | null | undefined) ?? null,
     created_at:
       (row.created_at as string | undefined) ?? (row.captured_at as string),
   };
@@ -90,32 +97,48 @@ export async function getCampaignSoundConfiguration(
 }
 
 export async function listSoundMetricSnapshots(
-  campaignId: string
+  campaignId: string,
+  metricType?: SoundMetricType
 ): Promise<SoundMetricSnapshot[]> {
   const supabase = await requireAuthenticatedClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("sound_metric_snapshots")
     .select("*")
     .eq("campaign_id", campaignId)
     .order("captured_at", { ascending: false });
 
+  if (metricType) {
+    query = query.eq("metric_type", metricType);
+  }
+
+  const { data, error } = await query;
+
   if (error) {
     throw new Error(mapSupabaseError(error.message));
   }
 
-  return (data ?? []).map((row) => mapSnapshot(row as Record<string, unknown>));
+  const mapped = (data ?? []).map((row) =>
+    mapSnapshot(row as Record<string, unknown>)
+  );
+
+  // Defensive client-side filter if DB column is not yet migrated.
+  return metricType
+    ? filterSoundSnapshotsByMetricType(mapped, metricType)
+    : mapped;
 }
 
 export async function getLatestSoundMetricSnapshot(
-  campaignId: string
+  campaignId: string,
+  metricType: SoundMetricType = "original"
 ): Promise<SoundMetricSnapshot | null> {
-  const snapshots = await listSoundMetricSnapshots(campaignId);
+  const snapshots = await listSoundMetricSnapshots(campaignId, metricType);
   return snapshots[0] ?? null;
 }
 
 export async function getFirstSoundMetricSnapshot(
-  campaignId: string
+  campaignId: string,
+  metricType: SoundMetricType = "original"
 ): Promise<SoundMetricSnapshot | null> {
   const supabase = await requireAuthenticatedClient();
 
@@ -123,6 +146,7 @@ export async function getFirstSoundMetricSnapshot(
     .from("sound_metric_snapshots")
     .select("*")
     .eq("campaign_id", campaignId)
+    .eq("metric_type", metricType)
     .order("captured_at", { ascending: true })
     .limit(1)
     .maybeSingle();
@@ -135,16 +159,18 @@ export async function getFirstSoundMetricSnapshot(
 }
 
 export async function getSoundMetricSummary(
-  campaignId: string
+  campaignId: string,
+  metricType: SoundMetricType = "original"
 ): Promise<SoundMetricSummary> {
-  const snapshots = await listSoundMetricSnapshots(campaignId);
+  const snapshots = await listSoundMetricSnapshots(campaignId, metricType);
   return computeSoundMetricSummary(snapshots);
 }
 
 export async function getSoundDailyGrowthSeries(
-  campaignId: string
+  campaignId: string,
+  metricType: SoundMetricType = "original"
 ): Promise<SoundDailyGrowthPoint[]> {
-  const snapshots = await listSoundMetricSnapshots(campaignId);
+  const snapshots = await listSoundMetricSnapshots(campaignId, metricType);
   return buildSoundDailyGrowthSeries(snapshots);
 }
 

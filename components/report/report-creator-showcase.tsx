@@ -2,6 +2,7 @@
 
 import { ReportCreatorLink } from "@/components/report/links/report-creator-link";
 import { SafeAvatar } from "@/components/report/content/safe-media";
+import { normalizeShowcaseCreators } from "@/features/reports/normalize-creators";
 import { resolveCreatorLink } from "@/lib/report-links/resolve-report-links";
 import type { Platform } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -17,14 +18,16 @@ export type ShowcaseCreator = {
 
 /**
  * Deduplicate by stable creator id while preserving first-seen order.
+ * Rejects strings / primitives so "SIMON" never becomes S,I,M,O,N avatars.
  */
 export function dedupeShowcaseCreators(
-  creators: ShowcaseCreator[]
+  creators: ShowcaseCreator[] | unknown
 ): ShowcaseCreator[] {
+  const normalized = normalizeShowcaseCreators(creators);
   const seen = new Set<string>();
   const result: ShowcaseCreator[] = [];
 
-  for (const creator of creators) {
+  for (const creator of normalized) {
     if (!creator.id || seen.has(creator.id)) {
       continue;
     }
