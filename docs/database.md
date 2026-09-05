@@ -125,6 +125,8 @@ Append-only follower / profile statistics history per creator. Columns: `followe
 
 RLS grants SELECT / INSERT / DELETE to authenticated users and deliberately withholds UPDATE so historical follower counts cannot be rewritten. Correcting a bad row means deleting it.
 
+Multi-creator reads go through `creator_growth_bounds(p_creator_ids uuid[])` (`20260904190000_creator_growth_bounds.sql`), which returns the earliest and latest snapshot per creator — one row each. It is `security invoker`, so the table policy above still applies, and `execute` is granted to `authenticated` only. Selecting the full series for many creators at once is capped by PostgREST's default row limit and silently returns only the oldest rows, so growth must not be computed that way.
+
 See [creator-profile-sync.md](./creator-profile-sync.md).
 
 ### `videos`
@@ -165,6 +167,14 @@ Advisory lock RPCs: `try_acquire_scheduled_sync_lock()`, `release_scheduled_sync
 | `started_at` / `completed_at` | Job lifecycle timestamps |
 
 One row per sync attempt. Campaign bulk video sync creates one job per video; campaign bulk creator sync creates one job per unique TikTok creator.
+
+### `leads`
+
+Inbound marketing-site form submissions (`brand_inquiry`, `creator_application`). Identity columns (`full_name`, `email`, `phone`) are extracted for listing and search; `payload` keeps the raw submitted fields minus consent and honeypot. `creator_id` is set only when an admin explicitly converts a creator application.
+
+RLS: `leads_authenticated_all`; `anon` has no table privilege. The marketing site writes through `create_marketing_lead(p_kind, p_full_name, p_email, p_phone, p_payload, p_submitted_at)` — security definer, `execute` granted to `anon` — called by `POST /api/public/leads` after it validates a shared secret (`LEADS_INGEST_SECRET`).
+
+Migration: `20260904200000_marketing_leads.sql`. See [leads.md](./leads.md).
 
 ## TikTok automatic sync (Phase 5)
 
@@ -324,22 +334,92 @@ Overwriting a single `views` column on `videos` would make growth analytics and 
 
 ## Row Level Security (RLS)
 
-RLS is **enabled on every table**. Internal auth policies are applied in a follow-up migration.
+RLS is **enabled on every table, without exception**. That is the one rule with no
+variation — `alter table … enable row level security` appears for every table in
+every migration that creates one.
 
-| Role | Table access |
-|------|----------------|
-| `anon` | No privileges — all revoked |
-| `authenticated` | Full `SELECT`, `INSERT`, `UPDATE`, `DELETE` on all application tables |
+Beyond that, there is **no single policy shape**. Public signup is disabled and
+users are created manually in the Supabase Dashboard, so the models below differ
+by what the data is, not by who is signed in.
 
-Policy model (single internal agency):
+### Model A — shared operational data (most tables)
 
-- Public signup is disabled; users are created manually in Supabase Dashboard.
-- Authenticated users may access **all rows** on every table.
-- Four explicit policies per table: `{table}_authenticated_select`, `_insert`, `_update`, `_delete`.
-- `INSERT` and `UPDATE` policies include `WITH CHECK (true)`.
-- No anonymous policies.
+Campaigns, creators, videos, metric snapshots, reports, sync logs. Every
+authenticated user may read and write **all rows**; there is no per-user scoping.
 
-Migration: `supabase/migrations/20260805210000_internal_auth_policies.sql`
+Two spellings of this model exist, and both are live:
+
+| Period | Shape | Naming |
+|--------|-------|--------|
+| Migrations before `20260814090000` | Four policies per table, one per operation | `{table}_authenticated_select` / `_insert` / `_update` / `_delete` |
+| `20260814090000` onward | A single combined policy | `{table}_authenticated_all`, or `{table}_admin_all` for portal/admin tables |
+
+```sql
+create policy sound_reports_authenticated_all on public.sound_reports
+  for all to authenticated using (true) with check (true);
+```
+
+The older four-policy tables were **not** rewritten, so both forms remain correct
+in the schema. **New tables should use the single `for all` policy** — do not copy
+the four-policy split out of an early migration.
+
+### Model B — owner-scoped personal data
+
+`personal_finance_entries`, `personal_finance_recurring`, `personal_finance_settings`.
+Rows belong to one user, so policies scope on `auth.uid()` rather than `using (true)`:
+
+```sql
+create policy personal_finance_entries_owner_select on public.personal_finance_entries
+  for select to authenticated using (user_id = auth.uid());
+```
+
+These deliberately keep the per-operation split, because the `USING` and
+`WITH CHECK` expressions differ between read and write. Note also that
+`personal_finance_settings` is granted `select, insert, update` only — withholding
+`delete` at the grant level is intentional.
+
+Use this model for any new table holding data that belongs to one user.
+
+### Model C — public / anonymous access
+
+`anon` never receives privileges on an application table. Public surfaces
+(`/r/<token>`, `/lists/<token>`, the client and creator portals) read exclusively
+through `security definer` functions:
+
+```sql
+revoke all on function public.resolve_client_portal(text) from public;
+grant execute on function public.resolve_client_portal(text) to anon, authenticated;
+```
+
+The single exception is `storage.objects`, where public read policies do exist for
+the creator-avatar and featured-video-preview buckets
+(`creator_avatars_public_select`, `featured_video_previews_public_select`) so that
+`<img>` and `<video>` sources resolve without a session.
+
+### On `revoke … from anon`
+
+Migration `20260805210000_internal_auth_policies.sql` revokes `anon` privileges as
+a baseline, and most later migrations repeat a `revoke … from anon` line for the
+tables they add as defence in depth. This repetition is **not universal** — for
+example `20260828120000_sound_content_reports.sql` grants to `authenticated`
+without an explicit anon revoke.
+
+So: do not assume every table carries its own revoke line. What actually protects a
+table is RLS being enabled plus the absence of any `anon` grant or policy. Adding
+an explicit revoke for new tables is still preferred.
+
+### Checklist for a new table
+
+1. `enable row level security` — always
+2. Grant `authenticated` only the operations the feature genuinely needs
+3. Pick Model A (shared) or Model B (owner-scoped) and name the policy accordingly
+4. Never grant `anon`; if public access is required, add a `security definer` RPC
+5. For append-only tables, withhold `UPDATE` deliberately — see the snapshot tables above
+
+Baseline migration: `supabase/migrations/20260805210000_internal_auth_policies.sql`.
+Current reference examples: `20260828120000_sound_content_reports.sql` (Model A),
+`20260815090000_personal_finance.sql` (Model B),
+`20260817090000_client_portal_v1.sql` (Model C).
 
 Public report sharing uses a **separate controlled mechanism** — `public_report_shares`
 plus security-definer RPCs — not broad anon table policies. See

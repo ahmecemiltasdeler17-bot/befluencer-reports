@@ -1,5 +1,6 @@
 import type {
   CampaignAudienceSummary,
+  CreatorGrowthBounds,
   CreatorMetricHistoryRow,
   CreatorMetricSnapshot,
   CreatorMetricSummary,
@@ -107,6 +108,41 @@ export function buildCreatorMetricSummary(
         : Number(latest.video_count),
     firstCapturedAt: first?.captured_at ?? null,
     latestCapturedAt: latest?.captured_at ?? null,
+  };
+}
+
+/**
+ * Same growth figures as `buildCreatorMetricSummary`, from the two bounding
+ * snapshots instead of the whole series.
+ *
+ * List surfaces read those bounds in SQL, so they stay correct no matter how
+ * long a creator's history gets. Falls back to the creator row when no snapshot
+ * exists, exactly like the full-series path.
+ */
+export function buildCreatorGrowthFromBounds(
+  bounds: CreatorGrowthBounds | null,
+  creatorFollowerCount: number
+): {
+  currentFollowers: number;
+  absoluteGrowth: number | null;
+  growthPercentage: number | null;
+} {
+  if (!bounds || bounds.snapshotCount <= 0) {
+    return {
+      currentFollowers: Number(creatorFollowerCount),
+      absoluteGrowth: null,
+      growthPercentage: null,
+    };
+  }
+
+  const current = Number(bounds.latestFollowerCount);
+  const initial = Number(bounds.firstFollowerCount);
+  const absoluteGrowth = current - initial;
+
+  return {
+    currentFollowers: current,
+    absoluteGrowth,
+    growthPercentage: percentageChange(absoluteGrowth, initial),
   };
 }
 

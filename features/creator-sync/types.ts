@@ -40,6 +40,20 @@ export type CreatorMetricSummary = {
   latestCapturedAt: string | null;
 };
 
+/**
+ * Earliest and latest snapshot for one creator, resolved in SQL.
+ *
+ * List surfaces need only these two rows to describe growth, so they never read
+ * the full series — see `creator_growth_bounds`.
+ */
+export type CreatorGrowthBounds = {
+  snapshotCount: number;
+  firstFollowerCount: number;
+  firstCapturedAt: string;
+  latestFollowerCount: number;
+  latestCapturedAt: string;
+};
+
 /** Per-creator sync state for campaign and list views. */
 export type CreatorSyncSummary = {
   creatorId: string;

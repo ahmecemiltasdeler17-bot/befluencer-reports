@@ -384,6 +384,42 @@ describe("runCreatorSync", () => {
     assert.equal("avatar_url" in patch, false);
   });
 
+  it("keeps null when both stored and provider avatars are missing", async () => {
+    const { port, calls } = createRecordingPort({
+      creator: creatorRecord({ avatarUrl: null }),
+    });
+
+    await runCreatorSync(
+      CREATOR_ID,
+      stubProvider(profile({ avatarUrl: null })),
+      port
+    );
+
+    assert.equal("avatar_url" in calls.creatorPatches[0], false);
+  });
+
+  it("writes the durable mirrored URL instead of the temporary provider URL", async () => {
+    const { port, calls } = createRecordingPort({});
+    port.persistAvatar = async () =>
+      "https://project.supabase.co/storage/v1/object/public/creator-avatars/id/avatar";
+
+    await runCreatorSync(CREATOR_ID, stubProvider(profile()), port);
+
+    assert.equal(
+      calls.creatorPatches[0].avatar_url,
+      "https://project.supabase.co/storage/v1/object/public/creator-avatars/id/avatar"
+    );
+  });
+
+  it("preserves the existing avatar when mirroring a valid new URL fails", async () => {
+    const { port, calls } = createRecordingPort({});
+    port.persistAvatar = async () => null;
+
+    await runCreatorSync(CREATOR_ID, stubProvider(profile()), port);
+
+    assert.equal("avatar_url" in calls.creatorPatches[0], false);
+  });
+
   it("preserves the existing follower count when the provider fails", async () => {
     const { port, calls } = createRecordingPort({});
     const provider = stubProvider(new TikTokProviderError("rate_limit"));

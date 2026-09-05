@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import {
   buildCampaignAudienceSummary,
+  buildCreatorGrowthFromBounds,
   buildCreatorMetricHistory,
   buildCreatorMetricSummary,
   currentFollowers,
@@ -12,7 +13,10 @@ import {
   percentageChange,
   shouldAppendCreatorSnapshot,
 } from "@/features/creator-sync/calculations";
-import type { CreatorMetricSnapshot } from "@/features/creator-sync/types";
+import type {
+  CreatorGrowthBounds,
+  CreatorMetricSnapshot,
+} from "@/features/creator-sync/types";
 
 const HOUR = 60 * 60 * 1000;
 
@@ -396,5 +400,97 @@ describe("partitionSyncableCreators", () => {
       skipped.map((item) => item.creatorId),
       ["b", "c"]
     );
+  });
+});
+
+describe("buildCreatorGrowthFromBounds", () => {
+  function bounds(
+    overrides: Partial<CreatorGrowthBounds> & {
+      firstFollowerCount: number;
+      latestFollowerCount: number;
+    }
+  ): CreatorGrowthBounds {
+    return {
+      snapshotCount: overrides.snapshotCount ?? 2,
+      firstFollowerCount: overrides.firstFollowerCount,
+      firstCapturedAt: overrides.firstCapturedAt ?? "2026-08-11T10:00:00.000Z",
+      latestFollowerCount: overrides.latestFollowerCount,
+      latestCapturedAt: overrides.latestCapturedAt ?? "2026-09-04T10:00:00.000Z",
+    };
+  }
+
+  it("falls back to the creator row when no snapshot exists", () => {
+    const growth = buildCreatorGrowthFromBounds(null, 12_000);
+
+    assert.deepEqual(growth, {
+      currentFollowers: 12_000,
+      absoluteGrowth: null,
+      growthPercentage: null,
+    });
+  });
+
+  it("reports the latest snapshot as current, not the creator row", () => {
+    const growth = buildCreatorGrowthFromBounds(
+      bounds({ firstFollowerCount: 656_900, latestFollowerCount: 775_200 }),
+      699_000
+    );
+
+    assert.equal(growth.currentFollowers, 775_200);
+    assert.equal(growth.absoluteGrowth, 118_300);
+    assert.notEqual(growth.growthPercentage, null);
+    assert.equal(Number(growth.growthPercentage).toFixed(2), "18.01");
+  });
+
+  it("matches the full-series summary for the same series", () => {
+    const series = [
+      snapshot({ captured_at: "2026-08-11T10:00:00.000Z", follower_count: 656_900 }),
+      snapshot({ captured_at: "2026-08-16T10:00:00.000Z", follower_count: 699_000 }),
+      snapshot({ captured_at: "2026-09-04T10:00:00.000Z", follower_count: 775_200 }),
+    ];
+    const summary = buildCreatorMetricSummary(series, 699_000);
+    const growth = buildCreatorGrowthFromBounds(
+      bounds({
+        snapshotCount: series.length,
+        firstFollowerCount: 656_900,
+        latestFollowerCount: 775_200,
+      }),
+      699_000
+    );
+
+    assert.equal(growth.currentFollowers, summary.currentFollowers);
+    assert.equal(growth.absoluteGrowth, summary.absoluteGrowth);
+    assert.equal(growth.growthPercentage, summary.growthPercentage);
+  });
+
+  it("keeps negative growth and a null percentage on a zero baseline", () => {
+    const shrinking = buildCreatorGrowthFromBounds(
+      bounds({ firstFollowerCount: 5_000, latestFollowerCount: 4_200 }),
+      4_200
+    );
+    assert.equal(shrinking.absoluteGrowth, -800);
+
+    const fromZero = buildCreatorGrowthFromBounds(
+      bounds({ firstFollowerCount: 0, latestFollowerCount: 1_500 }),
+      1_500
+    );
+    assert.equal(fromZero.absoluteGrowth, 1_500);
+    assert.equal(fromZero.growthPercentage, null);
+  });
+
+  it("treats an empty bounds row as no history", () => {
+    const growth = buildCreatorGrowthFromBounds(
+      bounds({
+        snapshotCount: 0,
+        firstFollowerCount: 0,
+        latestFollowerCount: 0,
+      }),
+      8_400
+    );
+
+    assert.deepEqual(growth, {
+      currentFollowers: 8_400,
+      absoluteGrowth: null,
+      growthPercentage: null,
+    });
   });
 });

@@ -130,6 +130,24 @@ export function isCronConfigured(): boolean {
 }
 
 /**
+ * Shared secret the marketing site sends as `Authorization: Bearer …` when it
+ * forwards a form submission to `/api/public/leads`. Server-only; the same
+ * value is `FORM_WEBHOOK_SECRET` in befluencer-web.
+ *
+ * The minimum length is enforced here rather than at the call site, so a
+ * placeholder like "changeme" cannot quietly stand guard over a public
+ * endpoint — too short counts as unconfigured, and ingest returns 503.
+ */
+export function getLeadIngestSecret(): string | null {
+  const secret = process.env.LEADS_INGEST_SECRET?.trim();
+  return secret && secret.length >= 24 ? secret : null;
+}
+
+export function isLeadIngestConfigured(): boolean {
+  return Boolean(getLeadIngestSecret());
+}
+
+/**
  * Scheduled sync needs Apify + service-role (no browser session).
  * The public cron route additionally requires CRON_SECRET.
  */

@@ -21,6 +21,8 @@ export type OrchestrateCreatorBatchesResult = {
   actorRunsStarted: number;
   /** Username lists actually sent to each provider batch call (for tests). */
   sentBatches: string[][];
+  /** Canonical usernames not started because the invocation budget ran low. */
+  skippedUsernames: string[];
 };
 
 /**
@@ -34,7 +36,8 @@ export type OrchestrateCreatorBatchesResult = {
  */
 export async function orchestrateCreatorBatchFetches(
   usernames: string[],
-  fetchBatch: CreatorBatchFetchFn
+  fetchBatch: CreatorBatchFetchFn,
+  options?: { shouldContinue?: () => boolean }
 ): Promise<OrchestrateCreatorBatchesResult> {
   const canonical: string[] = [];
   for (const raw of usernames) {
@@ -50,12 +53,17 @@ export async function orchestrateCreatorBatchFetches(
   const results = new Map<string, TikTokCreatorBatchItemResult>();
   const sentBatches: string[][] = [];
   let actorRunsStarted = 0;
+  const skippedUsernames: string[] = [];
 
   // Sequential batches — bounded concurrency of actor starts is handled by
   // the caller when running multiple independent orchestrations. Within one
   // orchestration we keep order simple and prove N→1 input construction.
   for (const chunk of chunks) {
     if (chunk.length === 0) {
+      continue;
+    }
+    if (options?.shouldContinue && !options.shouldContinue()) {
+      skippedUsernames.push(...chunk);
       continue;
     }
 
@@ -70,5 +78,5 @@ export async function orchestrateCreatorBatchFetches(
     }
   }
 
-  return { results, actorRunsStarted, sentBatches };
+  return { results, actorRunsStarted, sentBatches, skippedUsernames };
 }

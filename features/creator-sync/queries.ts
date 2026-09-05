@@ -1,10 +1,12 @@
 import {
   buildCampaignAudienceSummary,
+  buildCreatorGrowthFromBounds,
   buildCreatorMetricHistory,
   buildCreatorMetricSummary,
 } from "@/features/creator-sync/calculations";
 import type {
   CampaignAudienceSummary,
+  CreatorGrowthBounds,
   CreatorMetricHistoryRow,
   CreatorMetricSnapshot,
   CreatorMetricSummary,
@@ -15,20 +17,22 @@ import type { CreatorPlatform } from "@/features/creators/types";
 import type { SyncJob } from "@/features/sync/types";
 import type { SyncDbClient } from "@/features/sync/db-client";
 import { getVerifiedAuth } from "@/lib/supabase/auth";
+import {
+  logDatabaseError,
+  mapDatabaseErrorToUserMessage,
+  type SupabaseLikeError,
+} from "@/lib/supabase/database-error";
 import { createClient } from "@/lib/supabase/server";
 
-function mapSupabaseError(message: string): string {
-  const normalized = message.toLowerCase();
-
-  if (normalized.includes("permission denied")) {
-    return "Bu işlem için yetkiniz yok.";
-  }
-
-  if (normalized.includes("jwt")) {
-    return "Oturumunuz geçersiz. Lütfen tekrar giriş yapın.";
-  }
-
-  return "Veritabanı hatası oluştu. Lütfen tekrar deneyin.";
+function mapSupabaseError(
+  error: SupabaseLikeError | string,
+  operation = "creatorSyncQuery",
+  table = "unknown"
+): string {
+  const normalized: SupabaseLikeError =
+    typeof error === "string" ? { message: error } : error;
+  logDatabaseError(normalized, { operation, table });
+  return mapDatabaseErrorToUserMessage(normalized.message);
 }
 
 async function requireAuthenticatedClient() {
@@ -70,7 +74,7 @@ export async function listCreatorMetricSnapshots(
     .order("captured_at", { ascending: true });
 
   if (error) {
-    throw new Error(mapSupabaseError(error.message));
+    throw new Error(mapSupabaseError(error));
   }
 
   return ((data ?? []) as CreatorMetricSnapshot[]).map(mapSnapshot);
@@ -90,7 +94,7 @@ export async function getLatestCreatorMetricSnapshot(
     .maybeSingle();
 
   if (error) {
-    throw new Error(mapSupabaseError(error.message));
+    throw new Error(mapSupabaseError(error));
   }
 
   return data ? mapSnapshot(data as CreatorMetricSnapshot) : null;
@@ -110,7 +114,7 @@ export async function getFirstCreatorMetricSnapshot(
     .maybeSingle();
 
   if (error) {
-    throw new Error(mapSupabaseError(error.message));
+    throw new Error(mapSupabaseError(error));
   }
 
   return data ? mapSnapshot(data as CreatorMetricSnapshot) : null;
@@ -155,7 +159,7 @@ function firstEmbedded<T>(value: unknown): T | null {
 
 /**
  * Reads sync state plus follower growth for every creator assigned to a
- * campaign. One snapshot query covers all of them, so adding creators does not
+ * campaign. One bounds query covers all of them, so adding creators does not
  * add round trips.
  */
 export async function listCampaignCreatorSyncSummaries(
@@ -181,7 +185,7 @@ export async function listCampaignCreatorSyncSummaries(
     .eq("campaign_id", campaignId);
 
   if (error) {
-    throw new Error(mapSupabaseError(error.message));
+    throw new Error(mapSupabaseError(error));
   }
 
   const creators = new Map<string, CreatorSyncRow>();
@@ -198,11 +202,11 @@ export async function listCampaignCreatorSyncSummaries(
     return [];
   }
 
-  const snapshotsByCreator = await listSnapshotsForCreators([...creators.keys()]);
+  const boundsByCreator = await listCreatorGrowthBounds([...creators.keys()]);
 
   return [...creators.values()].map((creator) => {
-    const summary = buildCreatorMetricSummary(
-      snapshotsByCreator.get(creator.id) ?? [],
+    const growth = buildCreatorGrowthFromBounds(
+      boundsByCreator.get(creator.id) ?? null,
       Number(creator.follower_count)
     );
 
@@ -211,42 +215,72 @@ export async function listCampaignCreatorSyncSummaries(
       username: creator.username,
       displayName: creator.display_name,
       platform: creator.platform,
-      currentFollowers: summary.currentFollowers,
-      absoluteGrowth: summary.absoluteGrowth,
-      growthPercentage: summary.growthPercentage,
+      currentFollowers: growth.currentFollowers,
+      absoluteGrowth: growth.absoluteGrowth,
+      growthPercentage: growth.growthPercentage,
       lastSyncedAt: creator.last_synced_at,
       syncStatus: creator.sync_status ?? "pending",
     };
   });
 }
 
-async function listSnapshotsForCreators(
+/** Must match the SQL signature in creator_growth_bounds. */
+const CREATOR_GROWTH_BOUNDS_RPC = "creator_growth_bounds";
+const CREATOR_GROWTH_BOUNDS_RPC_PARAM = "p_creator_ids";
+
+type CreatorGrowthBoundsRow = {
+  creator_id: string;
+  snapshot_count: number;
+  first_follower_count: number | string;
+  first_captured_at: string;
+  latest_follower_count: number | string;
+  latest_captured_at: string;
+};
+
+/**
+ * Earliest and latest snapshot per creator, resolved in SQL.
+ *
+ * Reading the full series for a set of creators and reducing it here would be
+ * capped by PostgREST's default row limit — quietly, and biased toward the
+ * oldest rows — so growth for a long history would be computed from stale
+ * snapshots. One row per creator cannot hit that cap.
+ */
+async function listCreatorGrowthBounds(
   creatorIds: string[]
-): Promise<Map<string, CreatorMetricSnapshot[]>> {
-  const supabase = await requireAuthenticatedClient();
-  const grouped = new Map<string, CreatorMetricSnapshot[]>();
+): Promise<Map<string, CreatorGrowthBounds>> {
+  const bounds = new Map<string, CreatorGrowthBounds>();
 
   if (creatorIds.length === 0) {
-    return grouped;
+    return bounds;
   }
 
-  const { data, error } = await supabase
-    .from("creator_metric_snapshots")
-    .select("*")
-    .in("creator_id", creatorIds)
-    .order("captured_at", { ascending: true });
+  const supabase = await requireAuthenticatedClient();
+
+  const { data, error } = await supabase.rpc(CREATOR_GROWTH_BOUNDS_RPC, {
+    [CREATOR_GROWTH_BOUNDS_RPC_PARAM]: creatorIds,
+  });
 
   if (error) {
-    throw new Error(mapSupabaseError(error.message));
+    throw new Error(
+      mapSupabaseError(
+        error,
+        "listCreatorGrowthBounds",
+        "creator_metric_snapshots"
+      )
+    );
   }
 
-  for (const row of (data ?? []) as CreatorMetricSnapshot[]) {
-    const bucket = grouped.get(row.creator_id) ?? [];
-    bucket.push(mapSnapshot(row));
-    grouped.set(row.creator_id, bucket);
+  for (const row of (data ?? []) as CreatorGrowthBoundsRow[]) {
+    bounds.set(row.creator_id, {
+      snapshotCount: Number(row.snapshot_count),
+      firstFollowerCount: Number(row.first_follower_count),
+      firstCapturedAt: row.first_captured_at,
+      latestFollowerCount: Number(row.latest_follower_count),
+      latestCapturedAt: row.latest_captured_at,
+    });
   }
 
-  return grouped;
+  return bounds;
 }
 
 export type CreatorGrowth = {
@@ -256,7 +290,7 @@ export type CreatorGrowth = {
 };
 
 /**
- * Growth for an explicit set of creators, in one snapshot query.
+ * Growth for an explicit set of creators, in one bounds query.
  *
  * Used by the creator list, which already has the creator rows and only needs
  * the growth overlay — so this avoids re-reading the creators table.
@@ -270,21 +304,18 @@ export async function listCreatorGrowthByIds(
     return growth;
   }
 
-  const snapshotsByCreator = await listSnapshotsForCreators(
+  const boundsByCreator = await listCreatorGrowthBounds(
     creators.map((creator) => creator.id)
   );
 
   for (const creator of creators) {
-    const summary = buildCreatorMetricSummary(
-      snapshotsByCreator.get(creator.id) ?? [],
-      Number(creator.follower_count)
+    growth.set(
+      creator.id,
+      buildCreatorGrowthFromBounds(
+        boundsByCreator.get(creator.id) ?? null,
+        Number(creator.follower_count)
+      )
     );
-
-    growth.set(creator.id, {
-      currentFollowers: summary.currentFollowers,
-      absoluteGrowth: summary.absoluteGrowth,
-      growthPercentage: summary.growthPercentage,
-    });
   }
 
   return growth;
@@ -322,7 +353,7 @@ export async function listCreatorSyncJobs(
     .limit(limit);
 
   if (error) {
-    throw new Error(mapSupabaseError(error.message));
+    throw new Error(mapSupabaseError(error));
   }
 
   return (data ?? []) as SyncJob[];
@@ -345,7 +376,7 @@ export async function listCampaignCreatorSyncJobs(
     .eq("campaign_id", campaignId);
 
   if (assignmentError) {
-    throw new Error(mapSupabaseError(assignmentError.message));
+    throw new Error(mapSupabaseError(assignmentError));
   }
 
   const creatorIds = [
@@ -365,7 +396,7 @@ export async function listCampaignCreatorSyncJobs(
     .limit(limit);
 
   if (error) {
-    throw new Error(mapSupabaseError(error.message));
+    throw new Error(mapSupabaseError(error));
   }
 
   return (data ?? []) as SyncJob[];
@@ -384,7 +415,7 @@ export async function listCampaignIdsForCreator(
     .eq("creator_id", creatorId);
 
   if (error) {
-    throw new Error(mapSupabaseError(error.message));
+    throw new Error(mapSupabaseError(error));
   }
 
   return [...new Set((data ?? []).map((row) => row.campaign_id as string))];

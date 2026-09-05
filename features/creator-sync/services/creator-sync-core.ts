@@ -21,6 +21,11 @@ import {
 } from "@/lib/providers/tiktok/detect-unavailable-creator";
 import { TikTokProviderError } from "@/lib/providers/tiktok/errors";
 import { assertApprovedTikTokProfile } from "@/lib/providers/tiktok/profile-url";
+import {
+  isValidAvatarUrl,
+  logCreatorAvatarSync,
+  resolveStoredAvatarUrl,
+} from "@/lib/providers/tiktok/select-creator-avatar";
 import { evaluateCreatorSyncEligibility } from "@/lib/providers/tiktok/sync-eligibility";
 import type { TikTokCreatorProvider } from "@/lib/providers/tiktok/types";
 
@@ -77,6 +82,7 @@ export type CreatorSyncPort = {
     snapshot: CreatorSnapshotCandidate
   ): Promise<void>;
   updateCreator(creatorId: string, patch: CreatorSyncPatch): Promise<void>;
+  persistAvatar?(creatorId: string, sourceUrl: string): Promise<string | null>;
   markCreatorFailed(creatorId: string): Promise<void>;
   markCreatorUnavailable(
     creatorId: string,
@@ -216,9 +222,37 @@ export async function runCreatorSync(
       patch.display_name = profile.displayName as string;
     }
 
-    if (!isMissingText(profile.avatarUrl)) {
-      patch.avatar_url = profile.avatarUrl as string;
+    const avatarDecision = resolveStoredAvatarUrl(
+      creator.avatarUrl,
+      profile.avatarUrl
+    );
+    let persistedAvatarUrl = avatarDecision.url;
+    // Provider CDN URLs are signed and temporary. Mirror every valid provider
+    // image, even when its URL string matches the stored value, so an old
+    // remote URL can recover to durable Storage on the next successful sync.
+    if (isValidAvatarUrl(profile.avatarUrl) && port.persistAvatar) {
+      persistedAvatarUrl =
+        (await port.persistAvatar(creatorId, profile.avatarUrl)) ??
+        (isMissingText(creator.avatarUrl) ? avatarDecision.url : creator.avatarUrl);
     }
+    if (
+      persistedAvatarUrl &&
+      (!creator.avatarUrl || persistedAvatarUrl !== creator.avatarUrl)
+    ) {
+      patch.avatar_url = persistedAvatarUrl;
+    }
+    let avatarHost: string | null = null;
+    try {
+      avatarHost = persistedAvatarUrl ? new URL(persistedAvatarUrl).hostname : null;
+    } catch {
+      avatarHost = null;
+    }
+    logCreatorAvatarSync({
+      updated: avatarDecision.updated,
+      preservedExisting: avatarDecision.preservedExisting,
+      missingProviderImage: avatarDecision.missingProviderImage,
+      host: avatarHost,
+    });
 
     // Manual tiers are never overwritten. Auto tiers follow the live count.
     if (creator.categorySource === "auto") {

@@ -106,6 +106,21 @@ Pure helpers in `features/creator-sync/calculations.ts` (no rounding):
 
 Negative growth is valid. Follower count is never labeled as reach.
 
+### Where each surface reads growth from
+
+| Surface | Read path |
+|---------|-----------|
+| Creator detail | `listCreatorMetricSnapshots` → full series → `buildCreatorMetricSummary` / `buildCreatorMetricHistory` |
+| Creator list, campaign creator summaries | `creator_growth_bounds` RPC → earliest + latest row per creator → `buildCreatorGrowthFromBounds` |
+
+A multi-creator surface **must not** read the full snapshot series. Doing so hits
+PostgREST's default row cap, which truncates silently and — because rows arrive
+ordered by capture time — keeps each creator's *oldest* snapshots. The list then
+reports a months-old follower count as current and sorts by it, while the detail
+page (one creator, well under the cap) shows the right number. That is what
+`20260904190000_creator_growth_bounds.sql` fixed; both paths produce identical
+figures for the same history, asserted in `calculations.test.ts`.
+
 ## Creator versus campaign-specific fields
 
 | Field | Owner | Sync may change? |

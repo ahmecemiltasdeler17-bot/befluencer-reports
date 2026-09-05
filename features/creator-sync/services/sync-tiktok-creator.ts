@@ -25,7 +25,9 @@ import {
   TikTokProviderError,
 } from "@/lib/providers/tiktok";
 import { normalizeTikTokUsername } from "@/lib/providers/tiktok/profile-url";
+import { mirrorCreatorAvatar } from "@/lib/providers/tiktok/mirror-creator-avatar";
 import { evaluateCreatorSyncEligibility } from "@/lib/providers/tiktok/sync-eligibility";
+import { CREATOR_BATCH_SIZE, hasProviderStartBudget } from "@/lib/providers/tiktok/sync-policy";
 import {
   createEmptySyncMetrics,
   formatSyncMetricsTurkish,
@@ -42,6 +44,7 @@ export type SyncCreatorOptions = {
   force?: boolean;
   manualCooldown?: boolean;
   operationCache?: import("@/features/sync/services/sync-tiktok-video").TikTokSyncOperationCache;
+  deadlineMs?: number;
 };
 
 function mapSupabaseMutationError(message: string, code?: string): string {
@@ -117,7 +120,11 @@ function firstEmbedded<T>(value: unknown): T | null {
   return (value as T | null) ?? null;
 }
 
-function createCreatorSyncPort(supabase: SupabaseClient): CreatorSyncPort {
+function createCreatorSyncPort(
+  supabase: SupabaseClient,
+  deadlineMs?: number,
+  operationCache?: TikTokSyncOperationCache
+): CreatorSyncPort {
   return {
     async loadCreator(creatorId): Promise<CreatorSyncRecord | null> {
       const { data, error } = await supabase
@@ -220,6 +227,31 @@ function createCreatorSyncPort(supabase: SupabaseClient): CreatorSyncPort {
       if (error) {
         throw new Error(mapSupabaseMutationError(error.message, error.code));
       }
+    },
+
+    async persistAvatar(creatorId, sourceUrl) {
+      if (!("storage" in supabase)) return null;
+      // Avatar caching is best-effort. Near the invocation deadline, preserve
+      // the stored URL instead of starting another remote download.
+      if (deadlineMs !== undefined && Date.now() >= deadlineMs - 30_000) {
+        return null;
+      }
+      const publicUrl = await mirrorCreatorAvatar({
+        creatorId,
+        sourceUrl,
+        storage: supabase.storage,
+      });
+      if (!publicUrl) {
+        if (operationCache?.avatarMirrorFailures) {
+          operationCache.avatarMirrorFailures.value += 1;
+        }
+        console.warn("[CreatorAvatarMirror]", {
+          creatorId,
+          sourceHost: new URL(sourceUrl).hostname,
+          outcome: "preserved_existing",
+        });
+      }
+      return publicUrl;
     },
 
     async markCreatorFailed(creatorId) {
@@ -325,7 +357,11 @@ export async function syncTikTokCreator(
     return await runCreatorSync(
       creatorId,
       creatorProvider,
-      createCreatorSyncPort(supabase),
+      createCreatorSyncPort(
+        supabase,
+        options?.deadlineMs,
+        options?.operationCache
+      ),
       () => new Date(),
       {
         force: options?.force,
@@ -547,6 +583,7 @@ export async function syncCampaignTikTokCreators(
     string,
     import("@/lib/providers/tiktok/types").TikTokCreatorBatchItemResult
   >();
+  const deadlineSkipped = new Set<string>();
 
   for (const username of usernameKeys) {
     const cached = operationCache?.creatorResults.get(username);
@@ -560,21 +597,33 @@ export async function syncCampaignTikTokCreators(
   if (toFetch.length > 0) {
     const orchestrated = await orchestrateCreatorBatchFetches(
       toFetch,
-      (inputs) => creatorProvider.fetchCreatorProfilesBatch(inputs)
+      (inputs) => creatorProvider.fetchCreatorProfilesBatch(inputs),
+      { shouldContinue: () => hasProviderStartBudget(options?.deadlineMs) }
     );
     metrics.providerRunsStarted += orchestrated.actorRunsStarted;
     if (operationCache) {
       operationCache.actorRunsStarted.value += orchestrated.actorRunsStarted;
+      if (operationCache.creatorActorRunsStarted) {
+        operationCache.creatorActorRunsStarted.value += orchestrated.actorRunsStarted;
+      }
     }
     for (const [username, item] of orchestrated.results) {
       results.set(username, item);
       operationCache?.creatorResults.set(username, item);
+    }
+    for (const username of orchestrated.skippedUsernames) {
+      deadlineSkipped.add(username);
     }
   }
 
   for (const username of usernameKeys) {
     const item = results.get(username);
     const creatorIds = byUsername.get(username) ?? [];
+
+    if (!item && deadlineSkipped.has(username)) {
+      skipped += creatorIds.length;
+      continue;
+    }
 
     if (!item || item.status === "error") {
       const failingProvider: TikTokCreatorProvider = {
@@ -592,6 +641,7 @@ export async function syncCampaignTikTokCreators(
           client: supabase,
           force: true,
           manualCooldown: false,
+          deadlineMs: options?.deadlineMs,
         });
         if (result.outcome === "failed") {
           metrics.failed += 1;
@@ -627,6 +677,7 @@ export async function syncCampaignTikTokCreators(
         client: supabase,
         force: true,
         manualCooldown: false,
+        deadlineMs: options?.deadlineMs,
       });
       if (result.outcome === "success") {
         metrics.success += 1;
@@ -674,6 +725,7 @@ export async function prefetchCreatorBatchesForCampaigns(
     client?: SyncDbClient;
     provider?: TikTokCreatorProvider;
     force?: boolean;
+    deadlineMs?: number;
   }
 ): Promise<{ actorRunsStarted: number; usernamesFetched: number }> {
   if (campaignIds.length === 0) {
@@ -780,16 +832,76 @@ export async function prefetchCreatorBatchesForCampaigns(
 
   const orchestrated = await orchestrateCreatorBatchFetches(
     toFetch,
-    (inputs) => creatorProvider.fetchCreatorProfilesBatch(inputs)
+    (inputs) => creatorProvider.fetchCreatorProfilesBatch(inputs),
+    { shouldContinue: () => hasProviderStartBudget(options?.deadlineMs) }
   );
 
   for (const [username, item] of orchestrated.results) {
     operationCache.creatorResults.set(username, item);
   }
   operationCache.actorRunsStarted.value += orchestrated.actorRunsStarted;
+  if (operationCache.creatorActorRunsStarted) {
+    operationCache.creatorActorRunsStarted.value += orchestrated.actorRunsStarted;
+  }
 
   return {
     actorRunsStarted: orchestrated.actorRunsStarted,
-    usernamesFetched: toFetch.length,
+    usernamesFetched: toFetch.length - orchestrated.skippedUsernames.length,
   };
+}
+
+/** One bounded manual-job chunk. Exactly one provider batch for at most 5 creators. */
+export async function syncTikTokCreatorIdsBatch(
+  creatorIds: string[],
+  options: { client: SyncDbClient; operationCache?: TikTokSyncOperationCache }
+): Promise<Array<{ id: string; outcome: "success" | "failed"; message: string }>> {
+  if (creatorIds.length === 0) return [];
+  if (creatorIds.length > CREATOR_BATCH_SIZE) {
+    throw new Error(`Creator chunk ${CREATOR_BATCH_SIZE} kaydı aşamaz.`);
+  }
+  const supabase = options.client;
+  const provider = resolveProvider();
+  const { data } = await supabase
+    .from("creators")
+    .select("id, username")
+    .in("id", creatorIds)
+    .eq("platform", "tiktok");
+  const byUsername = new Map<string, string>();
+  const output: Array<{ id: string; outcome: "success" | "failed"; message: string }> = [];
+  for (const row of data ?? []) {
+    try {
+      byUsername.set(normalizeTikTokUsername(row.username as string), row.id as string);
+    } catch {
+      output.push({ id: row.id as string, outcome: "failed", message: "Geçersiz TikTok kullanıcı adı." });
+    }
+  }
+  const usernames = [...byUsername.keys()];
+  if (usernames.length === 0) return output;
+  const batch = await provider.fetchCreatorProfilesBatch(
+    usernames.map((username) => ({ username }))
+  );
+  for (const username of usernames) {
+    const id = byUsername.get(username)!;
+    const item = batch.results.get(username);
+    if (!item || item.status === "error") {
+      output.push({
+        id,
+        outcome: "failed",
+        message: item?.status === "error" ? item.error.toUserMessage() : "TikTok veri sağlayıcı sonuç döndürmedi.",
+      });
+      continue;
+    }
+    const cachedProvider: TikTokCreatorProvider = {
+      fetchCreatorProfile: async () => item.profile,
+      fetchCreatorProfilesBatch: async () => ({ results: new Map(), actorRunsStarted: 0 }),
+    };
+    const result = await syncTikTokCreator(id, cachedProvider, {
+      client: supabase,
+      force: true,
+      manualCooldown: false,
+      operationCache: options.operationCache,
+    });
+    output.push({ id, outcome: result.outcome === "success" ? "success" : "failed", message: result.message });
+  }
+  return output;
 }

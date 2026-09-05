@@ -9,6 +9,7 @@ import {
   type ApifyFetchImpl,
 } from "@/lib/providers/tiktok/apify-provider.core";
 import { ApifyRunTracker } from "@/lib/providers/tiktok/apify-run-tracker";
+import { TikTokProviderError } from "@/lib/providers/tiktok/errors";
 import {
   assertCreatorBatchInputIntact,
   buildCreatorBatchInput,
@@ -143,6 +144,34 @@ describe("orchestrateCreatorBatchFetches (UI-equivalent batch boundary)", () => 
     assert.equal(result.sentBatches[0]?.length, 5);
     assert.equal(result.sentBatches[1]?.length, 1);
     assert.equal(result.actorRunsStarted, 2);
+  });
+
+  it("stops before another provider batch when the invocation budget is exhausted", async () => {
+    const usernames = ["c1", "c2", "c3", "c4", "c5", "c6"];
+    let allowed = true;
+    let calls = 0;
+
+    const result = await orchestrateCreatorBatchFetches(
+      usernames,
+      async (inputs) => {
+        calls += 1;
+        allowed = false;
+        return {
+          results: new Map(
+            inputs.map(({ username }) => [
+              username!,
+              { status: "error" as const, error: new TikTokProviderError("upstream_failure") },
+            ])
+          ),
+          actorRunsStarted: 1,
+        };
+      },
+      { shouldContinue: () => allowed }
+    );
+
+    assert.equal(calls, 1);
+    assert.equal(result.sentBatches[0]?.length, CREATOR_BATCH_SIZE);
+    assert.deepEqual(result.skippedUsernames, ["c6"]);
   });
 });
 

@@ -29,6 +29,21 @@ const NAV_ITEMS = [
     match: (path: string) => path === "/reports",
   },
   {
+    href: "/clients",
+    label: "Müşteri Erişimi",
+    match: (path: string) => path.startsWith("/clients"),
+  },
+  {
+    href: "/leads",
+    label: "Gelen Talepler",
+    match: (path: string) => path.startsWith("/leads"),
+  },
+  {
+    href: "/finance",
+    label: "Kişisel Finans",
+    match: (path: string) => path.startsWith("/finance"),
+  },
+  {
     href: "/settings",
     label: "Ayarlar",
     match: (path: string) =>
@@ -45,9 +60,9 @@ export function ManagementNav() {
   const pathname = usePathname();
 
   return (
-    <header className="border-b border-[var(--bf-border)] bg-[color-mix(in_srgb,var(--bf-elevated)_88%,transparent)] backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-4">
-        <div className="flex items-center gap-6">
+    <header className="sticky top-0 z-50 border-b border-[var(--bf-border)] bg-[color-mix(in_srgb,var(--bf-bg)_92%,transparent)] backdrop-blur-md">
+      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
+        <div className="flex min-w-0 flex-1 items-center gap-4 lg:gap-6">
           <Link
             href="/"
             className="inline-flex items-center gap-2.5 text-sm font-semibold tracking-tight text-[var(--bf-text)]"
@@ -60,7 +75,7 @@ export function ManagementNav() {
             </span>
             <span className="tracking-[0.14em] uppercase">BeFluencer</span>
           </Link>
-          <nav className="flex flex-wrap items-center gap-1" aria-label="Yönetim">
+          <nav className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Yönetim">
             {NAV_ITEMS.map((item) => {
               const active = item.match(pathname);
               return (
@@ -69,7 +84,7 @@ export function ManagementNav() {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "relative rounded-md px-3 py-1.5 text-sm transition-colors",
+                    "relative shrink-0 rounded-md px-3 py-2 text-sm transition-colors",
                     active
                       ? "bg-[color-mix(in_srgb,var(--bf-accent)_12%,transparent)] text-[var(--bf-accent)] before:absolute before:inset-y-1.5 before:left-0 before:w-0.5 before:rounded-full before:bg-[var(--bf-accent)]"
                       : "text-[var(--bf-text-secondary)] hover:bg-[var(--bf-surface)] hover:text-[var(--bf-text)]"
@@ -82,7 +97,7 @@ export function ManagementNav() {
           </nav>
         </div>
 
-        <form action="/auth/signout" method="post">
+        <form action="/auth/signout" method="post" className="shrink-0">
           <button
             type="submit"
             className="rounded-md px-3 py-1.5 text-sm text-[var(--bf-text-secondary)] transition-colors hover:bg-[var(--bf-surface)] hover:text-[var(--bf-text)]"
